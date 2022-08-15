@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JpbDataSourceConfig">
+    <data-sources>
+      <data-source id="7d915ebd-a75d-4aba-969b-1eab6e345133" name="searchEngineConnection" url="jdbc:postgresql://localhost/search_engine" driverClass="org.postgresql.Driver" />
+    </data-sources>
+  </component>
+</project>
