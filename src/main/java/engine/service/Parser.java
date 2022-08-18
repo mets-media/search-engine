@@ -130,7 +130,6 @@ public class Parser extends RecursiveAction {
 
         if (hReference != null)
         for (String hRef : hReference) {
-            //if ((hRef.toLowerCase().indexOf(domainName) >= 0) && (!cache.containsKey(hRef))) {
             if ((HtmlParsing.isCurrentSite(hRef,domainName)) && (!cache.containsKey(hRef))) {
                 Parser parser = new Parser(hRef, domainName);
                 taskList.add(parser);

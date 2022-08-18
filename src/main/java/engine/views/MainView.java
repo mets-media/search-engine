@@ -9,6 +9,7 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -16,10 +17,15 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.ClickableRenderer;
 import com.vaadin.flow.data.renderer.NativeButtonRenderer;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
+import engine.auxEntity.FieldType;
+import engine.auxEntity.MainGrid;
+import engine.auxRepository.MainGridRepository;
 import engine.entity.Site;
+import engine.grid.GridBufferedInlineEditor;
 import engine.service.Parser;
 import engine.repository.PageRepository;
 import engine.repository.SiteRepository;
@@ -42,6 +48,8 @@ public class MainView extends AppLayout {
     @Autowired
     Parser parser;
 
+    @Autowired
+    MainGridRepository mainGridRepository;
 
     public MainView() {
 
@@ -62,12 +70,19 @@ public class MainView extends AppLayout {
         tab.getElement().addEventListener("click", domEvent -> setContent(getSitesComponent()));
         tabs.add(tab);
 
-//        tab = new Tab("Результаты");
-//        tab.getElement().addEventListener("click", domEvent -> UI.getCurrent().navigate(SiteList.class));
-//        tabs.add(tab);
+        tab = new Tab("Структура");
+        tab.getElement().addEventListener("click", domEvent -> fillStructure());
+        tabs.add(tab);
 
         addToDrawer(tabs);
         addToNavbar(toggle, title);
+    }
+
+    public void fillStructure() {
+//        mainGridRepository.save(new MainGrid(1l,"url", FieldType.TEXT_FIELD,"Сайт",120,false));
+//        mainGridRepository.save(new MainGrid(2l,"", FieldType.EDIT_BUTTON,"Редактирование",120,false));
+
+        setContent(getGridWithEditor());
     }
 
     public void fillGrid(Grid<Site> grid) {
@@ -80,7 +95,8 @@ public class MainView extends AppLayout {
 
             grid.addItemClickListener(
                     event -> {
-                        showMessage("Clicked Item: " + event.getItem(), 1000, Notification.Position.MIDDLE);
+                        //showMessage("Clicked Item: " + event.getItem(), 1000, Notification.Position.MIDDLE);
+                        grid.getEditor().editItem(event.getItem());
                     });
 
             grid.getStyle()
@@ -154,12 +170,29 @@ public class MainView extends AppLayout {
         }
     }
 
+    private VerticalLayout getGridWithEditor() {
+
+        VerticalLayout layout = new VerticalLayout();
+        layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.START);
+
+        GridBufferedInlineEditor eGrid = new GridBufferedInlineEditor(mainGridRepository);
+        eGrid.addColumns(mainGridRepository.findAll());
+
+        List<Site> sites = siteRepository.findAll();
+        eGrid.getGrid().setItems(sites);
+
+        layout.add(eGrid.getGrid());
+
+        return layout;
+    }
+
     private VerticalLayout getSitesComponent() {
         VerticalLayout layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.START);
         //layout.setMaxWidth(600, Unit.PIXELS);
 
         Grid<Site> grid = new Grid<>();
+
         //Первый вариант...
 //        RouterLink linkCreate = new RouterLink("Добавить сайт", ManageSite.class, 0l);
 //        linkCreate.getStyle()
@@ -251,7 +284,6 @@ public class MainView extends AppLayout {
         notification.setPosition(position);
         notification.open();
     }
-
 
 }
 
