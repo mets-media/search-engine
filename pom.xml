@@ -1,5 +1,6 @@
 <!--This XML file does not appear to have any style information associated with it. The document tree is shown below.-->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>mets</groupId>
     <artifactId>engine</artifactId>
@@ -15,6 +16,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.6.8</version>
+        <relativePath/>
     </parent>
 
     <repositories>
@@ -80,7 +82,7 @@
         <dependency>
             <groupId>com.vaadin</groupId>
             <!--  Replace artifactId with vaadin-core to use only free components  -->
-<!--            <artifactId>vaadin</artifactId>-->
+            <!--            <artifactId>vaadin</artifactId>-->
             <artifactId>vaadin-core</artifactId>
         </dependency>
         <dependency>
@@ -118,12 +120,41 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
             <version>3.8.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>morph</artifactId>
+            <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene.analysis</groupId>
+            <artifactId>morphology</artifactId>
+            <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>dictionary-reader</artifactId>
+            <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>english</artifactId>
+            <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>russian</artifactId>
+            <version>1.5</version>
+        </dependency>
+
+
     </dependencies>
     <build>
         <defaultGoal>spring-boot:run</defaultGoal>
