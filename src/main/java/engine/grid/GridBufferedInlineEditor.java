@@ -47,7 +47,9 @@ public class GridBufferedInlineEditor {
                             .setHeader(column.getCaption());
 
                     TextField textField = new TextField();
-                    textField.setWidthFull();
+                    if (column.getWidth().equals(0)) {textField.setWidthFull();}
+                    else {textField.setWidth(column.getWidth() + "px");}
+
 
                     binder.forField(textField)
                             .asRequired("url сайта не может быть пустым!")
@@ -73,8 +75,9 @@ public class GridBufferedInlineEditor {
                                 });
                                 return editButton;
                             //}).setAutoWidth(true).setFlexGrow(0);
-                    //}).setWidth(column.getWidth() + "px").setFlexGrow(0);
-                            }).setWidth(150 + "px").setFlexGrow(0);
+                                //}).setWidth(150 + "px").setFlexGrow(0);
+                    }).setWidth(column.getWidth() + "px").setFlexGrow(0);
+
 
                     Button saveButton = new Button("Save", e -> editor.save());
 
