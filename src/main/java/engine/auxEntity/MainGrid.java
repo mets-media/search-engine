@@ -23,6 +23,8 @@ public class MainGrid implements Serializable {
     @Column(length = 50)
     private String caption;
     private Integer width;
+    @Column(length = 12)
+    private String prefix;
     private Boolean readOnly;
 
 

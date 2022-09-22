@@ -1,15 +1,11 @@
 package engine.views;
 
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -17,12 +13,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.renderer.ClickableRenderer;
 import com.vaadin.flow.data.renderer.NativeButtonRenderer;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouterLink;
-import engine.auxEntity.FieldType;
-import engine.auxEntity.MainGrid;
+import engine.auxEntity.AuxData;
 import engine.auxRepository.MainGridRepository;
 import engine.entity.Site;
 import engine.grid.GridBufferedInlineEditor;
@@ -31,6 +24,7 @@ import engine.repository.PageRepository;
 import engine.repository.SiteRepository;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,38 +45,33 @@ public class MainView extends AppLayout {
     @Autowired
     MainGridRepository mainGridRepository;
 
+
+    GridBufferedInlineEditor eGrid = null;
     public MainView() {
 
         DrawerToggle toggle = new DrawerToggle();
 
         H1 title = new H1("Search Engine");
         title.getStyle()
-                .set("font-size", "var(--lumo-font-size-l)")
+                .set("font-size", "var(--lumo-font-size-xxs)")
                 .set("margin", "0");
 
         Tabs tabs = new Tabs();
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         tabs.getStyle()
-                .set("font-size", "var(--lumo-font-size-l)")
+                .set("font-size", "var(--lumo-font-size-xxs)")
                 .set("margin", "0");
 
-        Tab tab = new Tab("Список сайтов");
-        tab.getElement().addEventListener("click", domEvent -> setContent(getSitesComponent()));
-        tabs.add(tab);
+//        Tab tab = new Tab("Список сайтов");
+//        tab.getElement().addEventListener("click", domEvent -> setContent(getSitesComponent()));
+//        tabs.add(tab);
 
-        tab = new Tab("Структура");
-        tab.getElement().addEventListener("click", domEvent -> fillStructure());
+        Tab tab = new Tab("Анализ сайтов");
+        tab.getElement().addEventListener("click", domEvent -> setContent(getGridWithEditor()));
         tabs.add(tab);
 
         addToDrawer(tabs);
         addToNavbar(toggle, title);
-    }
-
-    public void fillStructure() {
-//        mainGridRepository.save(new MainGrid(1l,"url", FieldType.TEXT_FIELD,"Сайт",120,false));
-//        mainGridRepository.save(new MainGrid(2l,"", FieldType.EDIT_BUTTON,"Редактирование",120,false));
-
-        setContent(getGridWithEditor());
     }
 
     public void fillGrid(Grid<Site> grid) {
@@ -100,7 +89,7 @@ public class MainView extends AppLayout {
                     });
 
             grid.getStyle()
-                    .set("font-size", "var(--lumo-font-size-xs)")
+                    .set("font-size", "var(--lumo-font-size-xxs)")
                     .set("margin", "0");
 
 
@@ -172,8 +161,28 @@ public class MainView extends AppLayout {
 
     private VerticalLayout getGridWithEditor() {
 
+        if (eGrid == null) {
+
+        }
+
+        //Данные о структуре
+        AuxData.fillStructure(mainGridRepository);
+
         VerticalLayout layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.START);
+
+        Button createButton = new Button("Добавить сайт");
+        createButton.getStyle()
+                .set("font-size", "var(--lumo-font-size-xxs)")
+                .set("margin", "0");
+
+
+        createButton.addClickListener(buttonClickEvent -> {
+            setContent(getModifyComponent(0l));
+
+        });
+        layout.add(createButton);
+
 
         GridBufferedInlineEditor eGrid = new GridBufferedInlineEditor(mainGridRepository);
         eGrid.addColumns(mainGridRepository.findAll());
@@ -230,13 +239,13 @@ public class MainView extends AppLayout {
         layout.setMaxWidth(700, Unit.PIXELS);
 
         layout.getStyle()
-                .set("font-size", "var(--lumo-font-size-xs)")
+                .set("font-size", "var(--lumo-font-size-xxs)")
                 .set("margin", "0");
         urlText.getStyle()
-                .set("font-size", "var(--lumo-font-size-xs)")
+                .set("font-size", "var(--lumo-font-size-xxs)")
                 .set("margin", "0");
         saveButton.getStyle()
-                .set("font-size", "var(--lumo-font-size-xs)")
+                .set("font-size", "var(--lumo-font-size-xxs)")
                 .set("margin", "0");
 
         //Все элементы на форму
@@ -268,13 +277,15 @@ public class MainView extends AppLayout {
                 notification.setPosition(Notification.Position.MIDDLE);
                 notification.addDetachListener(detachEvent -> {
                     //UI.getCurrent().navigate(MainView.class);
-                    setContent(getSitesComponent());
+                    //setContent(getSitesComponent());
+                    setContent(getGridWithEditor());
                 });
                 //formLayout.setEnabled(false);
                 notification.open();
             } else {
                 showMessage("Вы ничего не внесли...", 1000, Notification.Position.MIDDLE);
-                setContent(getSitesComponent());
+                //setContent(getSitesComponent());
+                setContent(getGridWithEditor());
             }
         });
     }

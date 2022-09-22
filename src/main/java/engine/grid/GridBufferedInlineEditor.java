@@ -4,9 +4,12 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.editor.Editor;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.BigDecimalField;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import engine.auxEntity.FieldType;
@@ -30,6 +33,13 @@ public class GridBufferedInlineEditor {
         this.grid = new Grid<>(Site.class, false);
     }
 
+    public static void setButtonFontSize(Button button, String fontSize) {
+        fontSize = "var(--lumo-font-size-".concat(fontSize);
+        button.getStyle()
+                .set("font-size", fontSize)
+                .set("margin", "0");
+    }
+
     public void addColumns(List<MainGrid> columnsInfo) {
         Editor editor = grid.getEditor();
 
@@ -41,19 +51,51 @@ public class GridBufferedInlineEditor {
             System.out.println("fieldName " + column.getFieldName());
             FieldType fType = (FieldType) column.getFieldType();
             switch (fType) {
+                case NUMBER_FIELD -> {
+                    NumberField numberField = new NumberField();
+                    //Binder.Binding<Site, FIELDVALUE> bind = binder.bind(numberField, Site::getPageCount, Site::setPageCount);
+
+
+//                    Grid.Column<Site> numberColumn = grid.addComponentColumn(site -> {
+//                        NumberField numberField = new NumberField();
+//
+//                        //numberField.setLabel(column.getCaption());
+//                        //numberField.setValue(0D);
+//
+//                        numberField.setReadOnly(column.getReadOnly());
+//
+//                        String prefix = column.getPrefix();
+//                        if (!prefix.isBlank()) {
+//                            Div prefixComponent = new Div();
+//                            prefixComponent.setText(prefix);
+//                            numberField.setPrefixComponent(prefixComponent);
+//                        }
+//                        return numberField;
+//                    });
+                }
+                case PARSE_BUTTON -> {
+                    System.out.println("Создание колонки " + fType);
+                    Grid.Column<Site> editColumn = grid.addComponentColumn(site -> {
+                        Button parseButton = new Button("Parse");
+                        return parseButton;
+                    });
+                }
                 case TEXT_FIELD -> {
                     System.out.println("Текстовое поле " + fType);
                     Grid.Column<Site> textColumn = grid.addColumn(column.getFieldName())
                             .setHeader(column.getCaption());
 
                     TextField textField = new TextField();
-                    if (column.getWidth().equals(0)) {textField.setWidthFull();}
-                    else {textField.setWidth(column.getWidth() + "px");}
+                    if (column.getWidth().equals(0)) {
+                        textField.setWidthFull();
+                    } else {
+                        textField.setWidth(column.getWidth() + "px");
+                    }
 
 
                     binder.forField(textField)
                             .asRequired("url сайта не может быть пустым!")
-                            .withStatusLabel(new Label("ValidationMessage"))
+                            .withStatusLabel(new Label("Не правильнный ввод данных"))
                             .bind(Site::getUrl, Site::setUrl);
 
                     textColumn.setEditorComponent(textField);
@@ -63,10 +105,8 @@ public class GridBufferedInlineEditor {
                     System.out.println("Создание колонки " + fType);
                     Grid.Column<Site> editColumn =
                             grid.addComponentColumn(site -> {
-                                Button editButton = new Button("Edit");
-                                editButton.getStyle()
-                                        .set("font-size", "var(--lumo-font-size-l)")
-                                        .set("margin", "0");
+                                Button editButton = new Button(column.getCaption());
+                                //setButtonFontSize(editButton, "xs");
 
                                 editButton.addClickListener(e -> {
                                     if (editor.isOpen())
@@ -74,9 +114,9 @@ public class GridBufferedInlineEditor {
                                     grid.getEditor().editItem(site);
                                 });
                                 return editButton;
-                            //}).setAutoWidth(true).setFlexGrow(0);
+                                //}).setAutoWidth(true).setFlexGrow(0);
                                 //}).setWidth(150 + "px").setFlexGrow(0);
-                    }).setWidth(column.getWidth() + "px").setFlexGrow(0);
+                            }).setWidth(column.getWidth() + "px").setFlexGrow(0);
 
 
                     Button saveButton = new Button("Save", e -> editor.save());
@@ -95,11 +135,7 @@ public class GridBufferedInlineEditor {
                     editColumn.setEditorComponent(actions);
 
                 }
-
-
             }
-
-
         });
     }
 

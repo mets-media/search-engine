@@ -4,8 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="SearchEngine. Editing Grid.">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="adds morph dependencies">
+      <change afterPath="$PROJECT_DIR$/lib/ russianmorphology/dictionary-reader-1.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/ russianmorphology/english-1.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/ russianmorphology/morph-1.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/ russianmorphology/morphology-1.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/ russianmorphology/russian-1.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/engine/auxEntity/AuxData.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/auxEntity/FieldType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/auxEntity/FieldType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/auxEntity/MainGrid.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/auxEntity/MainGrid.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Site.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Site.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/grid/GridBufferedInlineEditor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/grid/GridBufferedInlineEditor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,6 +34,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="SYNC" />
     <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="JpbToolWindowState">
@@ -52,7 +64,7 @@
     </option>
   </component>
   <component name="ProjectId" id="2DNPBJaOwPNZ0UkX7TYTB4uoMoD" />
-  <component name="ProjectLevelVcsManager">
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
@@ -71,6 +83,11 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\mets.java\mets\lib\ russianmorphology" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="Application" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="engine.Application" />
@@ -135,7 +152,14 @@
       <option name="project" value="LOCAL" />
       <updated>1660879502956</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="adds morph dependencies">
+      <created>1660934758603</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1660934758603</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -154,7 +178,8 @@
     <MESSAGE value="Итоговый проек.SearchEngine. Первый этап." />
     <MESSAGE value="Итоговый проект. SearchEngine. Первый этап." />
     <MESSAGE value="SearchEngine. Editing Grid." />
-    <option name="LAST_COMMIT_MESSAGE" value="SearchEngine. Editing Grid." />
+    <MESSAGE value="adds morph dependencies" />
+    <option name="LAST_COMMIT_MESSAGE" value="adds morph dependencies" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -166,7 +191,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/grid/GridBufferedInlineEditor.java</url>
-          <line>39</line>
+          <line>49</line>
           <option name="timeStamp" value="5" />
         </line-breakpoint>
       </breakpoints>
