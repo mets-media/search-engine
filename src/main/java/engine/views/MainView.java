@@ -161,9 +161,9 @@ public class MainView extends AppLayout {
 
     private VerticalLayout getGridWithEditor() {
 
-        if (eGrid == null) {
-
-        }
+//        if (eGrid == null) {
+//
+//        }
 
         //Данные о структуре
         AuxData.fillStructure(mainGridRepository);
@@ -182,7 +182,6 @@ public class MainView extends AppLayout {
 
         });
         layout.add(createButton);
-
 
         GridBufferedInlineEditor eGrid = new GridBufferedInlineEditor(mainGridRepository);
         eGrid.addColumns(mainGridRepository.findAll());

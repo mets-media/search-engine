@@ -5,17 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="adds morph dependencies">
-      <change afterPath="$PROJECT_DIR$/lib/ russianmorphology/dictionary-reader-1.5.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/ russianmorphology/english-1.5.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/ russianmorphology/morph-1.5.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/ russianmorphology/morphology-1.5.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/ russianmorphology/russian-1.5.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/auxEntity/AuxData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/auxEntity/FieldType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/auxEntity/FieldType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/auxEntity/MainGrid.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/auxEntity/MainGrid.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Site.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Site.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/grid/GridBufferedInlineEditor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/grid/GridBufferedInlineEditor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/auxEntity/AuxData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/auxEntity/AuxData.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -77,10 +70,10 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;M:/&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
   }
 }</component>
   <component name="RecentsManager">
@@ -175,6 +168,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/.." />
+    </ignored-roots>
     <MESSAGE value="Итоговый проек.SearchEngine. Первый этап." />
     <MESSAGE value="Итоговый проект. SearchEngine. Первый этап." />
     <MESSAGE value="SearchEngine. Editing Grid." />
@@ -193,6 +189,21 @@
           <url>file://$PROJECT_DIR$/src/main/java/engine/grid/GridBufferedInlineEditor.java</url>
           <line>49</line>
           <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/views/MainView.java</url>
+          <line>186</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/grid/GridBufferedInlineEditor.java</url>
+          <line>52</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/views/MainView.java</url>
+          <line>78</line>
+          <option name="timeStamp" value="9" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
