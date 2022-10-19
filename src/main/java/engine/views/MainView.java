@@ -9,6 +9,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
@@ -24,7 +25,6 @@ import engine.repository.PageRepository;
 import engine.repository.SiteRepository;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +33,7 @@ import java.util.Optional;
 @Getter
 public class MainView extends AppLayout {
 
+    String selectedSite = "";
     @Autowired
     SiteRepository siteRepository;
 
@@ -47,6 +48,7 @@ public class MainView extends AppLayout {
 
 
     GridBufferedInlineEditor eGrid = null;
+
     public MainView() {
 
         DrawerToggle toggle = new DrawerToggle();
@@ -68,6 +70,10 @@ public class MainView extends AppLayout {
 
         Tab tab = new Tab("Анализ сайтов");
         tab.getElement().addEventListener("click", domEvent -> setContent(getGridWithEditor()));
+        tabs.add(tab);
+
+        tab = new Tab("Simple Grid");
+        tab.getElement().addEventListener("click", domEvent -> setContent(getSimpleGrid()));
         tabs.add(tab);
 
         addToDrawer(tabs);
@@ -93,7 +99,6 @@ public class MainView extends AppLayout {
                     .set("margin", "0");
 
 
-
             //Cтолбцы в нужном порядке
             //grid.addColumn(Site::getUrl).setHeader("Сайт");
             grid.addColumn(Site::getUrl);
@@ -105,7 +110,8 @@ public class MainView extends AppLayout {
 //                parser.run();
                 if (!Parser.isActive()) {
                     Parser.setPageRepository(pageRepository);
-                    Parser.start(site.getUrl());
+                    //0L - заглушка
+                    Parser.start(0L, site.getUrl());
                 }
                 Parser.setActive(false);
 
@@ -194,6 +200,95 @@ public class MainView extends AppLayout {
         return layout;
     }
 
+    private VerticalLayout getSimpleGrid() {
+        Grid<Site> grid = new Grid<>(Site.class, false);
+        grid.addItemClickListener(
+                event -> {
+                    selectedSite = event.getItem().getUrl();
+                    showMessage("Сайт: " + event.getItem().getUrl(), 3000, Notification.Position.MIDDLE);
+                    //grid.getEditor().editItem(event.getItem());
+                });
+
+
+        grid.addColumn(Site::getUrl);
+        grid.addColumn(Site::getPageCount);
+
+
+        VerticalLayout layout = new VerticalLayout();
+        layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.END);
+
+        HorizontalLayout hLayout = new HorizontalLayout();
+        hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+
+        layout.add(hLayout);
+
+        Button createButton = new Button("Добавить сайт");
+        createButton.getStyle()
+                .set("font-size", "var(--lumo-font-size-xxs)")
+                .set("margin", "0");
+        createButton.addClickListener(buttonClickEvent -> {
+            setContent(getModifyComponent(0l));
+
+        });
+        hLayout.add(createButton);
+
+
+        //=================  Кнопка удаления Сайта  =======================
+        Button deleteButton = new Button("Удалить");
+        deleteButton.getStyle()
+                .set("font-size", "var(--lumo-font-size-xxs)")
+                .set("margin", "0");
+
+        deleteButton.addClickListener(buttonClickEvent -> {
+            Dialog dialog = new Dialog();
+            Button confirm = new Button("Удалить");
+            Button cancel = new Button("Отмена");
+
+            dialog.add("Вы уверены что хотите удалить сайт?");
+            dialog.add(confirm);
+            dialog.add(cancel);
+            confirm.addClickListener(clickEvent -> {
+
+                Optional<Site> site = grid.getSelectedItems().stream().findFirst();
+                siteRepository.delete(site.get());
+
+                dialog.close();
+                Notification notification = new Notification("Сайт удален", 1000);
+                notification.setPosition(Notification.Position.MIDDLE);
+                notification.open();
+                grid.setItems(siteRepository.findAll());
+            });
+            cancel.addClickListener(clickEvent -> {
+                dialog.close();
+            });
+            dialog.open();
+
+        });
+        hLayout.add(deleteButton);
+
+        Button parseButton = new Button("Сканировать");
+        parseButton.getStyle()
+                .set("font-size", "var(--lumo-font-size-xxs)")
+                .set("margin", "0");
+
+        parseButton.addClickListener(buttonClickEvent -> {
+            Parser.setPageRepository(pageRepository);
+            //Parser.start(selectedSite);
+            Optional<Site> currentSite =  grid.getSelectedItems().stream().findFirst();
+            Parser.start(currentSite.get().getId(), currentSite.get().getUrl());
+        });
+        hLayout.add(parseButton);
+
+
+        List<Site> sites = siteRepository.findAll();
+        grid.setItems(sites);
+        layout.add(grid);
+
+
+        return layout;
+    }
+
+
     private VerticalLayout getSitesComponent() {
         VerticalLayout layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.START);
@@ -277,14 +372,16 @@ public class MainView extends AppLayout {
                 notification.addDetachListener(detachEvent -> {
                     //UI.getCurrent().navigate(MainView.class);
                     //setContent(getSitesComponent());
-                    setContent(getGridWithEditor());
+                    //setContent(getGridWithEditor());
+                    setContent(getSimpleGrid());
                 });
                 //formLayout.setEnabled(false);
                 notification.open();
             } else {
                 showMessage("Вы ничего не внесли...", 1000, Notification.Position.MIDDLE);
                 //setContent(getSitesComponent());
-                setContent(getGridWithEditor());
+                //setContent(getGridWithEditor());
+                setContent(getSimpleGrid());
             }
         });
     }

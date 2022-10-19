@@ -53,11 +53,12 @@ public class HtmlParsing {
     public static String getDomainName(String url) {
 
         url = url.toLowerCase().replace("www.","");
-        String regEx = "\\/\\/[^.]+.[^\\W]+";
+        //String regEx = "\\/\\/[^.]+.[^\\W]+";
+        String regEx = "\\w+.\\w+$";
         Pattern pattern = Pattern.compile(regEx);
         Matcher matcher = pattern.matcher(url);
         if (matcher.find()) {
-            return url.substring(matcher.start() + 2, matcher.end());
+            return url.substring(matcher.start(), matcher.end());
         } else
             return null;
     }

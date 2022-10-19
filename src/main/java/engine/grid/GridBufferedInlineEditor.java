@@ -52,26 +52,26 @@ public class GridBufferedInlineEditor {
             FieldType fType = (FieldType) column.getFieldType();
             switch (fType) {
                 case NUMBER_FIELD -> {
-                    NumberField numberField = new NumberField();
+                    //NumberField numberField = new NumberField();
                     //Binder.Binding<Site, FIELDVALUE> bind = binder.bind(numberField, Site::getPageCount, Site::setPageCount);
 
 
-//                    Grid.Column<Site> numberColumn = grid.addComponentColumn(site -> {
-//                        NumberField numberField = new NumberField();
-//
-//                        //numberField.setLabel(column.getCaption());
-//                        //numberField.setValue(0D);
-//
-//                        numberField.setReadOnly(column.getReadOnly());
-//
-//                        String prefix = column.getPrefix();
-//                        if (!prefix.isBlank()) {
-//                            Div prefixComponent = new Div();
-//                            prefixComponent.setText(prefix);
-//                            numberField.setPrefixComponent(prefixComponent);
-//                        }
-//                        return numberField;
-//                    });
+                    Grid.Column<Site> numberColumn = grid.addComponentColumn(site -> {
+                        NumberField numberField = new NumberField();
+
+                        numberField.setLabel(column.getCaption());
+                        numberField.setValue(0D);
+
+                        numberField.setReadOnly(column.getReadOnly());
+
+                        String prefix = column.getPrefix();
+                        if (!prefix.isBlank()) {
+                            Div prefixComponent = new Div();
+                            prefixComponent.setText(prefix);
+                            numberField.setPrefixComponent(prefixComponent);
+                        }
+                        return numberField;
+                    });
                 }
                 case PARSE_BUTTON -> {
                     System.out.println("Создание колонки " + fType);

@@ -3,14 +3,19 @@ package engine.service;
 import engine.entity.Page;
 import engine.repository.PageRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.FilenameUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
@@ -48,13 +53,15 @@ public class Parser extends RecursiveAction {
     public static void setPageRepository(PageRepository pageRepository) {
         Parser.pageRepository = pageRepository;
     }
-    public Parser(String path, String domainName) {
+
+    public Parser(Long idParent, String path, String domainName) {
         this.path = path;
         this.domainName = domainName;
+        this.idParent = idParent;
     }
-    public static void start(String path) {
+    public static void start(Long idParent, String path) {
 
-        pageRepository.deleteAll();
+        //pageRepository.deleteAll();
 
         String domainName = HtmlParsing.getDomainName(path);
         String fileName = "data/" + domainName + "/cache.obj";
@@ -63,7 +70,7 @@ public class Parser extends RecursiveAction {
         active = true;
 
         TimeMeasure.setStartTime();
-        Parser parser = new Parser(path, domainName);
+        Parser parser = new Parser(idParent, path, domainName);
         parser.invoke();
 
         System.out.println("Завершение потоков!");
@@ -97,6 +104,7 @@ public class Parser extends RecursiveAction {
             try {
                 code = HtmlParsing.getStatusCode(path);
                 System.out.format("download: [%d]  %s\n", code, path);
+                //Files.writeString()
                 document = HtmlParsing.getHtmlDocument(path);
                 content = document.body().toString();
                 cacheModify = true;
@@ -109,7 +117,7 @@ public class Parser extends RecursiveAction {
             }
             if (code != null) { //Таймаут сервера и т.п.
                 //page = new Page(id, idParent, path, code, content);
-                page = new Page(path, code, content);
+                page = new Page(idParent, path, code, content);
                 if (code == 200) {
                     cache.put(path, page);
                 }
@@ -131,7 +139,7 @@ public class Parser extends RecursiveAction {
         if (hReference != null)
         for (String hRef : hReference) {
             if ((HtmlParsing.isCurrentSite(hRef,domainName)) && (!cache.containsKey(hRef))) {
-                Parser parser = new Parser(hRef, domainName);
+                Parser parser = new Parser(idParent, hRef, domainName);
                 taskList.add(parser);
                 parser.fork();
             }
@@ -150,6 +158,28 @@ public class Parser extends RecursiveAction {
                 FileInputStream fileInputStream = new FileInputStream(fileName);
                 ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
                 cache = (ConcurrentHashMap<String, Page>) objectInputStream.readObject();
+
+
+                List<String> listHTML = new ArrayList<>();
+                StringBuilder stringBuilder = new StringBuilder();
+                cache.entrySet().forEach (l-> {
+                    //stringBuilder.append(l.getKey());
+                    //stringBuilder.append("\n\n");
+                    listHTML.add(l.getKey());
+                });
+
+                Collections.sort(listHTML);
+
+                listHTML.forEach(l-> stringBuilder.append(l.concat("\n")));;
+                try {
+                    Path path = Paths.get(fileName.replace(FilenameUtils.getExtension(fileName), "txt"));
+                    Files.writeString(path,stringBuilder, StandardCharsets.UTF_8);
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+
                 System.out.format("Страниц в файле %d\n", cache.size());
                 System.out.format("Cache.obj загружен за %d сек.\n",  TimeMeasure.getExperienceTime() / 1000);
             }

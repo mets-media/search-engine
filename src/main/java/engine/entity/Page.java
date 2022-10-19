@@ -25,7 +25,7 @@ public class Page implements Serializable {
     @Column(columnDefinition = "Text not null")
     private String content;
 
-    public Page(String path, Integer code, String content) {
+    public Page(long idParent, String path, Integer code, String content) {
         this.path = path;
         this.idParent = 0l;
         this.code = code;
