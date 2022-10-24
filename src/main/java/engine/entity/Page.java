@@ -17,7 +17,7 @@ public class Page implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(columnDefinition = "bigint not null default 0")
-    private Long idParent;
+    private Long parentId;
     @Column(columnDefinition = "Text not Null Unique")
     private String path;
     @Column(nullable = false)
@@ -25,9 +25,9 @@ public class Page implements Serializable {
     @Column(columnDefinition = "Text not null")
     private String content;
 
-    public Page(long idParent, String path, Integer code, String content) {
+    public Page(long parentId, String path, Integer code, String content) {
         this.path = path;
-        this.idParent = 0l;
+        this.parentId = parentId;
         this.code = code;
         this.content = content;
     }

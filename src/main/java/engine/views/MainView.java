@@ -46,7 +46,6 @@ public class MainView extends AppLayout {
     @Autowired
     MainGridRepository mainGridRepository;
 
-
     GridBufferedInlineEditor eGrid = null;
 
     public MainView() {
@@ -105,11 +104,9 @@ public class MainView extends AppLayout {
 
             //Кнопка Запуск парсинга
             grid.addColumn(new NativeButtonRenderer<Site>("Парсинг", site -> {
-                //Вариант 1
-//                Parser1 parser = new Parser1(site.getUrl(), pageRepository);
-//                parser.run();
                 if (!Parser.isActive()) {
-                    Parser.setPageRepository(pageRepository);
+
+                    //Parser.setPageRepository(pageRepository);
                     //0L - заглушка
                     Parser.start(0L, site.getUrl());
                 }
@@ -200,8 +197,11 @@ public class MainView extends AppLayout {
         return layout;
     }
 
+
     private VerticalLayout getSimpleGrid() {
         Grid<Site> grid = new Grid<>(Site.class, false);
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+
         grid.addItemClickListener(
                 event -> {
                     selectedSite = event.getItem().getUrl();
@@ -209,9 +209,8 @@ public class MainView extends AppLayout {
                     //grid.getEditor().editItem(event.getItem());
                 });
 
-
-        grid.addColumn(Site::getUrl);
-        grid.addColumn(Site::getPageCount);
+        grid.addColumn(Site::getUrl).setHeader("Сайт");
+        //grid.addColumn(Site::getPageCount);
 
 
         VerticalLayout layout = new VerticalLayout();
@@ -273,17 +272,16 @@ public class MainView extends AppLayout {
 
         parseButton.addClickListener(buttonClickEvent -> {
             Parser.setPageRepository(pageRepository);
-            //Parser.start(selectedSite);
-            Optional<Site> currentSite =  grid.getSelectedItems().stream().findFirst();
+            Optional<Site> currentSite = grid.getSelectedItems().stream().findFirst();
+
+            //Запуск сканирования
             Parser.start(currentSite.get().getId(), currentSite.get().getUrl());
         });
         hLayout.add(parseButton);
 
-
         List<Site> sites = siteRepository.findAll();
         grid.setItems(sites);
         layout.add(grid);
-
 
         return layout;
     }

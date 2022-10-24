@@ -4,16 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="adds morph dependencies">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Morph dependencies. Version with HashMap-cash.">
+      <change afterPath="$PROJECT_DIR$/src/main/java/engine/views/Dialogs.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/auxEntity/AuxData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/auxEntity/AuxData.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/grid/GridBufferedInlineEditor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/grid/GridBufferedInlineEditor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/ExtractLinksTask.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser1.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/SiteMap.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -24,9 +21,9 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Enum" />
         <option value="Interface" />
         <option value="Class" />
-        <option value="Enum" />
       </list>
     </option>
   </component>
@@ -69,18 +66,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/Users/alexandr/IdeaProjects/mets",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/alexandr/IdeaProjects/mets&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\mets.java\mets\lib\ russianmorphology" />
@@ -164,7 +161,14 @@
       <option name="project" value="LOCAL" />
       <updated>1665897440917</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Morph dependencies. Version with HashMap-cash.">
+      <created>1666143637480</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1666143637480</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -187,7 +191,8 @@
     <MESSAGE value="Итоговый проект. SearchEngine. Первый этап." />
     <MESSAGE value="SearchEngine. Editing Grid." />
     <MESSAGE value="adds morph dependencies" />
-    <option name="LAST_COMMIT_MESSAGE" value="adds morph dependencies" />
+    <MESSAGE value="Morph dependencies. Version with HashMap-cash." />
+    <option name="LAST_COMMIT_MESSAGE" value="Morph dependencies. Version with HashMap-cash." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -204,18 +209,33 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>102</line>
-          <option name="timeStamp" value="12" />
+          <line>151</line>
+          <option name="timeStamp" value="42" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
+          <line>121</line>
+          <option name="timeStamp" value="49" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
+          <line>141</line>
+          <option name="timeStamp" value="50" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java</url>
+          <line>140</line>
+          <option name="timeStamp" value="52" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
           <line>69</line>
-          <option name="timeStamp" value="15" />
+          <option name="timeStamp" value="54" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>84</line>
-          <option name="timeStamp" value="16" />
+          <url>file://$PROJECT_DIR$/src/main/java/engine/views/Dialogs.java</url>
+          <line>18</line>
+          <option name="timeStamp" value="55" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

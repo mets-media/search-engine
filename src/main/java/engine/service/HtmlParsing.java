@@ -4,6 +4,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
@@ -13,8 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -52,13 +52,13 @@ public class HtmlParsing {
 
     public static String getDomainName(String url) {
 
-        url = url.toLowerCase().replace("www.","");
+        url = url.toLowerCase().replace("www.", "");
         //String regEx = "\\/\\/[^.]+.[^\\W]+";
-        String regEx = "\\w+.\\w+$";
+        String regEx = "[a-z0-9_-]+(\\.[a-z0-9_-]+)*\\.[a-z]{2,5}";
         Pattern pattern = Pattern.compile(regEx);
         Matcher matcher = pattern.matcher(url);
         if (matcher.find()) {
-            return url.substring(matcher.start(), matcher.end());
+            return url.substring(matcher.start(), matcher.end()).replace("www.", "").replace("WWW.", "");
         } else
             return null;
     }
@@ -78,7 +78,7 @@ public class HtmlParsing {
         }
     }
 
-    public static Document getHtmlDocument(String url) throws Exception {
+    public static synchronized Document getHtmlDocument(String url) throws Exception {
         Document document = Jsoup.connect(url)
                 .userAgent("Chrome/100.0.4896.127")
                 .referrer("http://www.google.com")
@@ -95,18 +95,6 @@ public class HtmlParsing {
 
         if (matcher.find()) {
             return Integer.parseInt(exceptString.substring(matcher.start() + 7, matcher.end()));
-        } else {
-            return null;
-        }
-    }
-
-    public static String getUrlFromExceptionString(String exceptString) {
-        String regEx = "URL=[^.][^\\s]+";
-        Pattern pattern = Pattern.compile(regEx);
-        Matcher matcher = pattern.matcher(exceptString);
-
-        if (matcher.find()) {
-            return exceptString.substring(matcher.start() + 4, matcher.end());
         } else {
             return null;
         }
@@ -138,31 +126,31 @@ public class HtmlParsing {
         return htmlDocument.select(cssQuery);
     }
 
-    public static List<String> getAllLinks(Document document) {
+    public static Set<String> getAllLinks(Document document, String domainName) {
         if (document == null) return null;
         Elements elements = document.select("a[href]");
-        List<String> links = new ArrayList<>();
+        Set<String> links = new HashSet<>();
 
-
-        Pattern pattern = Pattern.compile("http[^\"]+");
         for (Element e : elements) {
-            String line = e.toString();
+            String hRef = e.absUrl("href");;
 
-            Matcher matcher = pattern.matcher(line);
-            if (matcher.find()) {
-                line = line.substring(matcher.start(), matcher.end());
+            String RegEx = "\\.[A-z]{3,4}$";
+            Pattern pattern = Pattern.compile(RegEx);
+            Matcher matcher = pattern.matcher(hRef);
+            if (matcher.find())
+                hRef = "";
 
-                if (line.charAt(line.length() - 4) != '.') {
-                    links.add(line);
+            if (hRef.length() > 4)
+                if (".jpg".equalsIgnoreCase(hRef.substring(hRef.length() - 4))) {
+                    hRef = "";
                 }
+
+            if (!"".equals(hRef)) {
+                links.add(hRef);
             }
         }
-
-        links = links.stream().distinct().collect(Collectors.toList());
-//        System.out.println("--------------");
-//        links.forEach(System.out::println);
-//        System.out.println("--------------");
-//        System.out.println("--------------");
         return links;
     }
+
+
 }
