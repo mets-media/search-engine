@@ -4,14 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Morph dependencies. Version with HashMap-cash.">
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/views/Dialogs.java" afterDir="false" />
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Morph dependencies. MultiSelect mode.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/Dialogs.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -168,7 +167,14 @@
       <option name="project" value="LOCAL" />
       <updated>1666143637480</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Morph dependencies. MultiSelect mode.">
+      <created>1666579407416</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1666579407417</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -192,7 +198,8 @@
     <MESSAGE value="SearchEngine. Editing Grid." />
     <MESSAGE value="adds morph dependencies" />
     <MESSAGE value="Morph dependencies. Version with HashMap-cash." />
-    <option name="LAST_COMMIT_MESSAGE" value="Morph dependencies. Version with HashMap-cash." />
+    <MESSAGE value="Morph dependencies. MultiSelect mode." />
+    <option name="LAST_COMMIT_MESSAGE" value="Morph dependencies. MultiSelect mode." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -208,34 +215,19 @@
           <option name="timeStamp" value="8" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>151</line>
-          <option name="timeStamp" value="42" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>121</line>
-          <option name="timeStamp" value="49" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>141</line>
-          <option name="timeStamp" value="50" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java</url>
           <line>140</line>
           <option name="timeStamp" value="52" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>69</line>
-          <option name="timeStamp" value="54" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/views/Dialogs.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/engine/views/confirmDialog.java</url>
           <line>18</line>
           <option name="timeStamp" value="55" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
+          <line>181</line>
+          <option name="timeStamp" value="61" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

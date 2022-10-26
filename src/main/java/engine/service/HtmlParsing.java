@@ -140,10 +140,15 @@ public class HtmlParsing {
             if (matcher.find())
                 hRef = "";
 
-            if (hRef.length() > 4)
+            if (hRef.length() > 4) {
                 if (".jpg".equalsIgnoreCase(hRef.substring(hRef.length() - 4))) {
                     hRef = "";
                 }
+                if (".pdf".equalsIgnoreCase(hRef.substring(hRef.length() - 4))) {
+                    hRef = "";
+                }
+
+            }
 
             if (!"".equals(hRef)) {
                 links.add(hRef);

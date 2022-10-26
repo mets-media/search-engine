@@ -2,7 +2,6 @@ package engine.repository;
 
 import engine.entity.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,11 +16,14 @@ public interface PageRepository extends JpaRepository<Page, Long> {
     savePage(@Param("page") String page, @Param("content") String content);
    */
 
-    List<Page> findByParentId(Long pageParentId);
+    List<Page> findBySiteId(Long pageSiteId);
     @Transactional
-    void deleteByParentId(long pageParentId);
+    void deleteBySiteId(long pageSiteId);
     Optional<Page> findById(Long pageId);
-    @Query(value="Select path from page Where parentId = :parentId", nativeQuery = true)
-    List<String> findLinksByParentId(@Param("parentId") Long pageParentId);
+    @Query(value="Select path from page Where site_Id = :siteId", nativeQuery = true)
+    List<String> findLinksBySiteId(@Param("siteId") Long pageSiteId);
+    @Query(value="Select count(*) from page where site_Id = :siteId", nativeQuery = true)
+    Integer countBySiteId(@Param("siteId") Long pageSiteId);
+
 }
 

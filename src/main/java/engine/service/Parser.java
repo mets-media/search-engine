@@ -1,8 +1,10 @@
 package engine.service;
 
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.notification.Notification;
 import engine.entity.Page;
 import engine.repository.PageRepository;
-import engine.views.Dialogs;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.jsoup.nodes.Document;
@@ -28,7 +30,11 @@ public class Parser extends RecursiveAction {
     private String domainName;
     private static ConcurrentHashMap<String, Page> cache = new ConcurrentHashMap<>();
     private static ConcurrentSkipListSet skipListSet = new ConcurrentSkipListSet();
-    private AtomicLong idSequence = new AtomicLong();
+
+    private Runtime runtime = Runtime.getRuntime();
+
+
+    private static AtomicLong countLinks = new AtomicLong();
 
     private static PageRepository pageRepository;
     private static volatile boolean active;
@@ -64,24 +70,77 @@ public class Parser extends RecursiveAction {
         this.parentId = parentId;
     }
 
+    public static void saveLinksToFile(String fileName, String domainName) {
+        try {
+            OutputStream f = new FileOutputStream(fileName, true);
+            OutputStreamWriter writer = new OutputStreamWriter(f);
+            BufferedWriter out = new BufferedWriter(writer);
+
+            //out.append(skipListSet.toString());
+            //out.flush();
+
+
+            skipListSet.forEach(l -> {
+                String link = l.toString();
+
+                String shortLink = link.substring(link.indexOf(domainName) + domainName.length());
+                if ("".equals(shortLink))
+                    if (link.contains("//".concat(domainName)))
+                        shortLink = "/";
+                    else
+                        shortLink = link;
+
+
+                try {
+                    out.write(shortLink.concat(" ->").concat(link).concat("\n"));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            out.flush();
+
+
+        } catch (IOException ex) {
+            System.err.println(ex);
+        }
+
+    }
+
     public static void start(Long parentId, String path) {
         skipListSet.clear();
 
-        Dialogs.showConfirmDialog("Удалить результаты предыдушего сканирования?",
-                "Удалить", "Не удалять");
-        if (Dialogs.getDialodResult())
-            //pageRepository.deleteByParentId(parentId); //Удаление результатов предыдущего сканирования
-            pageRepository.deleteByParentId(0L); //Удаление результатов предыдущего сканирования
-        else {//Продолжаем сканирование? сохраняя предыдущие результаты
-            List<String> links = pageRepository.findLinksByParentId(parentId);
-            //skipListSet = (ConcurrentSkipListSet) pageRepository.findByParentId(parentId);
-            skipListSet.add("/");
-            for (int i = 1; i < links.size();i++) {
-                skipListSet.add(path.concat(links.get(i)));
-            }
+        int pageCount = pageRepository.countBySiteId(parentId);
+
+        if (pageCount > 0) { // Если существуют страницы в базе данных
+            Dialog dialog = new Dialog();
+            Button confirm = new Button("Удалить");
+            Button cancel = new Button("Продолжить");
+
+            dialog.add("Удалить результаты предыдущего сканирования?");
+            dialog.add(confirm);
+            dialog.add(cancel);
+            confirm.addClickListener(clickEvent -> {
+                dialog.close();
+                Notification notification = new Notification("Удалено", 500);
+                notification.setPosition(Notification.Position.MIDDLE);
+                notification.open();
+                pageRepository.deleteBySiteId(parentId);
+            });
+            cancel.addClickListener(clickEvent -> {
+                dialog.close();
+                Notification notification = new Notification("Результаты сохранены", 500);
+                notification.setPosition(Notification.Position.MIDDLE);
+                notification.open();
+
+                List<String> links = pageRepository.findLinksBySiteId(parentId);
+                skipListSet.add("/");
+                for (int i = 1; i < links.size(); i++) {
+                    skipListSet.add(path.concat(links.get(i)));
+                }
+            });
+            dialog.open();
 
         }
-
 
 
         String domainName = HtmlParsing.getDomainName(path);
@@ -104,12 +163,16 @@ public class Parser extends RecursiveAction {
         System.out.format("Страницы сайта загружены за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
         //Запись Cache.obj
-        TimeMeasure.setStartTime();
+        //TimeMeasure.setStartTime();
         //saveCache(fileName);
         //System.out.format("Cache.obj записан за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
         //Зпись в базу
         //savePagesFromCash();
+
+        TimeMeasure.setStartTime();
+        saveLinksToFile("data/" + domainName + "/links.txt", domainName);
+        System.out.format("Links.txt записан за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
     }
 
@@ -119,17 +182,18 @@ public class Parser extends RecursiveAction {
         Document document = null;
         Page page = null;
 
+
         if (!skipListSet.contains(path)) {
             try {
                 code = HtmlParsing.getStatusCode(path);
                 //skipListSet.add(path);
-                System.out.format("download: [%d]  %s\n", code, path);
+                System.out.format(countLinks + ": download: [%d]  %s\n", code, path);
 
                 //Files.writeString(Paths.get("data/" + domainName + "/hRef.txt"), path, StandardCharsets.UTF_8);
 
                 document = HtmlParsing.getHtmlDocument(path);
                 content = document.body().toString();
-                cacheModify = true;
+
             } catch (Exception e) {
                 //throw new RuntimeException(e);
                 //e.printStackTrace();
@@ -139,20 +203,30 @@ public class Parser extends RecursiveAction {
                 System.out.println(path);
             }
             if (code != null) { //Таймаут сервера и т.п.
-                String shortPath = path.substring(path.indexOf(domainName) + domainName.length());
-                if ("".equals(shortPath))
-                    if (path.contains(domainName))
-                        shortPath = "/";
-                page = new Page(parentId, shortPath, code, content);
+
+//                String shortPath = path.substring(path.indexOf(domainName) + domainName.length());
+//                if ("".equals(shortPath))
+//                    if (path.contains(domainName))
+//                        shortPath = "/";
+//                page = new Page(parentId, shortPath, code, content);
+
                 if (code == 200) {
                     skipListSet.add(path);
-                    try {
-                        pageRepository.save(page);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        System.out.println(path);
-                        return;
+
+                    countLinks.addAndGet(1L);
+                    if (countLinks.compareAndSet(100, 100)) {
+                        saveLinksToFile("data/" + domainName + "/links.txt", domainName);
                     }
+                    ;
+
+                    //временно убрал запись в базу
+//                    try {
+//                        pageRepository.save(page);
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                        System.out.println(path);
+//                        return;
+//                    }
 
                 }
             }
@@ -189,6 +263,7 @@ public class Parser extends RecursiveAction {
             task.join();
         }
     }
+
 
     public static void loadCache(String fileName) {
         cache.clear();
@@ -230,6 +305,7 @@ public class Parser extends RecursiveAction {
 
     }
 
+
     public static void saveCache(String fileName) {
         if (!isCacheModify()) {
             System.out.println("cache.obj не обновлялся.Запись не требуется.\n");
@@ -269,9 +345,6 @@ public class Parser extends RecursiveAction {
         }
     }
 
-    private boolean isLinkExists() {
-        return false;
-    }
 
     private void savePagesFromCash() {
         TimeMeasure.setStartTime();
