@@ -15,9 +15,9 @@ import java.io.Serializable;
 public class Page implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     @Column(columnDefinition = "bigint not null default 0")
-    private Long siteId;
+    private Integer siteId;
     @Column(columnDefinition = "Text not Null Unique")
     private String path;
     @Column(nullable = false)
@@ -25,7 +25,7 @@ public class Page implements Serializable {
     @Column(columnDefinition = "Text not null")
     private String content;
 
-    public Page(long siteId, String path, Integer code, String content) {
+    public Page(int siteId, String path, Integer code, String content) {
         this.path = path;
         this.siteId = siteId;
         this.code = code;

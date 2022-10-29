@@ -10,20 +10,22 @@ import java.util.List;
 import java.util.Optional;
 
 
-public interface PageRepository extends JpaRepository<Page, Long> {
+public interface PageRepository extends JpaRepository<Page, Integer> {
    /*
     @Query(value = "Insert into Page (page, content) values (:page, :content)", nativeQuery = true)
     savePage(@Param("page") String page, @Param("content") String content);
    */
 
-    List<Page> findBySiteId(Long pageSiteId);
+    List<Page> findBySiteId(int pageSiteId);
     @Transactional
-    void deleteBySiteId(long pageSiteId);
-    Optional<Page> findById(Long pageId);
+    void deleteBySiteId(int pageSiteId);
+    Optional<Page> findById(int pageId);
     @Query(value="Select path from page Where site_Id = :siteId", nativeQuery = true)
-    List<String> findLinksBySiteId(@Param("siteId") Long pageSiteId);
+    List<String> findLinksBySiteId(@Param("siteId") Integer pageSiteId);
     @Query(value="Select count(*) from page where site_Id = :siteId", nativeQuery = true)
-    Integer countBySiteId(@Param("siteId") Long pageSiteId);
+    Integer countBySiteId(@Param("siteId") Integer pageSiteId);
+
+
 
 }
 

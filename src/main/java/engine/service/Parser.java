@@ -4,7 +4,10 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.notification.Notification;
 import engine.entity.Page;
+import engine.entity.Site;
 import engine.repository.PageRepository;
+
+import engine.views.MainView;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.jsoup.nodes.Document;
@@ -23,13 +26,15 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequiredArgsConstructor
 //public class Parser extends RecursiveTask<String> {
 public class Parser extends RecursiveAction {
-    private long parentId;
+    private Integer siteId;
     private String path;
     private Integer code;
     private String content;
     private String domainName;
     private static ConcurrentHashMap<String, Page> cache = new ConcurrentHashMap<>();
     private static ConcurrentSkipListSet skipListSet = new ConcurrentSkipListSet();
+
+    private static ConcurrentSkipListSet inProgressListSet = new ConcurrentSkipListSet();
 
     private Runtime runtime = Runtime.getRuntime();
 
@@ -38,11 +43,6 @@ public class Parser extends RecursiveAction {
 
     private static PageRepository pageRepository;
     private static volatile boolean active;
-    private static volatile boolean cacheModify = false;
-
-    public static boolean isCacheModify() {
-        return cacheModify;
-    }
 
     public static ConcurrentHashMap<String, Page> getCache() {
         return cache;
@@ -64,10 +64,11 @@ public class Parser extends RecursiveAction {
         Parser.pageRepository = pageRepository;
     }
 
-    public Parser(Long parentId, String path, String domainName) {
+    public Parser(Integer siteId, String path, String domainName) {
         this.path = path;
         this.domainName = domainName;
-        this.parentId = parentId;
+        this.siteId = siteId;
+
     }
 
     public static void saveLinksToFile(String fileName, String domainName) {
@@ -90,6 +91,10 @@ public class Parser extends RecursiveAction {
                     else
                         shortLink = link;
 
+                if ("/".equals(shortLink)) {
+                    if (link.contains(".".concat(domainName)))
+                        shortLink = link;
+                }
 
                 try {
                     out.write(shortLink.concat(" ->").concat(link).concat("\n"));
@@ -106,10 +111,11 @@ public class Parser extends RecursiveAction {
 
     }
 
-    public static void start(Long parentId, String path) {
+    public static void start(int siteId, String path) {
         skipListSet.clear();
+        inProgressListSet.clear();
 
-        int pageCount = pageRepository.countBySiteId(parentId);
+        int pageCount = pageRepository.countBySiteId(siteId);
 
         if (pageCount > 0) { // Если существуют страницы в базе данных
             Dialog dialog = new Dialog();
@@ -124,7 +130,7 @@ public class Parser extends RecursiveAction {
                 Notification notification = new Notification("Удалено", 500);
                 notification.setPosition(Notification.Position.MIDDLE);
                 notification.open();
-                pageRepository.deleteBySiteId(parentId);
+                pageRepository.deleteBySiteId(siteId);
             });
             cancel.addClickListener(clickEvent -> {
                 dialog.close();
@@ -132,7 +138,7 @@ public class Parser extends RecursiveAction {
                 notification.setPosition(Notification.Position.MIDDLE);
                 notification.open();
 
-                List<String> links = pageRepository.findLinksBySiteId(parentId);
+                List<String> links = pageRepository.findLinksBySiteId(siteId);
                 skipListSet.add("/");
                 for (int i = 1; i < links.size(); i++) {
                     skipListSet.add(path.concat(links.get(i)));
@@ -155,7 +161,7 @@ public class Parser extends RecursiveAction {
         active = true;
 
         TimeMeasure.setStartTime();
-        Parser parser = new Parser(parentId, path, domainName);
+        Parser parser = new Parser(siteId, path, domainName);
         parser.invoke();
 
         System.out.println("Завершение потоков!");
@@ -181,15 +187,13 @@ public class Parser extends RecursiveAction {
     protected void compute() {
         Document document = null;
         Page page = null;
-
+        inProgressListSet.add(path);
 
         if (!skipListSet.contains(path)) {
             try {
                 code = HtmlParsing.getStatusCode(path);
-                //skipListSet.add(path);
-                System.out.format(countLinks + ": download: [%d]  %s\n", code, path);
 
-                //Files.writeString(Paths.get("data/" + domainName + "/hRef.txt"), path, StandardCharsets.UTF_8);
+                System.out.format(countLinks + ": download: [%d]  %s\n", code, path);
 
                 document = HtmlParsing.getHtmlDocument(path);
                 content = document.body().toString();
@@ -214,10 +218,16 @@ public class Parser extends RecursiveAction {
                     skipListSet.add(path);
 
                     countLinks.addAndGet(1L);
-                    if (countLinks.compareAndSet(100, 100)) {
+                    if (countLinks.compareAndSet(10, 10)) {
                         saveLinksToFile("data/" + domainName + "/links.txt", domainName);
                     }
-                    ;
+
+
+                    if (countLinks.get() % 10 == 0) {
+                        // TODO: 28.10.2022 Записать значение в БД
+
+                        MainView.gridRefresh();
+                    }
 
                     //временно убрал запись в базу
 //                    try {
@@ -252,11 +262,12 @@ public class Parser extends RecursiveAction {
 
         if (hReference != null)
             for (String hRef : hReference) {
-                if ((HtmlParsing.isCurrentSite(hRef, domainName)) && (!skipListSet.contains(hRef))) {
-                    Parser parser = new Parser(parentId, hRef, domainName);
-                    taskList.add(parser);
-                    parser.fork();
-                }
+                if (!inProgressListSet.contains(hRef))
+                    if ((HtmlParsing.isCurrentSite(hRef, domainName)) && (!skipListSet.contains(hRef))) {
+                        Parser parser = new Parser(siteId, hRef, domainName);
+                        taskList.add(parser);
+                        parser.fork();
+                    }
             }
         //String returnStr = "Insert into Page (code,path,content) values (?,?,?)\n";
         for (Parser task : taskList) {
@@ -307,10 +318,6 @@ public class Parser extends RecursiveAction {
 
 
     public static void saveCache(String fileName) {
-        if (!isCacheModify()) {
-            System.out.println("cache.obj не обновлялся.Запись не требуется.\n");
-            return;
-        }
 
         String saveDirectory = fileName.replace("/cache.obj", "");
 
@@ -323,7 +330,6 @@ public class Parser extends RecursiveAction {
         try { //Сохранение заполненного Heap
             FileOutputStream fileOutputStream = new FileOutputStream(fileName);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            //objectOutputStream.writeObject(this.getHeap());
             objectOutputStream.writeObject(cache);
 
             fileOutputStream.close();

@@ -147,7 +147,6 @@ public class HtmlParsing {
                 if (".pdf".equalsIgnoreCase(hRef.substring(hRef.length() - 4))) {
                     hRef = "";
                 }
-
             }
 
             if (!"".equals(hRef)) {
