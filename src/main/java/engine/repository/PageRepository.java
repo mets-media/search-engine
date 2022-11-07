@@ -4,12 +4,12 @@ import engine.entity.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-
-
+@Component("pageRepository")
 public interface PageRepository extends JpaRepository<Page, Integer> {
    /*
     @Query(value = "Insert into Page (page, content) values (:page, :content)", nativeQuery = true)

@@ -96,7 +96,7 @@ public class HtmlParsing {
         if (matcher.find()) {
             return Integer.parseInt(exceptString.substring(matcher.start() + 7, matcher.end()));
         } else {
-            return null;
+            return -1;
         }
     }
 

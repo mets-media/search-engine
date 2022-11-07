@@ -6,6 +6,7 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -14,9 +15,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.renderer.NativeButtonRenderer;
+
 import com.vaadin.flow.router.Route;
-import engine.auxEntity.AuxData;
+
 import engine.auxRepository.MainGridRepository;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
@@ -24,31 +25,29 @@ import engine.grid.GridBufferedInlineEditor;
 import engine.service.Parser;
 import engine.repository.PageRepository;
 import engine.repository.SiteRepository;
+import engine.service.RefreshGridTimer;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.Timer;
 import java.util.stream.Collectors;
 
 @Route
 @Getter
 public class MainView extends AppLayout {
-
     private static Grid<Site> grid = new Grid<>(Site.class, false);
     String selectedSite = "";
     @Autowired
     SiteRepository siteRepository;
-
     @Autowired
     PageRepository pageRepository;
-
     @Autowired
     Parser parser;
-
     @Autowired
     MainGridRepository mainGridRepository;
-
     VerticalLayout siteComponent;
 
     GridBufferedInlineEditor eGrid = null;
@@ -69,7 +68,10 @@ public class MainView extends AppLayout {
 //        tabs.add(tab);
 
         Tab tab = new Tab("Сайты");
-        tab.getElement().addEventListener("click", domEvent -> setContent(getSimpleGrid()));
+        tab.getElement().addEventListener("click", domEvent -> {
+            if (getContent() == null)
+                    setContent(getSimpleGrid());
+                });
         tabs.add(tab);
 
         addToDrawer(tabs);
@@ -85,40 +87,22 @@ public class MainView extends AppLayout {
         //grid.getDataProvider().refreshItem(site);
     }
 
-    private VerticalLayout getSimpleGrid() {
-        if (!(siteComponent == null)) {
-            return siteComponent;
-        }
-
-        grid.setSelectionMode(Grid.SelectionMode.MULTI);
-
-        grid.addItemClickListener(event -> {
-            //selectedSite = event.getItem().getUrl();
-            showMessage("Сайт: " + event.getItem().getUrl(), 3000, Notification.Position.MIDDLE);
-            //grid.getEditor().editItem(event.getItem());
-
-        });
-
-        grid.addColumn(Site::getUrl).setHeader("Сайт");
-        grid.addColumn(Site::getStatus).setHeader("Статус");
-        grid.addColumn(Site::getPageCount).setHeader("Страницы");
-
-        VerticalLayout layout = new VerticalLayout();
-        layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.END);
-
+    private HorizontalLayout createButton() {
         HorizontalLayout hLayout = new HorizontalLayout();
         hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
-        layout.add(hLayout);
+        Button testButton = new Button("Тест");
+        testButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
+        testButton.addClickListener(event -> {
+            grid.getDataProvider().refreshAll();
+
+        });
 
         Button createButton = new Button("Добавить сайт");
         createButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         createButton.addClickListener(buttonClickEvent -> {
             setContent(getModifyComponent(0));
-
         });
-        hLayout.add(createButton);
-
 
         //=================  Кнопка удаления Сайта  =======================
         Button deleteButton = new Button("Удалить");
@@ -142,7 +126,6 @@ public class MainView extends AppLayout {
                 //Optional<Site> site = grid.getSelectedItems().stream().findFirst();
                 //siteRepository.delete(site.get());
 
-
                 sitesForDelete.forEach(delSite -> siteRepository.delete(delSite));
 
                 dialog.close();
@@ -155,33 +138,92 @@ public class MainView extends AppLayout {
                 dialog.close();
             });
             dialog.open();
-
         });
-        hLayout.add(deleteButton);
 
         Button parseButton = new Button("Сканировать");
         parseButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         parseButton.addClickListener(buttonClickEvent -> {
             Parser.setPageRepository(pageRepository);
-            Optional<Site> currentSite = grid.getSelectedItems().stream().findFirst();
-            // TODO: 27.10.2022  Реализовать работу по нескольким сайтам
+            Parser .setSiteRepository(siteRepository);
 
-            //Запуск в отдельном потоке
-            Runnable parse = () -> {
-                Site site = currentSite.get();
+            Set<Site> selectedSites = grid.getSelectedItems();
+            selectedSites.forEach(site -> {
+                grid.deselect(site); //после модификации - другой "site" - выделение не снимется
+                Parser.getStopList().remove(site);
+
                 site.setStatus(SiteStatus.DOWNLOADING);
                 siteRepository.save(site);
-                int siteId = site.getId();
-                Parser.start(siteId, currentSite.get().getUrl());
-            };
-            Thread thread = new Thread(parse);
-            thread.start();
+                Parser.start(site);
+            });
+            //grid.getDataProvider().refreshAll();
+            grid.setItems(siteRepository.findAll());
 
-            grid.getDataProvider().refreshAll();
-
+            //timerStart(1000L);
+            setContent(getSimpleGrid());
         });
-        hLayout.add(parseButton);
+
+        Button stopButton = new Button("Стоп!");
+        stopButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
+        stopButton.addClickListener(event -> {
+            List<Site> stopSites = grid.getSelectedItems().stream().collect(Collectors.toList());
+
+            stopSites.forEach(site->{
+                parser.stopScanSite(site);
+                grid.deselect(site);
+                site.setStatus(SiteStatus.STOPPED);
+                siteRepository.save(site);
+            });
+            //grid.getDataProvider().refreshAll();
+            grid.setItems(siteRepository.findAll());
+        });
+
+        hLayout.add(testButton, createButton, deleteButton, parseButton, stopButton);
+        return hLayout;
+    }
+
+    private static Timer timerStart(Long delay) {
+        Timer timer = new Timer("Timer");
+        timer.schedule(new RefreshGridTimer(grid), delay);
+        return timer;
+    }
+
+    private void setAllCheckboxVisibility(Grid grid, boolean visible) {
+        if (visible) {
+            ((GridMultiSelectionModel<?>) grid.getSelectionModel())
+                    .setSelectAllCheckboxVisibility(
+                            GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE
+                    );
+        }
+        else
+        ((GridMultiSelectionModel<?>) grid.getSelectionModel())
+                .setSelectAllCheckboxVisibility(
+                        GridMultiSelectionModel.SelectAllCheckboxVisibility.HIDDEN
+                );
+    }
+
+    private VerticalLayout getSimpleGrid() {
+        if (!(siteComponent == null))
+            return siteComponent;
+
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        setAllCheckboxVisibility(grid,true);
+        grid.addItemClickListener(event -> {
+            //selectedSite = event.getItem().getUrl();
+            showMessage("Сайт: " + event.getItem().getUrl(), 3000, Notification.Position.MIDDLE);
+            //grid.getEditor().editItem(event.getItem());
+        });
+
+        grid.addColumn(Site::getUrl).setHeader("Сайт");
+        grid.addColumn(Site::getStatus).setHeader("Статус");
+        grid.addColumn(Site::getPageCount).setHeader("Страницы");
+
+        VerticalLayout layout = new VerticalLayout();
+        layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.END);
+
+        //Создание кнопок управления
+        HorizontalLayout hLayout = createButton();
+        layout.add(hLayout);
 
         List<Site> sites = siteRepository.findAll();
         grid.setItems(sites);
