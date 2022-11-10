@@ -18,10 +18,8 @@ import com.vaadin.flow.component.textfield.TextField;
 
 import com.vaadin.flow.router.Route;
 
-import engine.auxRepository.MainGridRepository;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
-import engine.grid.GridBufferedInlineEditor;
 import engine.service.Parser;
 import engine.repository.PageRepository;
 import engine.repository.SiteRepository;
@@ -38,7 +36,7 @@ import java.util.stream.Collectors;
 @Route
 @Getter
 public class MainView extends AppLayout {
-    private static Grid<Site> grid = new Grid<>(Site.class, false);
+    private static final Grid<Site> grid = new Grid<>(Site.class, false);
     String selectedSite = "";
     @Autowired
     SiteRepository siteRepository;
@@ -46,11 +44,7 @@ public class MainView extends AppLayout {
     PageRepository pageRepository;
     @Autowired
     Parser parser;
-    @Autowired
-    MainGridRepository mainGridRepository;
     VerticalLayout siteComponent;
-
-    GridBufferedInlineEditor eGrid = null;
 
     public MainView() {
 
@@ -70,12 +64,16 @@ public class MainView extends AppLayout {
         Tab tab = new Tab("Сайты");
         tab.getElement().addEventListener("click", domEvent -> {
             if (getContent() == null)
-                    setContent(getSimpleGrid());
-                });
+                setContent(getSimpleGrid());
+        });
         tabs.add(tab);
 
         addToDrawer(tabs);
         addToNavbar(toggle, title);
+    }
+
+    public static Grid getGrid() {
+        return grid;
     }
 
     public static void gridRefresh() {
@@ -145,7 +143,7 @@ public class MainView extends AppLayout {
 
         parseButton.addClickListener(buttonClickEvent -> {
             Parser.setPageRepository(pageRepository);
-            Parser .setSiteRepository(siteRepository);
+            Parser.setSiteRepository(siteRepository);
 
             Set<Site> selectedSites = grid.getSelectedItems();
             selectedSites.forEach(site -> {
@@ -168,7 +166,7 @@ public class MainView extends AppLayout {
         stopButton.addClickListener(event -> {
             List<Site> stopSites = grid.getSelectedItems().stream().collect(Collectors.toList());
 
-            stopSites.forEach(site->{
+            stopSites.forEach(site -> {
                 parser.stopScanSite(site);
                 grid.deselect(site);
                 site.setStatus(SiteStatus.STOPPED);
@@ -194,12 +192,11 @@ public class MainView extends AppLayout {
                     .setSelectAllCheckboxVisibility(
                             GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE
                     );
-        }
-        else
-        ((GridMultiSelectionModel<?>) grid.getSelectionModel())
-                .setSelectAllCheckboxVisibility(
-                        GridMultiSelectionModel.SelectAllCheckboxVisibility.HIDDEN
-                );
+        } else
+            ((GridMultiSelectionModel<?>) grid.getSelectionModel())
+                    .setSelectAllCheckboxVisibility(
+                            GridMultiSelectionModel.SelectAllCheckboxVisibility.HIDDEN
+                    );
     }
 
     private VerticalLayout getSimpleGrid() {
@@ -207,10 +204,10 @@ public class MainView extends AppLayout {
             return siteComponent;
 
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
-        setAllCheckboxVisibility(grid,true);
+        setAllCheckboxVisibility(grid, true);
         grid.addItemClickListener(event -> {
             //selectedSite = event.getItem().getUrl();
-            showMessage("Сайт: " + event.getItem().getUrl(), 3000, Notification.Position.MIDDLE);
+            showMessage("Сайт: " + event.getItem().getUrl(), 1000, Notification.Position.MIDDLE);
             //grid.getEditor().editItem(event.getItem());
         });
 

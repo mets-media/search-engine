@@ -141,12 +141,16 @@ public class HtmlParsing {
                 hRef = "";
 
             if (hRef.length() > 4) {
-                if (".jpg".equalsIgnoreCase(hRef.substring(hRef.length() - 4))) {
+                //if (".jpg".equalsIgnoreCase(hRef.substring(hRef.length() - 4))) {
+                if (hRef.contains(".jpg") || hRef.contains(".JPG")) {
                     hRef = "";
                 }
-                if (".pdf".equalsIgnoreCase(hRef.substring(hRef.length() - 4))) {
+                //if (".pdf".equalsIgnoreCase(hRef.substring(hRef.length() - 4))) {
+                if (hRef.contains(".pdf") || hRef.contains(".PDF")) {
                     hRef = "";
                 }
+
+
             }
 
             if (!"".equals(hRef)) {
