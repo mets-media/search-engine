@@ -26,6 +26,7 @@ import engine.repository.SiteRepository;
 import engine.service.RefreshGridTimer;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,9 @@ import java.util.stream.Collectors;
 public class MainView extends AppLayout {
     private static final Grid<Site> grid = new Grid<>(Site.class, false);
     String selectedSite = "";
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     @Autowired
     SiteRepository siteRepository;
     @Autowired
@@ -144,6 +148,7 @@ public class MainView extends AppLayout {
         parseButton.addClickListener(buttonClickEvent -> {
             Parser.setPageRepository(pageRepository);
             Parser.setSiteRepository(siteRepository);
+            Parser.setJdbcTemplate(jdbcTemplate);
 
             Set<Site> selectedSites = grid.getSelectedItems();
             selectedSites.forEach(site -> {
@@ -154,7 +159,6 @@ public class MainView extends AppLayout {
                 siteRepository.save(site);
                 Parser.start(site);
             });
-            //grid.getDataProvider().refreshAll();
             grid.setItems(siteRepository.findAll());
 
             //timerStart(1000L);

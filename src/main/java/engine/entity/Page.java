@@ -14,9 +14,9 @@ import java.io.Serializable;
 //@Table(indexes = @Index(name = "path_IDX", columnList = "SubString(path from 1 for 50)"))
 public class Page implements Serializable {
     @Id
-    //@GeneratedValue(strategy = GenerationType.IDENTITY)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqGenPage")
-    @SequenceGenerator(name = "seqGenPage", sequenceName = "seqPage", initialValue = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    //@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqGenPage")
+    //@SequenceGenerator(name = "seqGenPage", sequenceName = "seqPage", initialValue = 1)
     private Integer id;
     @Column(columnDefinition = "bigint not null default 0")
     private Integer siteId;

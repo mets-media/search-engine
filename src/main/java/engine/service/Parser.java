@@ -11,25 +11,34 @@ import engine.views.MainView;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.sound.midi.Soundbank;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
-@Component
+//@Component
+@Service
 @RequiredArgsConstructor
 public class Parser extends RecursiveAction {
-
+    private static JdbcTemplate jdbcTemplate;
     public final static String READY_LINKS_FILENAME = "links.txt";
     public final static String STOP_LINKS_FILENAME = "Stoplinks.txt";
     public final static String ERROR_LINKS_FILENAME = "Error_Links.txt";
@@ -42,6 +51,9 @@ public class Parser extends RecursiveAction {
     private Integer code;
     private String content;
     private String domainName;
+    public static Long maxMemory;
+    public static Runtime runtime;
+    public static Page emptyPage = new Page(-1,"",-1,"");
     private static ConcurrentHashMap<String, Page> cache = new ConcurrentHashMap<>();
 
 
@@ -62,30 +74,18 @@ public class Parser extends RecursiveAction {
         Parser.siteRepository = siteRepository;
     }
 
+    public static void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        Parser.jdbcTemplate = jdbcTemplate;
+    }
+
     public Parser(Site site, String path, String domainName) {
+        this.jdbcTemplate = jdbcTemplate;
         this.path = path;
         this.domainName = domainName;
         this.site = site;
-        //if (readyLinksHashMap.get(site.getId()) == null)
-        //    readyLinksHashMap.put(site.getId(), new ConcurrentHashMap<>());
+        runtime = Runtime.getRuntime();
+        maxMemory = runtime.maxMemory();
     }
-
-//    public Parser(Site site, String path, String domainName, List<String> readyLinks) {
-//        this(site, path, domainName);
-//
-//        ConcurrentHashMap<String, Page> rLinksHashMap = new ConcurrentHashMap<>();
-//        readyLinks.forEach(l -> rLinksHashMap.put(l, new Page()));
-//        readyLinksHashMap.get(site.getId()).putAll(rLinksHashMap);
-//
-//    }
-
-    private void removeSiteFromParser(Site site) {
-        int siteId = site.getId();
-        activePools.remove(siteId);
-        readyLinksHashMap.remove(siteId);
-        inProcessLinksHashMap.remove(siteId);
-    }
-
 
     private static void deleteFile(String fileName) {
         try {
@@ -141,7 +141,7 @@ public class Parser extends RecursiveAction {
             linksHashMap.entrySet().forEach(lC -> {
                 Page page = lC.getValue();
                 linkContent.add(page.getSiteId().toString().concat("\t")
-                        .concat(getShortLink(page.getPath(), domainName)).concat("\t")
+                        .concat(HtmlParsing.getShortLink(page.getPath(), domainName)).concat("\t")
                         .concat(page.getCode().toString()).concat("\t")
                         .concat(page.getContent()));
             });
@@ -151,22 +151,6 @@ public class Parser extends RecursiveAction {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-    }
-
-    public static String getShortLink(String link, String domainName) {
-        String shortLink = link.substring(link.indexOf(domainName) + domainName.length());
-        if ("".equals(shortLink))
-            if (link.contains("//".concat(domainName)))
-                shortLink = "/";
-            else
-                shortLink = link;
-
-        if ("/".equals(shortLink)) {
-            if (link.contains(".".concat(domainName)))
-                shortLink = link;
-        }
-        return shortLink;
     }
 
     public static void saveLinksToFile(String fileName,
@@ -228,7 +212,6 @@ public class Parser extends RecursiveAction {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     public static void saveStopLinksToFile(String fileName,
@@ -236,7 +219,6 @@ public class Parser extends RecursiveAction {
                                            ConcurrentSkipListSet links,
                                            Boolean shortFormat,
                                            SaveFileMode saveFileMode) {
-
         Path path = Paths.get(fileName);
 
         switch (saveFileMode) {
@@ -330,7 +312,6 @@ public class Parser extends RecursiveAction {
 
     public static void initSite(Site site, String readyLinksFilename, String stopLinksFilename) {
 
-
         int siteId = site.getId();
         if (activePools.containsKey(siteId)) {
             readyLinksHashMap.get(siteId).clear();
@@ -343,7 +324,6 @@ public class Parser extends RecursiveAction {
         inProcessLinksHashMap.put(siteId, new ConcurrentSkipListSet());
         readyLinksHashMap.put(siteId, new ConcurrentHashMap<>());
         errorLinksHashMap.put(siteId, new ConcurrentSkipListSet());
-
 
         ConcurrentHashMap<String, Page> rLinksHashMap = new ConcurrentHashMap<>();
         if (Files.exists(Paths.get(readyLinksFilename))) {
@@ -411,13 +391,11 @@ public class Parser extends RecursiveAction {
             dialog.open();
         }
 
-
         try {
             Files.createDirectories(Paths.get("data/" + domainName));
         } catch (IOException e) {
             e.printStackTrace();
         }
-
 
         TimeMeasure.setStartTime();
         stopList.remove(site.getId());
@@ -454,6 +432,29 @@ public class Parser extends RecursiveAction {
 
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void writeToDatabase(List<Page> pages) {
+        System.out.println("Записываю: " + pages.size());
+        String sql = "Insert into Page (Site_Id, Code, Path, Content) values (?,?,?,?)";
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Page page = pages.get(i);
+                Integer siteId = page.getSiteId();
+                ps.setInt(1, siteId);
+                Integer code = page.getCode();
+                ps.setInt(2, code);
+                ps.setString(3, page.getPath());
+                ps.setString(4, page.getContent());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return pages.size();
+            }
+        });
+    }
+
     public void stopScanSite(Site site) {
         //удаляем ссылки предыдушего стопа
         deleteFile("data/" + domainName + "/" + STOP_LINKS_FILENAME);
@@ -476,8 +477,26 @@ public class Parser extends RecursiveAction {
 //        saveHashMapToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
 //                domainName, readyLinksHashMap.get(site.getId()), false, SaveFileMode.REWRITE);
         System.out.format(READY_LINKS_FILENAME + " записан за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
+
+        TimeMeasure.setStartTime();
+        //writeToDatabase(readyLinks.values().stream().toList());
+        writeToDatabase(getLinksSetEmptyPage(readyLinks));
+        System.out.format("запись в базу данных за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
     }
 
+    private List<Page> getLinksSetEmptyPage(ConcurrentHashMap<String,Page> pageHashMap) {
+        List<Page> listPage = new ArrayList<>();
+        Iterator<Page> iterator = pageHashMap.values().iterator();
+        while (iterator.hasNext()) {
+            Page page = iterator.next();
+            if (!page.equals(emptyPage)) {
+                listPage.add(page);
+                pageHashMap.replace(page.getPath(),emptyPage);
+            }
+        }
+        System.out.println("Передаю на запись " + listPage.size());
+        return listPage;
+    }
     @Override
     protected void compute() {
         int siteId = site.getId();
@@ -495,7 +514,6 @@ public class Parser extends RecursiveAction {
                     inProcessLinks,
                     false,
                     SaveFileMode.DO_NOT_REWRITE);
-            //clearSiteStaticElements(site.getId());
             return;
         }
 
@@ -515,10 +533,12 @@ public class Parser extends RecursiveAction {
                 //throw new RuntimeException(e);
 //                e.printStackTrace();
                 code = HtmlParsing.getStatusFromExceptionString(e.toString());
+                String errorLinkString;
                 if (code == -2) {
-                    errorLinksHashMap.get(siteId).add("Read timed out".concat(": ").concat(path));
+                    errorLinkString = "Read timed out".concat(": ").concat(path);
                 } else
-                    errorLinksHashMap.get(siteId).add(code.toString().concat(": ").concat(path));
+                    errorLinkString = code.toString().concat(": ").concat(path);
+                errorLinksHashMap.get(siteId).add(errorLinkString);
 
                 saveLinksToFile("data/" + domainName + "/" + ERROR_LINKS_FILENAME,
                         domainName,
@@ -534,8 +554,8 @@ public class Parser extends RecursiveAction {
                     System.out.println("Exception: Не удалено: " + path);
             }
             if (code == 200) {
-                //readyLinks.put(path, new Page(site.getId(), path, code, content));
-                readyLinks.put(path, new Page(site.getId(), path, code, ""));
+                readyLinks.put(path, new Page(site.getId(), path, code, content));
+                //readyLinks.put(path, new Page(site.getId(), path, code, ""));
                 inProcessLinks.remove(path);
 
                 System.out.printf("%s -> readyLinks: %d, inProcessLinks: %d\n", domainName, readyLinks.size(), inProcessLinks.size());
@@ -547,7 +567,13 @@ public class Parser extends RecursiveAction {
 //                }
 
                 totalCountLinks.addAndGet(1L);
-                if (readyLinks.size() % 100 == 0) {
+                if (readyLinks.size() % 500 == 0) {
+
+                    System.out.println("Запись в базу данных");
+                    TimeMeasure.setStartTime();
+                    writeToDatabase(getLinksSetEmptyPage(readyLinks));
+                    System.out.println(domainName + " -> время последней записи: " + TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
+
                     site.setPageCount(readyLinks.size());
                     siteRepository.save(site);
 

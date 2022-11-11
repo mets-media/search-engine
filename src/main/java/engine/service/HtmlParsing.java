@@ -27,6 +27,21 @@ public class HtmlParsing {
         return saveFilesCount;
     }
 
+    public static String getShortLink(String link, String domainName) {
+        String shortLink = link.substring(link.indexOf(domainName) + domainName.length());
+        if ("".equals(shortLink))
+            if (link.contains("//".concat(domainName)))
+                shortLink = "/";
+            else
+                shortLink = link;
+
+        if ("/".equals(shortLink)) {
+            if (link.contains(".".concat(domainName)))
+                shortLink = link;
+        }
+        return shortLink;
+    }
+
     public static void saveFileFromUrl(String urlFile, String filePath) throws IOException {
         filePath = filePath.concat(urlFile.substring(urlFile.lastIndexOf("/")));
 
