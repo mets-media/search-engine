@@ -4,23 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Morph dependencies. Start-Stop-Continue downloading">
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/AppConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/postgres/PostgresCopy.java" afterDir="false" />
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Morph dependencies. MultiScan">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/auxEntity/AuxData.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/auxEntity/FieldType.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/auxEntity/MainGrid.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/auxRepository/MainGridRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/grid/GridBufferedInlineEditor.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/PostgresCopy.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -211,7 +199,14 @@
       <option name="project" value="LOCAL" />
       <updated>1667856975831</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Morph dependencies. MultiScan">
+      <created>1668098786336</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1668098786336</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -237,7 +232,8 @@
     <MESSAGE value="Morph dependencies. Version with HashMap-cash." />
     <MESSAGE value="Morph dependencies. MultiSelect mode." />
     <MESSAGE value="Morph dependencies. Start-Stop-Continue downloading" />
-    <option name="LAST_COMMIT_MESSAGE" value="Morph dependencies. Start-Stop-Continue downloading" />
+    <MESSAGE value="Morph dependencies. MultiScan" />
+    <option name="LAST_COMMIT_MESSAGE" value="Morph dependencies. MultiScan" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -246,11 +242,6 @@
           <url>file://$PROJECT_DIR$/src/main/java/engine/views/confirmDialog.java</url>
           <line>18</line>
           <option name="timeStamp" value="55" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>349</line>
-          <option name="timeStamp" value="213" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -31,9 +32,11 @@ public class Parser extends RecursiveAction {
 
     public final static String READY_LINKS_FILENAME = "links.txt";
     public final static String STOP_LINKS_FILENAME = "Stoplinks.txt";
+    public final static String ERROR_LINKS_FILENAME = "Error_Links.txt";
     private static HashMap<Integer, ForkJoinPool> activePools = new HashMap<>();
     private static ConcurrentHashMap<Integer, ConcurrentHashMap<String, Page>> readyLinksHashMap = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<Integer, ConcurrentSkipListSet> inProcessLinksHashMap = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<Integer, ConcurrentSkipListSet> errorLinksHashMap = new ConcurrentHashMap<>();
     private Site site;
     private String path;
     private Integer code;
@@ -166,11 +169,11 @@ public class Parser extends RecursiveAction {
         return shortLink;
     }
 
-    public static void saveReadyLinksToFile(String fileName,
-                                            String domainName,
-                                            List<String> links,
-                                            Boolean shortFormat,
-                                            SaveFileMode saveFileMode) {
+    public static void saveLinksToFile(String fileName,
+                                       String domainName,
+                                       List<String> links,
+                                       Boolean shortFormat,
+                                       SaveFileMode saveFileMode) {
 
         Path path = Paths.get(fileName);
 
@@ -181,6 +184,8 @@ public class Parser extends RecursiveAction {
                 } catch (IOException e) {
                     //e.printStackTrace();
                 }
+            }
+            case APPEND -> {
             }
             case DO_NOT_REWRITE -> {
                 if (Files.exists(path)) {
@@ -328,15 +333,16 @@ public class Parser extends RecursiveAction {
 
         int siteId = site.getId();
         if (activePools.containsKey(siteId)) {
-            activePools.remove(siteId);
-            readyLinksHashMap.remove(siteId);
-            inProcessLinksHashMap.remove(siteId);
+            readyLinksHashMap.get(siteId).clear();
+            inProcessLinksHashMap.get(siteId).clear();
+            errorLinksHashMap.get(siteId).clear();
         }
         activePools.put(siteId, new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
                 ForkJoinPool.defaultForkJoinWorkerThreadFactory,
                 null, true));
         inProcessLinksHashMap.put(siteId, new ConcurrentSkipListSet());
         readyLinksHashMap.put(siteId, new ConcurrentHashMap<>());
+        errorLinksHashMap.put(siteId, new ConcurrentSkipListSet());
 
 
         ConcurrentHashMap<String, Page> rLinksHashMap = new ConcurrentHashMap<>();
@@ -458,11 +464,14 @@ public class Parser extends RecursiveAction {
         TimeMeasure.setStartTime();
         String domainName = HtmlParsing.getDomainName(site.getUrl());
 
-        saveReadyLinksToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
-                domainName,
-                new ArrayList<>(readyLinksHashMap.get(site.getId()).keySet()),
-                false,
-                SaveFileMode.REWRITE);
+        ConcurrentHashMap<String, Page> readyLinks = readyLinksHashMap.get(site.getId());
+        if (!(readyLinks == null))
+            saveLinksToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
+                    domainName,
+                    new ArrayList<>(readyLinks.keySet()),
+                    false,
+                    SaveFileMode.REWRITE);
+
 
 //        saveHashMapToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
 //                domainName, readyLinksHashMap.get(site.getId()), false, SaveFileMode.REWRITE);
@@ -506,6 +515,16 @@ public class Parser extends RecursiveAction {
                 //throw new RuntimeException(e);
 //                e.printStackTrace();
                 code = HtmlParsing.getStatusFromExceptionString(e.toString());
+                if (code == -2) {
+                    errorLinksHashMap.get(siteId).add("Read timed out".concat(": ").concat(path));
+                } else
+                    errorLinksHashMap.get(siteId).add(code.toString().concat(": ").concat(path));
+
+                saveLinksToFile("data/" + domainName + "/" + ERROR_LINKS_FILENAME,
+                        domainName,
+                        new ArrayList<>(errorLinksHashMap.get(siteId)),
+                        false,
+                        SaveFileMode.APPEND);
 
                 System.out.println("Exception! :" + e);
                 System.out.println(path);
@@ -515,15 +534,9 @@ public class Parser extends RecursiveAction {
                     System.out.println("Exception: Не удалено: " + path);
             }
             if (code == 200) {
-                //readyLinks.add(path);
-                readyLinks.put(path, new Page(site.getId(), path, code, content));
-                //System.out.println("readyLinks.put: " + path);
-
-//                if (inProcessLinks.remove(path)) {
-//                    //System.out.println("inProcess.remove: " + path);
-//                } else {
-//                    System.out.println("Не удалено: " + path);
-//                }
+                //readyLinks.put(path, new Page(site.getId(), path, code, content));
+                readyLinks.put(path, new Page(site.getId(), path, code, ""));
+                inProcessLinks.remove(path);
 
                 System.out.printf("%s -> readyLinks: %d, inProcessLinks: %d\n", domainName, readyLinks.size(), inProcessLinks.size());
 
@@ -533,12 +546,11 @@ public class Parser extends RecursiveAction {
 //                    stopScanSite(site);
 //                }
 
-
                 totalCountLinks.addAndGet(1L);
                 if (readyLinks.size() % 100 == 0) {
                     site.setPageCount(readyLinks.size());
                     siteRepository.save(site);
-                    //MainView.gridRefresh();
+
                     MainView.getGrid().setItems(siteRepository.findAll());
                 }
             }

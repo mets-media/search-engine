@@ -89,6 +89,9 @@ public class HtmlParsing {
     }
 
     public static Integer getStatusFromExceptionString(String exceptString) {
+        final String TIME_OUT = "Read timed out";
+        if (exceptString.contains(TIME_OUT)) return -2;
+
         String regEx = "Status=[\\d]{3}";
         Pattern pattern = Pattern.compile(regEx);
         Matcher matcher = pattern.matcher(exceptString);
@@ -132,7 +135,8 @@ public class HtmlParsing {
         Set<String> links = new HashSet<>();
 
         for (Element e : elements) {
-            String hRef = e.absUrl("href");;
+            String hRef = e.absUrl("href");
+            ;
 
             String RegEx = "\\.[A-z]{3,4}$";
             Pattern pattern = Pattern.compile(RegEx);

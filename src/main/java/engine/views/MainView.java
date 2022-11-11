@@ -164,14 +164,13 @@ public class MainView extends AppLayout {
         Button stopButton = new Button("Стоп!");
         stopButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         stopButton.addClickListener(event -> {
-            List<Site> stopSites = grid.getSelectedItems().stream().collect(Collectors.toList());
-
-            stopSites.forEach(site -> {
-                parser.stopScanSite(site);
-                grid.deselect(site);
-                site.setStatus(SiteStatus.STOPPED);
-                siteRepository.save(site);
-            });
+            Set<Site> stopSites = grid.getSelectedItems();
+                stopSites.forEach(site -> {
+                    parser.stopScanSite(site);
+                    grid.deselect(site);
+                    site.setStatus(SiteStatus.STOPPED);
+                    siteRepository.save(site);
+                });
             //grid.getDataProvider().refreshAll();
             grid.setItems(siteRepository.findAll());
         });
