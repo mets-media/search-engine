@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -18,12 +19,14 @@ import com.vaadin.flow.component.textfield.TextField;
 
 import com.vaadin.flow.router.Route;
 
+import engine.entity.Config;
+import engine.entity.Page;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
+import engine.repository.ConfigRepository;
 import engine.service.Parser;
 import engine.repository.PageRepository;
 import engine.repository.SiteRepository;
-import engine.service.RefreshGridTimer;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,29 +34,35 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Timer;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Route
 @Getter
 public class MainView extends AppLayout {
-    private static final Grid<Site> grid = new Grid<>(Site.class, false);
+
+    VerticalLayout siteComponent = null;
+    VerticalLayout modifyComponent = null;
+    VerticalLayout newSiteComponent = null;
+    Integer selectedId = 0;
+    TextField newSiteTextField = null;
+    Button saveButton = new Button("Сохранить");
+    Button cancelButton = new Button("Отменить");
+    private Grid<Site> grid = new Grid<>(Site.class, false);
     String selectedSite = "";
     @Autowired
     JdbcTemplate jdbcTemplate;
-
     @Autowired
     SiteRepository siteRepository;
     @Autowired
     PageRepository pageRepository;
     @Autowired
+    ConfigRepository configRepository;
+    @Autowired
     Parser parser;
-    VerticalLayout siteComponent;
 
     public MainView() {
-
         DrawerToggle toggle = new DrawerToggle();
-
         H1 title = new H1("Search Engine");
         title.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
@@ -61,52 +70,84 @@ public class MainView extends AppLayout {
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         tabs.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
-//        Tab tab = new Tab("Список сайтов");
-//        tab.getElement().addEventListener("click", domEvent -> setContent(getSitesComponent()));
-//        tabs.add(tab);
-
-        Tab tab = new Tab("Сайты");
-        tab.getElement().addEventListener("click", domEvent -> {
-            if (getContent() == null)
-                setContent(getSimpleGrid());
+        Tab tabSites = new Tab("Список сайтов");
+        tabSites.getElement().addEventListener("click", domEvent -> {
+            setContent(getSimpleGrid());
+            grid.setItems(siteRepository.findAll());
         });
-        tabs.add(tab);
+
+        Tab tabOptions = new Tab("Настройки");
+        tabOptions.getElement().addEventListener("click", domEvent -> {
+            ConfigComponent.setConfigRepository(configRepository);
+            ConfigComponent configComponent = new ConfigComponent();
+            setContent(configComponent.getVerticalLayout());
+            configComponent.getGrid().setItems(configRepository.findAll());
+        });
+
+        Tab tabNewSites = new Tab("Новый вариант");
+        tabNewSites.getElement().addEventListener("click", domEvent -> {
+            SiteComponent.setDataAccess(siteRepository, pageRepository, jdbcTemplate);
+
+            SiteComponent siteComponent = new SiteComponent();
+            setContent(siteComponent.getVerticalLayout());
+            siteComponent.getGrid().setItems(siteRepository.findAll());
+        });
+
+        tabs.add(tabSites, tabOptions, tabNewSites);
 
         addToDrawer(tabs);
         addToNavbar(toggle, title);
+
     }
 
-    public static Grid getGrid() {
-        return grid;
+    private VerticalLayout getPagesComponent(Integer siteId) {
+
+        Grid<Page> pageGrid = new Grid(Page.class, true);
+        pageGrid.setSelectionMode(Grid.SelectionMode.MULTI);
+        setAllCheckboxVisibility(pageGrid, true);
+        pageGrid.addItemClickListener(event -> {
+            showMessage(event.getItem().getPath(), 1000, Notification.Position.BOTTOM_CENTER);
+        });
+
+        VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.END);
+        verticalLayout.add(pageGrid);
+
+        return verticalLayout;
     }
 
-    public static void gridRefresh() {
-        grid.getDataProvider().refreshAll();
+    private void updateSiteInfo() {
+
+        grid.getSelectedItems().forEach(site -> {
+            int pageCount = pageRepository.countBySiteId(site.getId());
+            site.setPageCount(pageCount);
+            siteRepository.save(site);
+            grid.setItems(siteRepository.findAll());
+        });
     }
 
-    public static void gridRefreshSite(int siteId) {
-        //Site site = siteRepository.getById(siteId);
-        //grid.getDataProvider().refreshItem(site);
-    }
-
-    private HorizontalLayout createButton() {
+    private HorizontalLayout createButtons() {
         HorizontalLayout hLayout = new HorizontalLayout();
         hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
+
+        //========================= ТЕСТ ==========================================
         Button testButton = new Button("Тест");
         testButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         testButton.addClickListener(event -> {
-            grid.getDataProvider().refreshAll();
+            //grid.getDataProvider().refreshAll();
+            updateSiteInfo();
+
 
         });
-
-        Button createButton = new Button("Добавить сайт");
+        //========================= ДОБАВИТЬ САЙТ ==========================================
+        Button createButton = new Button("Добавить");
         createButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         createButton.addClickListener(buttonClickEvent -> {
-            setContent(getModifyComponent(0));
+            setContent(getModify(0));
         });
 
-        //=================  Кнопка удаления Сайта  =======================
+        //============================  Кнопка удаления Сайта  =================================
         Button deleteButton = new Button("Удалить");
         deleteButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
@@ -142,6 +183,8 @@ public class MainView extends AppLayout {
             dialog.open();
         });
 
+
+        //========================= СКАНИРОВАТЬ САЙТ ==========================================
         Button parseButton = new Button("Сканировать");
         parseButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
@@ -161,32 +204,26 @@ public class MainView extends AppLayout {
             });
             grid.setItems(siteRepository.findAll());
 
-            //timerStart(1000L);
             setContent(getSimpleGrid());
         });
 
+        //========================= СТОП СКАНИРОВАНИЕ ==========================================
         Button stopButton = new Button("Стоп!");
         stopButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         stopButton.addClickListener(event -> {
             Set<Site> stopSites = grid.getSelectedItems();
-                stopSites.forEach(site -> {
-                    parser.stopScanSite(site);
-                    grid.deselect(site);
-                    site.setStatus(SiteStatus.STOPPED);
-                    siteRepository.save(site);
-                });
+            stopSites.forEach(site -> {
+                parser.stopScanSite(site);
+                grid.deselect(site);
+                site.setStatus(SiteStatus.STOPPED);
+                siteRepository.save(site);
+            });
             //grid.getDataProvider().refreshAll();
             grid.setItems(siteRepository.findAll());
         });
 
         hLayout.add(testButton, createButton, deleteButton, parseButton, stopButton);
         return hLayout;
-    }
-
-    private static Timer timerStart(Long delay) {
-        Timer timer = new Timer("Timer");
-        timer.schedule(new RefreshGridTimer(grid), delay);
-        return timer;
     }
 
     private void setAllCheckboxVisibility(Grid grid, boolean visible) {
@@ -203,9 +240,9 @@ public class MainView extends AppLayout {
     }
 
     private VerticalLayout getSimpleGrid() {
-        if (!(siteComponent == null))
-            return siteComponent;
 
+        if (!(siteComponent == null)) return siteComponent;
+        grid.addThemeVariants(GridVariant.LUMO_COMPACT);
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
         setAllCheckboxVisibility(grid, true);
         grid.addItemClickListener(event -> {
@@ -215,56 +252,94 @@ public class MainView extends AppLayout {
         });
 
         grid.addColumn(Site::getUrl).setHeader("Сайт");
+        grid.addColumn(Site::getPageCount).setHeader("Страниц в базе");
         grid.addColumn(Site::getStatus).setHeader("Статус");
-        grid.addColumn(Site::getPageCount).setHeader("Страницы");
 
         VerticalLayout layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.END);
 
         //Создание кнопок управления
-        HorizontalLayout hLayout = createButton();
-        layout.add(hLayout);
+        HorizontalLayout hLayout = createButtons();
 
-        List<Site> sites = siteRepository.findAll();
-        grid.setItems(sites);
+        layout.add(hLayout);
         layout.add(grid);
 
         siteComponent = layout;
         return layout;
     }
 
-    private VerticalLayout getModifyComponent(int idSite) {
+    private VerticalLayout getModify(int idSite) {
+
+        if (!(newSiteComponent == null)) return newSiteComponent;
+
         VerticalLayout layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.START);
 
         HorizontalLayout hLayout = new HorizontalLayout();
         hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
-        TextField urlText = new TextField("Редактирование:");
+        newSiteTextField = new TextField("Редактирование:");
         if (idSite == 0) {
-            urlText.setLabel("Добавить сайт:");
+            newSiteTextField.setLabel("Добавить сайт:");
+            newSiteTextField.setValue("");
         }
-
-        Button saveButton = new Button("Сохранить");
-        Button cancelButton = new Button("Отменить");
-
 
         layout.setMaxWidth(700, Unit.PIXELS);
 
         layout.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-        urlText.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
+        newSiteTextField.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         saveButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         cancelButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
-
-        urlText.setMinWidth(190, Unit.PIXELS);
+        newSiteTextField.setMinWidth(190, Unit.PIXELS);
         hLayout.add(saveButton, cancelButton);
 
         //Все элементы на форму
-        layout.add(urlText, hLayout);
+        layout.add(newSiteTextField, hLayout);
 
-        fillModifyComponent(idSite, urlText, saveButton, cancelButton);
+        if (!(selectedId == 0)) {
+            Optional<Site> site = siteRepository.findById(selectedId);
+            site.ifPresent(x -> {
+                newSiteTextField.setValue(x.getUrl());
+            });
+        }
+        saveButton.addClickListener(clickEvent -> {
+            //Создадим объект Site получив значение id
+            if (!newSiteTextField.getValue().equals("")) {
+                Site site = new Site();
+                if (!(selectedId == 0)) {
+                    site.setId(selectedId);
+                }
+                String newUrl = newSiteTextField.getValue();
 
+                if (newUrl.charAt(newUrl.length() - 1) == '/') newUrl = newUrl.substring(0, newUrl.length() - 1);
+
+                site.setUrl(newUrl);
+                siteRepository.save(site);
+
+                Notification notification = new Notification((selectedId == 0) ? "Сайт успешно добавлен" : "Изменения внесены", 1000);
+                notification.setPosition(Notification.Position.MIDDLE);
+                grid.setItems(siteRepository.findAll());
+                notification.addDetachListener(detachEvent -> {
+                    //UI.getCurrent().navigate(MainView.class);
+                    setContent(siteComponent);
+                });
+                //formLayout.setEnabled(false);
+                notification.open();
+            } else {
+                showMessage("Вы ничего не внесли...", 1000, Notification.Position.MIDDLE);
+                setContent(siteComponent);
+            }
+        });
+
+
+        cancelButton.addClickListener(clckEvent -> {
+            setContent(siteComponent);
+        });
+
+        //fillModifyComponent(idSite, newSiteTextField, saveButton, cancelButton);
+
+        newSiteComponent = layout;
         return layout;
     }
 
@@ -294,24 +369,18 @@ public class MainView extends AppLayout {
                 grid.setItems(siteRepository.findAll());
                 notification.addDetachListener(detachEvent -> {
                     //UI.getCurrent().navigate(MainView.class);
-                    //setContent(getSitesComponent());
-                    //setContent(getGridWithEditor());
-                    setContent(getSimpleGrid());
+                    setContent(siteComponent);
                 });
                 //formLayout.setEnabled(false);
                 notification.open();
             } else {
                 showMessage("Вы ничего не внесли...", 1000, Notification.Position.MIDDLE);
-                //setContent(getSitesComponent());
-                //setContent(getGridWithEditor());
-                setContent(getSimpleGrid());
+                setContent(siteComponent);
             }
         });
 
         cancelButton.addClickListener(clckEvent -> {
-            //setContent(getSimpleGrid());
-            setContent(getSiteComponent());
-            gridRefresh();
+            setContent(siteComponent);
         });
     }
 

@@ -433,7 +433,7 @@ public class Parser extends RecursiveAction {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void writeToDatabase(List<Page> pages) {
+    public static void writeToDatabase(List<Page> pages) {
         System.out.println("Записываю: " + pages.size());
         String sql = "Insert into Page (Site_Id, Code, Path, Content) values (?,?,?,?)";
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
@@ -455,7 +455,33 @@ public class Parser extends RecursiveAction {
         });
     }
 
+    public static void stop(Site site) {
+        System.out.printf("!!!!!!!!!!!! Стоп сайта: %s\n", site.getUrl());
+        String domainName = HtmlParsing.getDomainName(site.getUrl());
+
+        if (!activePools.containsKey(site.getId())) return;
+        deleteFile("data/" + domainName + "/" + STOP_LINKS_FILENAME);
+
+        stopList.add(site.getId());
+        ConcurrentHashMap<String, Page> readyLinks = readyLinksHashMap.get(site.getId());
+        if (!(readyLinks == null))
+            saveLinksToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
+                    domainName,
+                    new ArrayList<>(readyLinks.keySet()),
+                    false,
+                    SaveFileMode.REWRITE);
+
+        TimeMeasure.setStartTime();
+        writeToDatabase(getLinksSetEmptyPage(readyLinks));
+        System.out.format("Запись в базу за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
+
+    }
+
     public void stopScanSite(Site site) {
+        if (!activePools.containsKey(site.getId())) {
+            return;
+        }
+
         //удаляем ссылки предыдушего стопа
         deleteFile("data/" + domainName + "/" + STOP_LINKS_FILENAME);
         //останавливаем сканирование
@@ -484,7 +510,7 @@ public class Parser extends RecursiveAction {
         System.out.format("запись в базу данных за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
     }
 
-    private List<Page> getLinksSetEmptyPage(ConcurrentHashMap<String,Page> pageHashMap) {
+    private static List<Page> getLinksSetEmptyPage(ConcurrentHashMap<String,Page> pageHashMap) {
         List<Page> listPage = new ArrayList<>();
         Iterator<Page> iterator = pageHashMap.values().iterator();
         while (iterator.hasNext()) {
@@ -577,7 +603,7 @@ public class Parser extends RecursiveAction {
                     site.setPageCount(readyLinks.size());
                     siteRepository.save(site);
 
-                    MainView.getGrid().setItems(siteRepository.findAll());
+                    //MainView.getGrid().setItems(siteRepository.findAll());
                 }
             }
         } else {
