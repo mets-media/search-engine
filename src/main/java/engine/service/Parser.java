@@ -2,12 +2,18 @@ package engine.service;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import engine.entity.Config;
 import engine.entity.Page;
 import engine.entity.Site;
+import engine.repository.ConfigRepository;
 import engine.repository.PageRepository;
 import engine.repository.SiteRepository;
+import engine.views.ConfigComponent;
 import engine.views.MainView;
+import engine.views.SiteComponent;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.jsoup.nodes.Document;
@@ -38,7 +44,16 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 @RequiredArgsConstructor
 public class Parser extends RecursiveAction {
+    private Site site;
+    private String path;
+    private Integer code;
+    private String content;
+    private String domainName;
+
     private static JdbcTemplate jdbcTemplate;
+    private static PageRepository pageRepository;
+    private static SiteRepository siteRepository;
+    private static ConfigRepository configRepository;
     public final static String READY_LINKS_FILENAME = "links.txt";
     public final static String STOP_LINKS_FILENAME = "Stoplinks.txt";
     public final static String ERROR_LINKS_FILENAME = "Error_Links.txt";
@@ -46,35 +61,28 @@ public class Parser extends RecursiveAction {
     private static ConcurrentHashMap<Integer, ConcurrentHashMap<String, Page>> readyLinksHashMap = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<Integer, ConcurrentSkipListSet> inProcessLinksHashMap = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<Integer, ConcurrentSkipListSet> errorLinksHashMap = new ConcurrentHashMap<>();
-    private Site site;
-    private String path;
-    private Integer code;
-    private String content;
-    private String domainName;
+    private static Integer batchSize = 100;
+    private static boolean saveLinksInShortFormat = false;
     public static Long maxMemory;
     public static Runtime runtime;
-    public static Page emptyPage = new Page(-1,"",-1,"");
+    public static Page emptyPage = new Page(-1, "", -1, "");
     private static ConcurrentHashMap<String, Page> cache = new ConcurrentHashMap<>();
-
 
     private static HashSet<Integer> stopList = new HashSet<>();
     private static AtomicLong totalCountLinks = new AtomicLong();
-    private static PageRepository pageRepository;
-    private static SiteRepository siteRepository;
 
     public static Set<Integer> getStopList() {
         return stopList;
     }
 
-    public static void setPageRepository(PageRepository pageRepository) {
-        Parser.pageRepository = pageRepository;
-    }
 
-    public static void setSiteRepository(SiteRepository siteRepository) {
+    public static void setDataAccess(ConfigRepository configRepository,
+                                     SiteRepository siteRepository,
+                                     PageRepository pageRepository,
+                                     JdbcTemplate jdbcTemplate) {
+        Parser.configRepository = configRepository;
         Parser.siteRepository = siteRepository;
-    }
-
-    public static void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        Parser.pageRepository = pageRepository;
         Parser.jdbcTemplate = jdbcTemplate;
     }
 
@@ -318,7 +326,27 @@ public class Parser extends RecursiveAction {
             inProcessLinksHashMap.get(siteId).clear();
             errorLinksHashMap.get(siteId).clear();
         }
-        activePools.put(siteId, new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
+
+        int parallelism = Runtime.getRuntime().availableProcessors();
+        Config config = configRepository.findByKey("tps");
+        try {
+            if (!(config == null))
+                parallelism = Integer.parseInt(config.getValue());
+        } catch (Exception e) {
+            ConfigComponent.showMessage("Тип свойства 'tps' должен быть Integer",
+                    2000, Notification.Position.MIDDLE);
+        }
+
+        config = configRepository.findByKey("batch");
+        try {
+            if (!(config == null))
+                batchSize = Integer.parseInt(config.getValue());
+        } catch (Exception e) {
+            ConfigComponent.showMessage("Тип свойства 'batch' должен быть Integer",
+                    2000, Notification.Position.MIDDLE);
+        }
+
+        activePools.put(siteId, new ForkJoinPool(parallelism,
                 ForkJoinPool.defaultForkJoinWorkerThreadFactory,
                 null, true));
         inProcessLinksHashMap.put(siteId, new ConcurrentSkipListSet());
@@ -344,7 +372,6 @@ public class Parser extends RecursiveAction {
     }
 
     public static void start(Site site) {
-
         String path = site.getUrl();
         String domainName = HtmlParsing.getDomainName(path);
 
@@ -353,43 +380,12 @@ public class Parser extends RecursiveAction {
 
         //Инициализация статических переменных для класса Parser
         initSite(site, readyLinksFilename, stopLinksFilename);
-
         ConcurrentHashMap<String, Page> readyLinks = readyLinksHashMap.get(site.getId());
 
         int pageCount = pageRepository.countBySiteId(site.getId());
 
-        if (pageCount > 0) { // Если существуют страницы в базе данных
-            Dialog dialog = new Dialog();
-            Button confirm = new Button("Удалить");
-            Button cancel = new Button("Продолжить");
-
-            dialog.add("Удалить результаты предыдущего сканирования?");
-            dialog.add(confirm);
-            dialog.add(cancel);
-            confirm.addClickListener(clickEvent -> {
-                dialog.close();
-                Notification notification = new Notification("Удалено", 500);
-                notification.setPosition(Notification.Position.MIDDLE);
-                notification.open();
-                pageRepository.deleteBySiteId(site.getId());
-            });
-            cancel.addClickListener(clickEvent -> {
-                dialog.close();
-                Notification notification = new Notification("Результаты сохранены", 500);
-                notification.setPosition(Notification.Position.MIDDLE);
-                notification.open();
-
-                List<String> links = pageRepository.findLinksBySiteId(site.getId());
-
-                //readyLinks.add("/");
-                readyLinks.put("/", new Page());
-                for (int i = 1; i < links.size(); i++) {
-                    //readyLinks.add(path.concat(links.get(i)));
-                    readyLinks.put(path.concat(links.get(i)), new Page());
-                }
-            });
-            dialog.open();
-        }
+        if (pageCount > 0) // Если существуют страницы в базе данных
+            showPrevDataDialog(site, pageCount);
 
         try {
             Files.createDirectories(Paths.get("data/" + domainName));
@@ -416,20 +412,6 @@ public class Parser extends RecursiveAction {
             });
 
         System.out.printf("Потоки запущены для сайта: %s\n", site.getUrl());
-
-
-//        System.out.println("Завершение потоков!");
-//        System.out.format("Страницы сайта загружены за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
-
-        //Запись Cache.obj
-        //TimeMeasure.setStartTime();
-        //saveCache(fileName);
-        //System.out.format("Cache.obj записан за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
-
-        //Зпись в базу
-        //savePagesFromCash();
-
-
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -440,6 +422,9 @@ public class Parser extends RecursiveAction {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 Page page = pages.get(i);
+                if (page==null)
+                    System.out.println("page is null, pages.size = :" + pages.size());
+
                 Integer siteId = page.getSiteId();
                 ps.setInt(1, siteId);
                 Integer code = page.getCode();
@@ -447,7 +432,6 @@ public class Parser extends RecursiveAction {
                 ps.setString(3, page.getPath());
                 ps.setString(4, page.getContent());
             }
-
             @Override
             public int getBatchSize() {
                 return pages.size();
@@ -472,15 +456,13 @@ public class Parser extends RecursiveAction {
                     SaveFileMode.REWRITE);
 
         TimeMeasure.setStartTime();
-        writeToDatabase(getLinksSetEmptyPage(readyLinks));
+        writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
         System.out.format("Запись в базу за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
-
     }
 
     public void stopScanSite(Site site) {
-        if (!activePools.containsKey(site.getId())) {
+        if (!activePools.containsKey(site.getId()))
             return;
-        }
 
         //удаляем ссылки предыдушего стопа
         deleteFile("data/" + domainName + "/" + STOP_LINKS_FILENAME);
@@ -499,38 +481,48 @@ public class Parser extends RecursiveAction {
                     false,
                     SaveFileMode.REWRITE);
 
-
 //        saveHashMapToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
 //                domainName, readyLinksHashMap.get(site.getId()), false, SaveFileMode.REWRITE);
         System.out.format(READY_LINKS_FILENAME + " записан за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
         TimeMeasure.setStartTime();
         //writeToDatabase(readyLinks.values().stream().toList());
-        writeToDatabase(getLinksSetEmptyPage(readyLinks));
+        writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
         System.out.format("запись в базу данных за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
     }
 
-    private static List<Page> getLinksSetEmptyPage(ConcurrentHashMap<String,Page> pageHashMap) {
+    private static List<Page> getLinksSetEmptyPage(ConcurrentHashMap<String, Page> pageHashMap,
+                                                   String domainName,
+                                                   boolean saveLinksInShortFormat) {
         List<Page> listPage = new ArrayList<>();
         Iterator<Page> iterator = pageHashMap.values().iterator();
         while (iterator.hasNext()) {
             Page page = iterator.next();
             if (!page.equals(emptyPage)) {
+                if (saveLinksInShortFormat) {
+                    String shortLink = HtmlParsing.getShortLink(page.getPath(), domainName);
+                    page.setPath(shortLink);
+                }
                 listPage.add(page);
-                pageHashMap.replace(page.getPath(),emptyPage);
+
+                try {
+                    pageHashMap.replace(page.getPath(), emptyPage);
+                } catch (Exception e) {
+                    System.out.println(page.getPath());
+                    e.printStackTrace();
+                }
             }
         }
-        System.out.println("Передаю на запись " + listPage.size());
+        System.out.println("Передаю на запись " + listPage.size() + " старниц");
         return listPage;
     }
+
     @Override
     protected void compute() {
         int siteId = site.getId();
 
         ForkJoinPool pool = activePools.get(siteId);
-
         ConcurrentSkipListSet<String> inProcessLinks = inProcessLinksHashMap.get(siteId);
-
         ConcurrentHashMap<String, Page> readyLinks = readyLinksHashMap.get(siteId);
 
         if (stopList.contains(siteId)) {
@@ -542,7 +534,6 @@ public class Parser extends RecursiveAction {
                     SaveFileMode.DO_NOT_REWRITE);
             return;
         }
-
         Document document = null;
         inProcessLinks.add(path);
 
@@ -554,7 +545,6 @@ public class Parser extends RecursiveAction {
 //                System.out.format(totalCountLinks + ": download: [%d]  %s\n", code, path);
                 document = HtmlParsing.getHtmlDocument(path);
                 content = document.body().toString();
-
             } catch (Exception e) {
                 //throw new RuntimeException(e);
 //                e.printStackTrace();
@@ -593,17 +583,16 @@ public class Parser extends RecursiveAction {
 //                }
 
                 totalCountLinks.addAndGet(1L);
-                if (readyLinks.size() % 500 == 0) {
 
+                //Запись в базу данных
+                if (readyLinks.size() % batchSize == 0) {
                     System.out.println("Запись в базу данных");
                     TimeMeasure.setStartTime();
-                    writeToDatabase(getLinksSetEmptyPage(readyLinks));
-                    System.out.println(domainName + " -> время последней записи: " + TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
+                    writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
+                    System.out.println(domainName + " -> время записи в базу данных: " + TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
                     site.setPageCount(readyLinks.size());
                     siteRepository.save(site);
-
-                    //MainView.getGrid().setItems(siteRepository.findAll());
                 }
             }
         } else {
@@ -694,5 +683,54 @@ public class Parser extends RecursiveAction {
         }
     }
 
+    private static void showPrevDataDialog(Site site, Integer pageCount) {
+        ConcurrentHashMap<String, Page> readyLinks = readyLinksHashMap.get(site.getId());
+
+        Dialog dialog = new Dialog();
+        dialog.setModal(true);
+
+        Button confirm = new Button("Удалить");
+        Button cancel = new Button("Продолжить");
+
+        dialog.setHeaderTitle("Найдено " + pageCount + " страниц в базе данных");
+        dialog.getFooter().add(cancel, confirm);
+
+        VerticalLayout verticalLayout = new VerticalLayout(new Label("Удалить результаты предыдущего сканирования?"));
+        dialog.add(verticalLayout);
+
+        confirm.addClickListener(clickEvent -> {
+            dialog.close();
+            Notification notification = new Notification("Удалено", 500);
+            notification.setPosition(Notification.Position.MIDDLE);
+            notification.open();
+            new Thread() {
+                public void run() {
+                    pageRepository.deleteBySiteId(site.getId());
+                }
+            }.start();
+
+
+        });
+        cancel.addClickListener(clickEvent -> {
+            dialog.close();
+            ConfigComponent.showMessage("Результаты сохранены", 500, Notification.Position.MIDDLE);
+
+            List<String> links = pageRepository.findLinksBySiteId(site.getId());
+
+            String path = site.getUrl();
+
+            //Удаление предыдущих результатов
+            readyLinks.clear();;
+
+            //readyLinks.put("/", emptyPage);
+            readyLinks.put(site.getUrl(), emptyPage);
+
+            //Загрузка из базы обработанных ссылок
+            for (int i = 1; i < links.size(); i++)
+                //При записи в базу shortFormat: readyLinks.put(path.concat(links.get(i)), emptyPage);
+                readyLinks.put(links.get(i), emptyPage);
+        });
+        dialog.open();
+    }
 
 }

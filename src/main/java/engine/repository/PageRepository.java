@@ -28,23 +28,6 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
     @Query(value="Select count(*) from page where site_Id = :siteId", nativeQuery = true)
     Integer countBySiteId(@Param("siteId") Integer pageSiteId);
 
-//    @Transactional
-//    default void batchSavePages(List<Page> pages) {
-//
-//        jdbcTemplate.batchUpdate("Insert nto Page (Site_Id, Path, Code, Content) " +
-//                        "VALUES (?, ?, ?, ?)",
-//                pages,
-//                100,
-//                (PreparedStatement ps, Page page) -> {
-//                    ps.setInt(1, page.getSiteId());
-//                    ps.setString(2, page.getPath());
-//                    ps.setInt(3, page.getCode());
-//                    ps.setString(4, page.getContent());
-//
-//                });
-//    }
-
-
 
 }
 
