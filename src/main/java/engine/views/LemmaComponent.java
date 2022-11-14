@@ -137,11 +137,8 @@ public class LemmaComponent {
                 Optional<String> wordNormalForm = luceneMorph.getNormalForms(word).stream().findFirst();
                 LuceneMorphology finalLuceneMorph = luceneMorph;
                 wordNormalForm.ifPresent(lemma -> {
-//                    String l = lemma;
-//                    String lInfo = String.valueOf(finalLuceneMorph.getMorphInfo(l).stream().findFirst());
-
                     String lInfo = String.valueOf(finalLuceneMorph.getMorphInfo(lemma).stream().findFirst());
-                    if (!lInfo.contains("ПРЕДЛ") && !lInfo.contains("СОЮЗ")) {
+                    if (!lInfo.contains("ПРЕДЛ") && !lInfo.contains("СОЮЗ") && !lInfo.contains("МЕЖД")) {
                         Integer count = 1;
                         if (lemmaHasMap.containsKey(lemma)) {
                             count = lemmaHasMap.get(lemma) + 1;
