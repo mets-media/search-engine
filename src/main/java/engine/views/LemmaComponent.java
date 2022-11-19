@@ -1,20 +1,26 @@
 package engine.views;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextArea;
 import engine.entity.Lemma;
+import engine.entity.PartsOfSpeech;
+import engine.entity.Site;
 import engine.repository.LemmaRepository;
+import engine.repository.PartOfSpeechRepository;
 import lombok.Getter;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -23,89 +29,137 @@ import java.util.List;
 @Component
 @Getter
 public class LemmaComponent {
-    private VerticalLayout verticalLayout = new VerticalLayout();
-    private HorizontalLayout horizontalLayout = new HorizontalLayout();
+
+
+    private PartOfSpeechRepository partOfSpeechRepository;
+    private LuceneMorphology luceneMorph;
+    private final static String russianWordsRegEx = "[\\p{IsCyrillic}]";
+    private final static String[] particleNames = new String[]{"ПРЕДЛ", "СОЮЗ", "МЕЖД", "ЧАСТ", "МС-П", "МС", "ПРИЧАСТИЕ"};
+
+    private VerticalLayout mainLayout = new VerticalLayout();
+
+    private final Grid<PartsOfSpeech> gridPartsOfSpeech = new Grid<>();
+
     private Grid grid = new Grid<>(Lemma.class, false);
+
+
+
     private static LemmaRepository lemmaRepository;
     private TextArea resultTextArea = new TextArea("Результаты морфологического анализа");
     private TextArea textArea = new TextArea("Текст для морфологического анализа");
-    private List<String> langPart = Arrays.asList("СОЮЗ", "МЕЖД");
+    //private List<String> langPart = Arrays.asList("СОЮЗ", "МЕЖД");
+    private HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
 
 
     public LemmaComponent() {
-        verticalLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.START);
+        mainLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
+        mainLayout.add(getTopHorizontalLayout("Конфигурация лемматизатора",
+                Arrays.asList("Кнопка 1", "Кнопка 2")));
 
-        horizontalLayout.setWidthFull();
-        horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
+        createTabs(List.of("Лемматизатор", "Части речи", "Леммы"));
 
-        horizontalLayout.add(createControlButtons());
 
-        HorizontalLayout horizontalLayoutText = new HorizontalLayout();
-        horizontalLayoutText.setWidthFull();
-        horizontalLayoutText.setHeightFull();
-
-        horizontalLayoutText.add(textArea);
-        textArea.setWidthFull();
-        textArea.setHeight("100%");
-
-        horizontalLayoutText.add(resultTextArea);
-        resultTextArea.setReadOnly(true);
-        resultTextArea.setWidthFull();
-        resultTextArea.setHeight("100%");
-
-        verticalLayout.add(horizontalLayout);
-        verticalLayout.add(horizontalLayoutText);
-
-        Grid grid = new Grid<>();
-
+        try {
+            luceneMorph = new RussianLuceneMorphology();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private HorizontalLayout createControlButtons() {
+    public void setPartOfSpeechRepository(PartOfSpeechRepository partOfSpeechRepository) {
+        this.partOfSpeechRepository = partOfSpeechRepository;
+    }
+
+    private HorizontalLayout getTopHorizontalLayout(String caption, List<String> buttonsCaption) {
         HorizontalLayout hLayout = new HorizontalLayout();
         hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        hLayout.setAlignItems(FlexComponent.Alignment.END);
 
-        HorizontalLayout horizontalLayoutForLabel = new HorizontalLayout();
-        horizontalLayoutForLabel.setAlignItems(FlexComponent.Alignment.END);
-        horizontalLayoutForLabel.setSizeUndefined();
+        HorizontalLayout LabelLayout = new HorizontalLayout();
+        LabelLayout.setAlignItems(FlexComponent.Alignment.END);
+        LabelLayout.setSizeFull();
 
-        Label label = new Label("Лемматизатор");
+        Label label = new Label(caption);
         label.getStyle().set("font-size", "var(--lumo-font-size-xl)").set("margin", "0");
+        LabelLayout.add(label);
 
-        horizontalLayoutForLabel.add(label);
+        HorizontalLayout controlsLayout = new HorizontalLayout();
+        controlsLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        controlsLayout.setAlignItems(FlexComponent.Alignment.END);
 
-        Button testButton = new Button("Старт");
-        testButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-        testButton.addClickListener(event -> {
-//            LuceneMorphology luceneMorph = null;
-//            try {
-//                luceneMorph = new RussianLuceneMorphology();
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//
-//            luceneMorph.getNormalForms("леса").forEach(System.out::println);
-//
-//            StringBuilder stringBuilder = new StringBuilder();
-//            stringBuilder.append("Исходные формы слова \"" + textArea.getValue() + "\" :\n");
-//            luceneMorph.getNormalForms(textArea.getValue().toLowerCase()).forEach(t -> {
-//                stringBuilder.append('\t' + t + "\n");
-//            });
-//            resultTextArea.setValue(String.valueOf(stringBuilder));
+        hLayout.add(LabelLayout);
+        hLayout.add(controlsLayout);
 
-            StringBuilder stringBuilder = new StringBuilder();
-            getLemmaInfo(textArea.getValue()).entrySet().forEach(x -> {
-                stringBuilder.append(x.getKey() + " -> " + x.getValue() + "\n");
-            });
-            resultTextArea.setValue(stringBuilder.toString());
+        for (String buttonCaption : buttonsCaption) {
+            Button newButton = new Button(buttonCaption);
+            newButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
+
+            controlsLayout.add(newButton);
+        }
+
+        return hLayout;
+    }
+
+    private VerticalLayout createPartOfSpeechContent() {
+        var vLayout = new VerticalLayout();
+
+        var startButton = new Button("Все части речи");
+        startButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
+        startButton.addClickListener(event -> {
         });
 
-        Button splitButton = new Button("Split");
+        gridPartsOfSpeech.addThemeVariants(GridVariant.LUMO_COMPACT);
+        gridPartsOfSpeech.setSelectionMode(Grid.SelectionMode.SINGLE);
+
+        gridPartsOfSpeech.addComponentColumn(item->{
+            Checkbox checkbox = new Checkbox();
+            checkbox.setValue(item.getInclude());
+            checkbox.addValueChangeListener(event->{
+                item.setInclude(event.getValue());
+                partOfSpeechRepository.save(item);
+            });
+            return checkbox;
+        }).setHeader("Вкл.в отчёт").setAutoWidth(true).setSortable(true);
+        gridPartsOfSpeech.addColumn(PartsOfSpeech::getName)
+                .setHeader("Наименование").setAutoWidth(true).setSortable(true);
+        gridPartsOfSpeech.addColumn(PartsOfSpeech::getShortName)
+                .setHeader("Сокращение").setAutoWidth(true).setSortable(true);
+
+
+        vLayout.add(gridPartsOfSpeech);
+
+        return vLayout;
+    }
+
+    private void hideAllVerticalLayouts() {
+        mainLayout.getChildren().forEach(component -> {
+            if (component.getClass() == VerticalLayout.class)
+                component.setVisible(false);
+        });
+    }
+
+    private VerticalLayout createLemmatisatorContent() {
+        var verticalLayout = new VerticalLayout();
+        verticalLayout.setAlignItems(FlexComponent.Alignment.START);
+
+        var startButton = new Button("Start");
+        startButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
+
+        startButton.addClickListener(event -> {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    getLemmaCount(textArea.getValue()).entrySet().forEach(x -> {
+                        stringBuilder.append(x.getKey() + " -> " + x.getValue() + "\n");
+                    });
+                    resultTextArea.setValue(stringBuilder.toString());
+                }
+        );
+
+        var splitButton = new Button("Split");
         splitButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
+
         splitButton.addClickListener(event -> {
             StringBuilder stringBuilder = new StringBuilder();
-
-            String[] words = textArea.getValue().toLowerCase().replaceAll("\\p{Punct}", " ").split("[\s\n]");
-
+            String[] words = getRussianWords(textArea.getValue());
             for (String word : words) {
                 if (!word.isBlank())
                     stringBuilder.append("-" + word + "\n");
@@ -113,46 +167,159 @@ public class LemmaComponent {
             resultTextArea.setValue(stringBuilder.toString());
         });
 
-        hLayout.add(horizontalLayoutForLabel, testButton, splitButton);
-        return hLayout;
+        Button infoButton = new Button("Info");
+        infoButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
+        infoButton.addClickListener(event -> {
+            StringBuilder stringBuilder = new StringBuilder();
+            getLemmaInfo(textArea.getValue()).forEach(l -> {
+                stringBuilder.append(l + '\n');
+                //partOfSpeechRepository.save(new PartsOfSpeech(l,true));
+
+            });
+            resultTextArea.setValue(stringBuilder.toString());
+        });
+
+
+        var controlLayout = new HorizontalLayout(splitButton, startButton, infoButton);
+
+        controlLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        controlLayout.setAlignItems(FlexComponent.Alignment.END);
+        controlLayout.setSizeUndefined();
+
+        var hLayout = new HorizontalLayout();
+        hLayout.setWidthFull();
+        hLayout.setHeightFull();
+
+        hLayout.add(textArea);
+        textArea.setWidthFull();
+        textArea.setHeight("100%");
+
+        hLayout.add(resultTextArea);
+        resultTextArea.setReadOnly(true);
+        resultTextArea.setWidthFull();
+        resultTextArea.setHeight("100%");
+
+        verticalLayout.add(controlLayout, hLayout);
+
+        return verticalLayout;
     }
 
-    private HashMap<String, Integer> getLemmaInfo(String text) {
-        LuceneMorphology luceneMorph = null;
-        try {
-            luceneMorph = new RussianLuceneMorphology();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    private void createTabs(List<String> captions) {
+        Tabs tabs = new Tabs();
+        tabs.setOrientation(Tabs.Orientation.HORIZONTAL);
+        tabs.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
+
+        for (String caption : captions) {
+            Tab newTab = new Tab(caption);
+            tabs.add(newTab);
         }
+        mainLayout.add(tabs);
 
-        String[] words = textArea.getValue().toLowerCase()
-                .replaceAll("\\p{Punct}", " ")
-                .split("[\s\n]");
+        tabs.addSelectedChangeListener(event -> {
+            String label = tabs.getSelectedTab().getLabel();
+            switch (label) {
+                case "Лемматизатор" -> {
+                    if (!contentsHashMap.containsKey(label)) {
+                        VerticalLayout cont = createLemmatisatorContent();
+                        contentsHashMap.put(label, cont);
+                        mainLayout.add(cont);
+                    }
+                    hideAllVerticalLayouts();
+                    VerticalLayout activeComponent = contentsHashMap.get(label);
+                    activeComponent.setVisible(true);
 
-        HashMap<String, Integer> lemmaHasMap = new HashMap<>();
+                }
+
+                case "Части речи" -> {
+                    if (!contentsHashMap.containsKey(label)) {
+                        VerticalLayout cont = createPartOfSpeechContent();
+                        contentsHashMap.put(label, cont);
+                        mainLayout.add(cont);
+                    }
+
+                    if (partOfSpeechRepository.count() == 0) {
+                        partOfSpeechRepository.initData();
+                    }
+
+                    hideAllVerticalLayouts();
+                    VerticalLayout activeComponent = contentsHashMap.get(label);
+                    activeComponent.setVisible(true);
+
+                    gridPartsOfSpeech.setItems(partOfSpeechRepository.findAll());
+                }
+                case "Леммы" -> {
+                    hideAllVerticalLayouts();
+                }
+            }
+        });
+    }
+
+    private Boolean isParticle(String lemma) {
+        List<String> listInfo = luceneMorph.getMorphInfo(lemma);
+        for (String particle : particleNames) {
+            if (listInfo.toString().contains(particle))
+                return true;
+        }
+        return false;
+    }
+
+    private String[] getRussianWords(String text) {
+        String[] words = text.toLowerCase()
+                .replaceAll("[^\\p{IsCyrillic}]", " ")
+                .trim()
+                .split("[\\s+]");
+        return words;
+    }
+
+    private Set<String> getLemmaInfo(String text) {
+        String[] words = getRussianWords(text);
+        TreeSet<String> lemmaInfo = new TreeSet<>();
 
         for (String word : words) {
             if (!word.isBlank()) {
-                Optional<String> wordNormalForm = luceneMorph.getNormalForms(word).stream().findFirst();
-                LuceneMorphology finalLuceneMorph = luceneMorph;
-                wordNormalForm.ifPresent(lemma -> {
-                    String lInfo = String.valueOf(finalLuceneMorph.getMorphInfo(lemma).stream().findFirst());
-                    if (!lInfo.contains("ПРЕДЛ") &&
-                            !lInfo.contains("СОЮЗ") &&
-                            !lInfo.contains("МЕЖД") &&
-                            !lInfo.contains("ЧАСТ"))
-                    {
-                        Integer count = 1;
-                        lemma = lemma + " " + lInfo;
-                        if (lemmaHasMap.containsKey(lemma)) {
-                            count = lemmaHasMap.get(lemma) + 1;
-                        }
-                        lemmaHasMap.put(lemma, count);
-                    }
+                List<String> wordNormalForms = luceneMorph.getNormalForms(word);
+                wordNormalForms.forEach(normalForm -> {
+                    List<String> info = luceneMorph.getMorphInfo(normalForm);
+                    info.forEach(i -> {
+                        String[] prop = i.split(" ");
+                        //lemmaInfo.add(i +" -> "+prop[1]);
+                        lemmaInfo.add(prop[1]);
+                    });
                 });
             }
         }
-        return lemmaHasMap;
+        return lemmaInfo;
     }
+
+    private HashMap<String, Integer> getLemmaCount(String text) {
+
+        String[] words = getRussianWords(text);
+
+        HashMap<String, Integer> lemmaHashMap = new HashMap<>();
+
+        for (String word : words) {
+            if (!word.isBlank()) {
+                List<String> wordNormalForms = luceneMorph.getNormalForms(word);
+                wordNormalForms.forEach(normalForm -> {
+                    List<String> info = luceneMorph.getMorphInfo(normalForm);
+                    if (isParticle(normalForm)) {
+                        lemmaHashMap.put(word + "->" + normalForm + " -> " + info, 1);
+                    }
+                });
+
+
+//                wordNormalForms.forEach(lemma -> {
+//                    Integer count = 1;
+//                    lemma = word + ": " + lemma;
+//                    if (lemmaHasMap.containsKey(lemma)) {
+//                        count = lemmaHasMap.get(lemma) + 1;
+//                    }
+//                    lemmaHasMap.put(lemma, count);
+//                });
+            }
+        }
+        return lemmaHashMap;
+    }
+
 }

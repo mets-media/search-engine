@@ -1,39 +1,17 @@
 package engine.views;
 
-import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridMultiSelectionModel;
-import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
-import com.vaadin.flow.component.textfield.TextField;
 
 import com.vaadin.flow.router.Route;
 
-import engine.entity.*;
-import engine.repository.ConfigRepository;
-import engine.repository.FieldRepository;
-import engine.service.Parser;
-import engine.repository.PageRepository;
-import engine.repository.SiteRepository;
+import engine.repository.*;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 @Route
 @Getter
@@ -49,6 +27,9 @@ public class MainView extends AppLayout {
 
     @Autowired
     FieldRepository fieldRepository;
+
+    @Autowired
+    PartOfSpeechRepository partOfSpeechRepository;
 
     public MainView() {
         DrawerToggle toggle = new DrawerToggle();
@@ -78,7 +59,8 @@ public class MainView extends AppLayout {
         Tab tabLemma = new Tab("Лемматизатор");
         tabLemma.getElement().addEventListener("click", domEvent -> {
             LemmaComponent lemmaComponent = new LemmaComponent();
-            setContent(lemmaComponent.getVerticalLayout());
+            lemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
+            setContent(lemmaComponent.getMainLayout());
         });
 
         tabs.add(tabSites, tabOptions, tabLemma);

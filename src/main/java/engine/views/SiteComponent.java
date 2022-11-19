@@ -16,14 +16,12 @@ import com.vaadin.flow.data.renderer.LocalDateTimeRenderer;
 import com.vaadin.flow.function.ValueProvider;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
-import engine.repository.ConfigRepository;
-import engine.repository.FieldRepository;
-import engine.repository.PageRepository;
-import engine.repository.SiteRepository;
+import engine.repository.*;
 import engine.service.HtmlParsing;
 import engine.service.Parser;
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +39,7 @@ import java.util.stream.Collectors;
 @Component
 @Getter
 public class SiteComponent {
+
 
     private final VerticalLayout verticalLayout;
     private final Grid<Site> grid;
