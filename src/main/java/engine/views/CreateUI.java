@@ -15,6 +15,7 @@ public class CreateUI {
         verticalLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
         return verticalLayout;
     }
+
     public static HorizontalLayout getTopLayout(String caption, List<Button> buttons) {
         var topLayout = new HorizontalLayout();
         topLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
@@ -32,8 +33,9 @@ public class CreateUI {
         controlsLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         controlsLayout.setAlignItems(FlexComponent.Alignment.END);
 
-        for (Button button : buttons)
-            controlsLayout.add(button);
+        if (!(buttons == null))
+            for (Button button : buttons)
+                controlsLayout.add(button);
 
         topLayout.add(labelLayout, controlsLayout);
         return topLayout;

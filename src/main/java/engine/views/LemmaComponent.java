@@ -26,7 +26,6 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 @Component
 @Getter
 public class LemmaComponent {
@@ -54,14 +53,7 @@ public class LemmaComponent {
 
     public LemmaComponent() {
         mainLayout = CreateUI.getMainLayout();
-        mainLayout.add(getTopHorizontalLayout("Конфигурация лемматизатора",
-                Arrays.asList("Кнопка 1", "Кнопка 2")));
-
-        //mainLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
-//        mainLayout.add(getTopHorizontalLayout("Конфигурация лемматизатора",
-//                Arrays.asList("Кнопка 1", "Кнопка 2")));
-
-        //mainLayout.add(CreateUI.getTopLayout("Конф.",List.of("1","2")));
+        mainLayout.add(CreateUI.getTopLayout("Настройки лемматизатора",null));
 
         createTabs(List.of("Лемматизатор", "Части речи", "Леммы"));
 
@@ -76,32 +68,6 @@ public class LemmaComponent {
         this.partOfSpeechRepository = partOfSpeechRepository;
     }
 
-    private HorizontalLayout getTopHorizontalLayout(String caption, List<String> buttonsCaption) {
-        var topLayout = new HorizontalLayout();
-        topLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        topLayout.setAlignItems(FlexComponent.Alignment.END);
-
-        var labelLayout = new HorizontalLayout();
-        labelLayout.setAlignItems(FlexComponent.Alignment.END);
-        labelLayout.setSizeFull();
-
-        Label label = new Label(caption);
-        label.getStyle().set("font-size", "var(--lumo-font-size-xl)").set("margin", "0");
-        labelLayout.add(label);
-
-        var controlsLayout = new HorizontalLayout();
-        controlsLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        controlsLayout.setAlignItems(FlexComponent.Alignment.END);
-
-        for (String buttonCaption : buttonsCaption) {
-            Button newButton = new Button(buttonCaption);
-            newButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-            controlsLayout.add(newButton);
-        }
-
-        topLayout.add(labelLayout, controlsLayout);
-        return topLayout;
-    }
 
     private VerticalLayout createPartOfSpeechContent() {
         var vLayout = new VerticalLayout();
