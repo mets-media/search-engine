@@ -24,10 +24,8 @@ public class MainView extends AppLayout {
     PageRepository pageRepository;
     @Autowired
     ConfigRepository configRepository;
-
     @Autowired
     FieldRepository fieldRepository;
-
     @Autowired
     PartOfSpeechRepository partOfSpeechRepository;
 
@@ -44,12 +42,15 @@ public class MainView extends AppLayout {
         tabSites.getElement().addEventListener("click", domEvent -> {
             SiteComponent.setDataAccess(configRepository,siteRepository, pageRepository, fieldRepository, jdbcTemplate);
             SiteComponent siteComponent = new SiteComponent();
-            setContent(siteComponent.getVerticalLayout());
+            setContent(siteComponent.getMainLayout());
             siteComponent.getGrid().setItems(siteRepository.findAll());
         });
 
         Tab tabOptions = new Tab("Настройки");
         tabOptions.getElement().addEventListener("click", domEvent -> {
+            if (configRepository.count()==0)
+                configRepository.initData();
+
             ConfigComponent.setConfigRepository(configRepository);
             ConfigComponent configComponent = new ConfigComponent();
             setContent(configComponent.getMainLayout());

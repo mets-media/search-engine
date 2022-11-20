@@ -5,16 +5,13 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextArea;
-import engine.entity.Lemma;
 import engine.entity.PartsOfSpeech;
-import engine.repository.LemmaRepository;
 import engine.repository.PartOfSpeechRepository;
 import lombok.Getter;
 import org.apache.lucene.morphology.LuceneMorphology;
@@ -29,33 +26,21 @@ import java.util.stream.Collectors;
 @Component
 @Getter
 public class LemmaComponent {
-
-
     private PartOfSpeechRepository partOfSpeechRepository;
-    private LuceneMorphology luceneMorph;
-    private final static String russianWordsRegEx = "[\\p{IsCyrillic}]";
-
+    private final LuceneMorphology luceneMorph;
     private List<String> excludeList;
-
-    private VerticalLayout mainLayout;
-
+    private final VerticalLayout mainLayout;
     private final Grid<PartsOfSpeech> gridPartsOfSpeech = new Grid<>();
-
-    private Grid grid = new Grid<>(Lemma.class, false);
-
-
-    private static LemmaRepository lemmaRepository;
-    private TextArea resultTextArea = new TextArea("Результаты морфологического анализа");
-    private TextArea textArea = new TextArea("Текст для морфологического анализа");
-    //private List<String> langPart = Arrays.asList("СОЮЗ", "МЕЖД");
-    private HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
-
+    private final TextArea resultTextArea = new TextArea("Результаты морфологического анализа");
+    private final TextArea textArea = new TextArea("Текст для морфологического анализа");
+    private final HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
 
     public LemmaComponent() {
         mainLayout = CreateUI.getMainLayout();
-        mainLayout.add(CreateUI.getTopLayout("Настройки лемматизатора",null));
+        mainLayout.add(CreateUI.getTopLayout("Настройки лемматизатора", null));
 
         createTabs(List.of("Лемматизатор", "Части речи", "Леммы"));
+
 
         try {
             luceneMorph = new RussianLuceneMorphology();
@@ -67,7 +52,6 @@ public class LemmaComponent {
     public void setPartOfSpeechRepository(PartOfSpeechRepository partOfSpeechRepository) {
         this.partOfSpeechRepository = partOfSpeechRepository;
     }
-
 
     private VerticalLayout createPartOfSpeechContent() {
         var vLayout = new VerticalLayout();
@@ -93,7 +77,6 @@ public class LemmaComponent {
                 .setHeader("Наименование").setAutoWidth(true).setSortable(true);
         gridPartsOfSpeech.addColumn(PartsOfSpeech::getShortName)
                 .setHeader("Сокращение").setAutoWidth(true).setSortable(true);
-
 
         vLayout.add(gridPartsOfSpeech);
 
@@ -154,7 +137,6 @@ public class LemmaComponent {
             });
             resultTextArea.setValue(stringBuilder.toString());
         });
-
 
         var controlLayout = new HorizontalLayout(splitButton, startButton, infoButton);
 
@@ -228,10 +210,15 @@ public class LemmaComponent {
                 }
             }
         });
-    }
 
-    private List<PartsOfSpeech> getExcludeForms() {
-        return partOfSpeechRepository.findByInclude(false);
+        VerticalLayout cont = createLemmatisatorContent();
+        contentsHashMap.put("Лематизатор", cont);
+        mainLayout.add(cont);
+
+        hideAllVerticalLayouts();
+        VerticalLayout activeComponent = contentsHashMap.get("Лематизатор");
+        activeComponent.setVisible(true);
+
     }
 
     private Boolean hasProperty(String wordBaseForm) {

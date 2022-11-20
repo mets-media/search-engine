@@ -2,6 +2,7 @@ package engine.views;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Label;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 @Getter
 public class ConfigComponent {
     private VerticalLayout mainLayout;
-    private Grid grid;
+    private Grid<Config> grid;
     Button newOptionButton;
     Button editButton;
     Button deleteOptionButton;
@@ -38,18 +39,27 @@ public class ConfigComponent {
         List<Button> buttons = createButtons(List.of("Добавить", "Редактировать", "Удалить"));
         mainLayout.add(CreateUI.getTopLayout("Настройки сканирования.", buttons));
 
-        //verticalLayout.add(createControlButtons());
+//        grid = new Grid<>(Config.class, true);
+//        grid.setSelectionMode(Grid.SelectionMode.SINGLE);
+//        grid.addThemeVariants(GridVariant.LUMO_COMPACT);
+//
+//        List<Grid.Column> columns = grid.getColumns();
+//
+//        columns.get(0).setVisible(false);
+//        columns.get(1).setAutoWidth(true);
+//        columns.get(2).setHeader("Свойство");
+//        columns.get(3).setHeader("Значение");
 
-        grid = new Grid<>(Config.class, true);
+
+        grid = new Grid(Config.class, false);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
 
-        List<Grid.Column> columns = grid.getColumns();
-
-        columns.get(0).setVisible(false);
-        columns.get(1).setAutoWidth(true);
-        columns.get(2).setHeader("Свойство");
-        columns.get(3).setHeader("Значение");
+        grid.addColumn(Config::getKey).setHeader("Key").setAutoWidth(true)
+                .setSortable(true)
+                .setTextAlign(ColumnTextAlign.CENTER);
+        grid.addColumn(Config::getName).setHeader("Наименование").setSortable(true);
+        grid.addColumn(Config::getValue).setHeader("Значение");
 
         mainLayout.add(grid);
     }
@@ -132,7 +142,13 @@ public class ConfigComponent {
                 case "Удалить" -> {
                     button.addClickListener(buttonClickEvent -> {
                         Optional<Config> config = grid.getSelectedItems().stream().findFirst();
-                        config.ifPresent(c -> configRepository.delete(c));
+                        config.ifPresent(c -> {
+                            if (c.getId() < 0)
+                                showMessage(c.getName() + "нельзя удалять!",
+                                        2000, Notification.Position.MIDDLE);
+                            else
+                                configRepository.delete(c);
+                        });
                         grid.setItems(configRepository.findAll());
                     });
                 }

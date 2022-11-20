@@ -2,6 +2,7 @@ package engine.views;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -11,7 +12,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.renderer.LocalDateRenderer;
 import com.vaadin.flow.data.renderer.LocalDateTimeRenderer;
 import com.vaadin.flow.function.ValueProvider;
 import engine.entity.Site;
@@ -27,10 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +39,7 @@ public class SiteComponent {
 
     @Autowired
     PartOfSpeechRepository partOfSpeechRepository;
-    private final VerticalLayout verticalLayout;
+    private final VerticalLayout mainLayout;
     private final Grid<Site> grid;
     private static ConfigRepository configRepository;
     private static SiteRepository siteRepository;
@@ -52,9 +49,9 @@ public class SiteComponent {
 
 
     public SiteComponent() {
-        verticalLayout = new VerticalLayout();
-        verticalLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.START);
-        verticalLayout.setMinHeight("100%");
+        mainLayout = CreateUI.getMainLayout();
+        mainLayout.add(CreateUI.getTopLayout("Сканирование сайтов", createButtons()));
+        mainLayout.setMinHeight("100%");
 
         grid = new Grid<>(Site.class, false);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
@@ -63,11 +60,12 @@ public class SiteComponent {
 
         //grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
-        grid.addColumn(Site::getName).setHeader("Наименование").setResizable(true);
-        grid.addColumn(Site::getUrl).setHeader("Адрес(url)").setResizable(true);
-        grid.addColumn(Site::getPageCount).setHeader("Страниц в базе").setResizable(true);
-        grid.addColumn(Site::getStatus).setHeader("Статус").setResizable(true);
-        //grid.addColumn(Site::getStatusTime).setHeader("Время").setResizable(true);
+        grid.addColumn(Site::getName).setHeader("Наименование").setResizable(true).setSortable(true);
+        grid.addColumn(Site::getUrl).setHeader("Адрес(url)").setResizable(true).setSortable(true);
+        grid.addColumn(Site::getPageCount).setHeader("Страниц в базе").setResizable(true)
+                .setTextAlign(ColumnTextAlign.CENTER);
+        grid.addColumn(Site::getStatus).setHeader("Статус").setResizable(true)
+                .setTextAlign(ColumnTextAlign.CENTER);
 
 
 //        grid.addColumn(new LocalDateTimeRenderer<>(new ValueProvider<Site, LocalDateTime>() {
@@ -92,40 +90,25 @@ public class SiteComponent {
 //        grid.addColumn(new LocalDateTimeRenderer<>((ValueProvider<Site, LocalDateTime>) Site::getStatusTime))
 //                .setHeader("Дата статуса").setResizable(true);
 
-
         grid.addColumn(Site::getLastError).setHeader("Сообщение").setResizable(true);
 
-        //Создание кнопок управления
-        HorizontalLayout hLayout = createButtons();
-
-        verticalLayout.add(hLayout);
-        verticalLayout.add(grid);
+        mainLayout.add(grid);
 
     }
 
-    private HorizontalLayout createButtons() {
-        HorizontalLayout hLayout = new HorizontalLayout();
-        hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-
-        HorizontalLayout horizontalLayoutForLabel = new HorizontalLayout();
-        horizontalLayoutForLabel.setAlignItems(FlexComponent.Alignment.START);
-        horizontalLayoutForLabel.setSizeUndefined();
-
-        Label label = new Label("Анализ информации на сайтах");
-        label.getStyle().set("font-size", "var(--lumo-font-size-xl)").set("margin", "0");
-
-        horizontalLayoutForLabel.add(label);
+    private List<Button> createButtons() {
+        List<Button> buttons = new ArrayList<>();
 
         //========================= ТЕСТ ==========================================
         Button testButton = new Button("Тест");
+        buttons.add(testButton);
         testButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         testButton.addClickListener(event -> {
             fieldRepository.initData();
-            //generateDialog("Генерация dialog из Grid", grid, 3);
-            //updateSiteInfo();
         });
         //========================= ДОБАВИТЬ САЙТ ==========================================
         Button createButton = new Button("Добавить");
+        buttons.add(createButton);
         createButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         createButton.addClickListener(buttonClickEvent -> {
             showNewSiteDialog();
@@ -133,6 +116,7 @@ public class SiteComponent {
 
         //============================  Кнопка удаления Сайта  =================================
         Button deleteButton = new Button("Удалить");
+        buttons.add(deleteButton);
         deleteButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         deleteButton.addClickListener(buttonClickEvent -> {
@@ -147,6 +131,7 @@ public class SiteComponent {
 
         //========================= СКАНИРОВАТЬ САЙТ ==========================================
         Button parseButton = new Button("Сканировать");
+        buttons.add(parseButton);
         parseButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         parseButton.addClickListener(buttonClickEvent -> {
@@ -168,23 +153,25 @@ public class SiteComponent {
 
         //========================= СТОП СКАНИРОВАНИЕ ==========================================
         Button stopButton = new Button("Стоп!");
+        buttons.add(stopButton);
         stopButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         stopButton.addClickListener(event -> {
             Set<Site> stopSites = grid.getSelectedItems();
             stopSites.forEach(site -> {
-                //parser.stopScanSite(site);
-                Parser.stop(site); //Новый вариант
+                Parser.stop(site);
                 grid.deselect(site);
                 site.setStatus(SiteStatus.STOPPED);
                 siteRepository.save(site);
+                site.setPageCount(pageRepository.countBySiteId(site.getId()));
+                siteRepository.save(site);
+
             });
             //grid.getDataProvider().refreshAll();
             grid.setItems(siteRepository.findAll());
         });
-
-        hLayout.add(horizontalLayoutForLabel, testButton, createButton, deleteButton, parseButton, stopButton);
-        return hLayout;
+        return buttons;
     }
+
 
     public static void setAllCheckboxVisibility(Grid<Site> grid, boolean visible) {
         if (visible) {
@@ -305,7 +292,7 @@ public class SiteComponent {
         TextField textFieldUrl = new TextField("url сайта [http://....]");
         //textFieldUrl.setValue("http://");
         textFieldUrl.setWidth("50%");
-        horizontalLayout.add(textFieldName,textFieldUrl);
+        horizontalLayout.add(textFieldName, textFieldUrl);
         dialog.add(horizontalLayout);
 
         Button saveButton = new Button("Сохранить", e -> {
@@ -343,6 +330,7 @@ public class SiteComponent {
             grid.setItems(siteRepository.findAll());
         });
     }
+
     public static void setDataAccess(ConfigRepository configRepository, SiteRepository siteRepository, PageRepository pageRepository, FieldRepository fieldRepository, JdbcTemplate jdbcTemplate) {
         SiteComponent.configRepository = configRepository;
         SiteComponent.siteRepository = siteRepository;
