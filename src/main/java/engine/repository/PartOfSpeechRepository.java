@@ -4,7 +4,10 @@ import engine.entity.PartsOfSpeech;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 public interface PartOfSpeechRepository extends JpaRepository<PartsOfSpeech,Integer> {
     @Modifying
@@ -29,4 +32,6 @@ public interface PartOfSpeechRepository extends JpaRepository<PartsOfSpeech,Inte
             "(true,'Числительное','ЧИСЛ')," +
             "(true,'Числительное порядковое','ЧИСЛ-П')", nativeQuery = true)
     void initData();
+
+    List<PartsOfSpeech> findByInclude(Boolean include);
 }

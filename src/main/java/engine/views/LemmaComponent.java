@@ -13,7 +13,6 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextArea;
 import engine.entity.Lemma;
 import engine.entity.PartsOfSpeech;
-import engine.entity.Site;
 import engine.repository.LemmaRepository;
 import engine.repository.PartOfSpeechRepository;
 import lombok.Getter;
@@ -24,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -34,6 +34,9 @@ public class LemmaComponent {
     private PartOfSpeechRepository partOfSpeechRepository;
     private LuceneMorphology luceneMorph;
     private final static String russianWordsRegEx = "[\\p{IsCyrillic}]";
+
+    private List<String> excludeList;
+
     private final static String[] particleNames = new String[]{"ПРЕДЛ", "СОЮЗ", "МЕЖД", "ЧАСТ", "МС-П", "МС", "ПРИЧАСТИЕ"};
 
     private VerticalLayout mainLayout = new VerticalLayout();
@@ -41,7 +44,6 @@ public class LemmaComponent {
     private final Grid<PartsOfSpeech> gridPartsOfSpeech = new Grid<>();
 
     private Grid grid = new Grid<>(Lemma.class, false);
-
 
 
     private static LemmaRepository lemmaRepository;
@@ -111,10 +113,10 @@ public class LemmaComponent {
         gridPartsOfSpeech.addThemeVariants(GridVariant.LUMO_COMPACT);
         gridPartsOfSpeech.setSelectionMode(Grid.SelectionMode.SINGLE);
 
-        gridPartsOfSpeech.addComponentColumn(item->{
+        gridPartsOfSpeech.addComponentColumn(item -> {
             Checkbox checkbox = new Checkbox();
             checkbox.setValue(item.getInclude());
-            checkbox.addValueChangeListener(event->{
+            checkbox.addValueChangeListener(event -> {
                 item.setInclude(event.getValue());
                 partOfSpeechRepository.save(item);
             });
@@ -146,8 +148,14 @@ public class LemmaComponent {
         startButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         startButton.addClickListener(event -> {
+                    excludeList = partOfSpeechRepository.findByInclude(false)
+                            .stream()
+                            .map(p -> p.getShortName())
+                            .collect(Collectors.toList());
+
                     StringBuilder stringBuilder = new StringBuilder();
                     getLemmaCount(textArea.getValue()).entrySet().forEach(x -> {
+                        //stringBuilder.append(x.getKey() + " -> " + x.getValue() + "\n");
                         stringBuilder.append(x.getKey() + " -> " + x.getValue() + "\n");
                     });
                     resultTextArea.setValue(stringBuilder.toString());
@@ -236,11 +244,12 @@ public class LemmaComponent {
                         VerticalLayout cont = createPartOfSpeechContent();
                         contentsHashMap.put(label, cont);
                         mainLayout.add(cont);
+
+                        if (partOfSpeechRepository.count() == 0) {
+                            partOfSpeechRepository.initData();
+                        }
                     }
 
-                    if (partOfSpeechRepository.count() == 0) {
-                        partOfSpeechRepository.initData();
-                    }
 
                     hideAllVerticalLayouts();
                     VerticalLayout activeComponent = contentsHashMap.get(label);
@@ -255,13 +264,22 @@ public class LemmaComponent {
         });
     }
 
-    private Boolean isParticle(String lemma) {
-        List<String> listInfo = luceneMorph.getMorphInfo(lemma);
-        for (String particle : particleNames) {
-            if (listInfo.toString().contains(particle))
+    private List<PartsOfSpeech> getExcludeForms() {
+        return partOfSpeechRepository.findByInclude(false);
+    }
+
+    private Boolean hasProperty(String wordBaseForm) {
+        for (String excludeProp : excludeList) {
+            String[] form = wordBaseForm.split(" ");
+            if (form[1].equals(excludeProp))
                 return true;
         }
         return false;
+    }
+
+    private Boolean includeForm(String lemma) {
+        List<String> lemmaForms = luceneMorph.getMorphInfo(lemma);
+        return !lemmaForms.stream().anyMatch(this::hasProperty);
     }
 
     private String[] getRussianWords(String text) {
@@ -303,8 +321,13 @@ public class LemmaComponent {
                 List<String> wordNormalForms = luceneMorph.getNormalForms(word);
                 wordNormalForms.forEach(normalForm -> {
                     List<String> info = luceneMorph.getMorphInfo(normalForm);
-                    if (isParticle(normalForm)) {
-                        lemmaHashMap.put(word + "->" + normalForm + " -> " + info, 1);
+                    if (includeForm(normalForm)) {
+                        //lemmaHashMap.put(word + "->" + normalForm + " -> " + info, 1);
+                        Integer count = 1;
+                        if (lemmaHashMap.containsKey(normalForm)) {
+                            count = count + lemmaHashMap.get(normalForm);
+                        }
+                        lemmaHashMap.put(normalForm, count);
                     }
                 });
 
