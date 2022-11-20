@@ -52,7 +52,7 @@ public class MainView extends AppLayout {
         tabOptions.getElement().addEventListener("click", domEvent -> {
             ConfigComponent.setConfigRepository(configRepository);
             ConfigComponent configComponent = new ConfigComponent();
-            setContent(configComponent.getVerticalLayout());
+            setContent(configComponent.getMainLayout());
             configComponent.getGrid().setItems(configRepository.findAll());
         });
 

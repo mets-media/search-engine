@@ -17,13 +17,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @Getter
 public class ConfigComponent {
-    private VerticalLayout verticalLayout;
+    private VerticalLayout mainLayout;
     private Grid grid;
     Button newOptionButton;
     Button editButton;
@@ -32,8 +34,11 @@ public class ConfigComponent {
     private static ConfigRepository configRepository;
 
     public ConfigComponent() {
-        verticalLayout = new VerticalLayout();
-        verticalLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.END);
+        mainLayout = CreateUI.getMainLayout();
+        List<Button> buttons = createButtons(List.of("Добавить", "Редактировать", "Удалить"));
+        mainLayout.add(CreateUI.getTopLayout("Настройки сканирования.", buttons));
+
+        //verticalLayout.add(createControlButtons());
 
         grid = new Grid<>(Config.class, true);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
@@ -46,44 +51,43 @@ public class ConfigComponent {
         columns.get(2).setHeader("Свойство");
         columns.get(3).setHeader("Значение");
 
-
-        verticalLayout.add(createControlButtons());
-        verticalLayout.add(grid);
+        mainLayout.add(grid);
     }
 
     private HorizontalLayout createControlButtons() {
-        HorizontalLayout horizontalLayout = new HorizontalLayout();
-        horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        var topLayout = new HorizontalLayout();
+        topLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        topLayout.setAlignItems(FlexComponent.Alignment.END);
 
-        HorizontalLayout horizontalLayoutForLabel = new HorizontalLayout();
-        horizontalLayoutForLabel.setAlignItems(FlexComponent.Alignment.START);
-        horizontalLayoutForLabel.setSizeUndefined();
+        //=================       Название       ====================
+        var labelLayout = new HorizontalLayout();
+        labelLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        labelLayout.setAlignItems(FlexComponent.Alignment.START);
+        labelLayout.setSizeFull();
 
         Label label = new Label("Таблица конфигурирования программы");
         label.getStyle().set("font-size", "var(--lumo-font-size-xl)").set("margin", "0");
 
-        //label.setWidthFull();
-
-
-        horizontalLayoutForLabel.add(label);
+        labelLayout.add(label);
 
         newOptionButton = new Button("Добавить");
         newOptionButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-        //newOptionButton.setWidthFull();
 
         editButton = new Button("Редактировать");
         editButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-        //editButton.setWidthFull();
-
 
         deleteOptionButton = new Button("Удалить");
         deleteOptionButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-        //deleteOptionButton.setWidthFull();
 
         addListeners();
 
-        horizontalLayout.add(horizontalLayoutForLabel, newOptionButton, editButton, deleteOptionButton);
-        return horizontalLayout;
+        var controlsLayout = new HorizontalLayout(newOptionButton, editButton, deleteOptionButton);
+        controlsLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        controlsLayout.setAlignItems(FlexComponent.Alignment.END);
+        controlsLayout.setSizeUndefined();
+
+        topLayout.add(labelLayout, controlsLayout);
+        return topLayout;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -91,20 +95,53 @@ public class ConfigComponent {
         newOptionButton.addClickListener(buttonClickEvent -> {
             showDialog(null);
         });
-
         editButton.addClickListener(buttonClickEvent -> {
             Optional<Config> config = grid.getSelectedItems().stream().findFirst();
             config.ifPresent(c -> {
                 showDialog(c);
             });
         });
-
         deleteOptionButton.addClickListener(buttonClickEvent -> {
             Optional<Config> config = grid.getSelectedItems().stream().findFirst();
             config.ifPresent(c -> configRepository.delete(c));
             grid.setItems(configRepository.findAll());
         });
     }
+
+    private List<Button> createButtons(List<String> captions) {
+        List<Button> buttons = new ArrayList<>();
+        for (String caption : captions) {
+
+            var button = new Button(caption);
+            button.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
+            buttons.add(button);
+            switch (button.getText()) {
+                case "Добавить" -> {
+                    button.addClickListener(buttonClickEvent -> {
+                        showDialog(null);
+                    });
+                }
+                case "Редактировать" -> {
+                    button.addClickListener(buttonClickEvent -> {
+                        Optional<Config> config = grid.getSelectedItems().stream().findFirst();
+                        config.ifPresent(c -> {
+                            showDialog(c);
+                        });
+                    });
+                }
+                case "Удалить" -> {
+                    button.addClickListener(buttonClickEvent -> {
+                        Optional<Config> config = grid.getSelectedItems().stream().findFirst();
+                        config.ifPresent(c -> configRepository.delete(c));
+                        grid.setItems(configRepository.findAll());
+                    });
+                }
+            }
+        }
+
+        return buttons;
+    }
+
 
     public static void setConfigRepository(ConfigRepository configRepository) {
         ConfigComponent.configRepository = configRepository;
@@ -139,7 +176,6 @@ public class ConfigComponent {
 //            textFieldKey.setValue(newValue.substring(0, 5));
 //        });
 
-
         Button saveButton = new Button("Сохранить", e -> {
             if (textFieldName.isEmpty())
                 showMessage("Введите имя Свойства", 1000, Notification.Position.MIDDLE);
@@ -163,8 +199,6 @@ public class ConfigComponent {
                         showMessage("Key - не уникален. Введите другой!", 2000, Notification.Position.MIDDLE);
                         return;
                     }
-
-
                 grid.setItems(configRepository.findAll());
                 dialog.close();
             }

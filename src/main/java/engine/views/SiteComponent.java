@@ -40,7 +40,8 @@ import java.util.stream.Collectors;
 @Getter
 public class SiteComponent {
 
-
+    @Autowired
+    PartOfSpeechRepository partOfSpeechRepository;
     private final VerticalLayout verticalLayout;
     private final Grid<Site> grid;
     private static ConfigRepository configRepository;
@@ -52,7 +53,7 @@ public class SiteComponent {
 
     public SiteComponent() {
         verticalLayout = new VerticalLayout();
-        verticalLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.END);
+        verticalLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.START);
         verticalLayout.setMinHeight("100%");
 
         grid = new Grid<>(Site.class, false);
@@ -110,7 +111,7 @@ public class SiteComponent {
         horizontalLayoutForLabel.setAlignItems(FlexComponent.Alignment.START);
         horizontalLayoutForLabel.setSizeUndefined();
 
-        Label label = new Label("Анализ информации на страницах сайтов");
+        Label label = new Label("Анализ информации на сайтах");
         label.getStyle().set("font-size", "var(--lumo-font-size-xl)").set("margin", "0");
 
         horizontalLayoutForLabel.add(label);

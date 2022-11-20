@@ -2,6 +2,7 @@ package engine.views;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Label;
@@ -37,9 +38,7 @@ public class LemmaComponent {
 
     private List<String> excludeList;
 
-    private final static String[] particleNames = new String[]{"ПРЕДЛ", "СОЮЗ", "МЕЖД", "ЧАСТ", "МС-П", "МС", "ПРИЧАСТИЕ"};
-
-    private VerticalLayout mainLayout = new VerticalLayout();
+    private VerticalLayout mainLayout;
 
     private final Grid<PartsOfSpeech> gridPartsOfSpeech = new Grid<>();
 
@@ -54,12 +53,17 @@ public class LemmaComponent {
 
 
     public LemmaComponent() {
-        mainLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
+        mainLayout = CreateUI.getMainLayout();
         mainLayout.add(getTopHorizontalLayout("Конфигурация лемматизатора",
                 Arrays.asList("Кнопка 1", "Кнопка 2")));
 
-        createTabs(List.of("Лемматизатор", "Части речи", "Леммы"));
+        //mainLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
+//        mainLayout.add(getTopHorizontalLayout("Конфигурация лемматизатора",
+//                Arrays.asList("Кнопка 1", "Кнопка 2")));
 
+        //mainLayout.add(CreateUI.getTopLayout("Конф.",List.of("1","2")));
+
+        createTabs(List.of("Лемматизатор", "Части речи", "Леммы"));
 
         try {
             luceneMorph = new RussianLuceneMorphology();
@@ -73,33 +77,30 @@ public class LemmaComponent {
     }
 
     private HorizontalLayout getTopHorizontalLayout(String caption, List<String> buttonsCaption) {
-        HorizontalLayout hLayout = new HorizontalLayout();
-        hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        hLayout.setAlignItems(FlexComponent.Alignment.END);
+        var topLayout = new HorizontalLayout();
+        topLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        topLayout.setAlignItems(FlexComponent.Alignment.END);
 
-        HorizontalLayout LabelLayout = new HorizontalLayout();
-        LabelLayout.setAlignItems(FlexComponent.Alignment.END);
-        LabelLayout.setSizeFull();
+        var labelLayout = new HorizontalLayout();
+        labelLayout.setAlignItems(FlexComponent.Alignment.END);
+        labelLayout.setSizeFull();
 
         Label label = new Label(caption);
         label.getStyle().set("font-size", "var(--lumo-font-size-xl)").set("margin", "0");
-        LabelLayout.add(label);
+        labelLayout.add(label);
 
-        HorizontalLayout controlsLayout = new HorizontalLayout();
+        var controlsLayout = new HorizontalLayout();
         controlsLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         controlsLayout.setAlignItems(FlexComponent.Alignment.END);
-
-        hLayout.add(LabelLayout);
-        hLayout.add(controlsLayout);
 
         for (String buttonCaption : buttonsCaption) {
             Button newButton = new Button(buttonCaption);
             newButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-
             controlsLayout.add(newButton);
         }
 
-        return hLayout;
+        topLayout.add(labelLayout, controlsLayout);
+        return topLayout;
     }
 
     private VerticalLayout createPartOfSpeechContent() {
@@ -121,7 +122,7 @@ public class LemmaComponent {
                 partOfSpeechRepository.save(item);
             });
             return checkbox;
-        }).setHeader("Вкл.в отчёт").setAutoWidth(true).setSortable(true);
+        }).setHeader("Вкл.в отчёт").setAutoWidth(true).setSortable(true).setTextAlign(ColumnTextAlign.CENTER);
         gridPartsOfSpeech.addColumn(PartsOfSpeech::getName)
                 .setHeader("Наименование").setAutoWidth(true).setSortable(true);
         gridPartsOfSpeech.addColumn(PartsOfSpeech::getShortName)
@@ -249,7 +250,6 @@ public class LemmaComponent {
                             partOfSpeechRepository.initData();
                         }
                     }
-
 
                     hideAllVerticalLayouts();
                     VerticalLayout activeComponent = contentsHashMap.get(label);

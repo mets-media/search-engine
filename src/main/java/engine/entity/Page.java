@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 @Entity
@@ -20,10 +21,13 @@ public class Page implements Serializable {
     private Integer id;
     @Column(columnDefinition = "bigint not null default 0")
     private Integer siteId;
+
     @Column(columnDefinition = "Text not Null Unique")
     private String path;
+    @NotNull
     @Column(nullable = false)
     private Integer code;
+
     @Column(columnDefinition = "Text not null")
     private String content;
 
