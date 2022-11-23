@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Component
 @Getter
@@ -38,18 +37,6 @@ public class ConfigComponent {
         mainLayout = CreateUI.getMainLayout();
         List<Button> buttons = createButtons(List.of("Добавить", "Редактировать", "Удалить"));
         mainLayout.add(CreateUI.getTopLayout("Настройки сканирования.", buttons));
-
-//        grid = new Grid<>(Config.class, true);
-//        grid.setSelectionMode(Grid.SelectionMode.SINGLE);
-//        grid.addThemeVariants(GridVariant.LUMO_COMPACT);
-//
-//        List<Grid.Column> columns = grid.getColumns();
-//
-//        columns.get(0).setVisible(false);
-//        columns.get(1).setAutoWidth(true);
-//        columns.get(2).setHeader("Свойство");
-//        columns.get(3).setHeader("Значение");
-
 
         grid = new Grid(Config.class, false);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);

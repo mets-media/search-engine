@@ -40,4 +40,12 @@ public class CreateUI {
         topLayout.add(labelLayout, controlsLayout);
         return topLayout;
     }
+
+    public static void hideAllVerticalLayouts(VerticalLayout parentLayout) {
+        parentLayout.getChildren().forEach(component -> {
+            if (component.getClass() == VerticalLayout.class)
+                component.setVisible(false);
+        });
+    }
+
 }

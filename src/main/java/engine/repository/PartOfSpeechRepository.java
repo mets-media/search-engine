@@ -24,7 +24,7 @@ public interface PartOfSpeechRepository extends JpaRepository<PartsOfSpeech,Inte
             "(true,'Наречие','Н')," +
             "(true,'Прилагательное','П')," +
             "(true,'Предикатив','ПРЕДК')," +
-            "(true,'Предлог', 'ПРЕДЛ')," +
+            "(false,'Предлог', 'ПРЕДЛ')," +
             "(true,'Причастие','ПРИЧАСТИЕ')," +
             "(true,'Существительное','С')," +
             "(false,'Союз','СОЮЗ')," +

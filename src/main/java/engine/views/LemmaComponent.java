@@ -83,12 +83,6 @@ public class LemmaComponent {
         return vLayout;
     }
 
-    private void hideAllVerticalLayouts() {
-        mainLayout.getChildren().forEach(component -> {
-            if (component.getClass() == VerticalLayout.class)
-                component.setVisible(false);
-        });
-    }
 
     private VerticalLayout createLemmatisatorContent() {
         var verticalLayout = new VerticalLayout();
@@ -175,47 +169,37 @@ public class LemmaComponent {
 
         tabs.addSelectedChangeListener(event -> {
             String label = tabs.getSelectedTab().getLabel();
+            CreateUI.hideAllVerticalLayouts(mainLayout);
+            VerticalLayout content;
             switch (label) {
                 case "Лемматизатор" -> {
                     if (!contentsHashMap.containsKey(label)) {
-                        VerticalLayout cont = createLemmatisatorContent();
-                        contentsHashMap.put(label, cont);
-                        mainLayout.add(cont);
+                        content = createLemmatisatorContent();
+                        contentsHashMap.put(label, content);
+                        mainLayout.add(content);
                     }
-                    hideAllVerticalLayouts();
-                    VerticalLayout activeComponent = contentsHashMap.get(label);
-                    activeComponent.setVisible(true);
-
                 }
 
                 case "Части речи" -> {
                     if (!contentsHashMap.containsKey(label)) {
-                        VerticalLayout cont = createPartOfSpeechContent();
-                        contentsHashMap.put(label, cont);
-                        mainLayout.add(cont);
-
-                        if (partOfSpeechRepository.count() == 0) {
-                            partOfSpeechRepository.initData();
-                        }
+                        content = createPartOfSpeechContent();
+                        contentsHashMap.put(label, content);
+                        mainLayout.add(content);
                     }
-
-                    hideAllVerticalLayouts();
-                    VerticalLayout activeComponent = contentsHashMap.get(label);
-                    activeComponent.setVisible(true);
-
                     gridPartsOfSpeech.setItems(partOfSpeechRepository.findAll());
                 }
                 case "Леммы" -> {
-                    hideAllVerticalLayouts();
+                    CreateUI.hideAllVerticalLayouts(mainLayout);
                 }
             }
+            contentsHashMap.get(label).setVisible(true);
         });
 
         VerticalLayout cont = createLemmatisatorContent();
         contentsHashMap.put("Лематизатор", cont);
         mainLayout.add(cont);
 
-        hideAllVerticalLayouts();
+        CreateUI.hideAllVerticalLayouts(mainLayout);
         VerticalLayout activeComponent = contentsHashMap.get("Лематизатор");
         activeComponent.setVisible(true);
 

@@ -48,8 +48,8 @@ public class MainView extends AppLayout {
 
         Tab tabOptions = new Tab("Настройки");
         tabOptions.getElement().addEventListener("click", domEvent -> {
-            if (configRepository.count()==0)
-                configRepository.initData();
+//            if (configRepository.count()==0)
+//                configRepository.initData();
 
             ConfigComponent.setConfigRepository(configRepository);
             ConfigComponent configComponent = new ConfigComponent();
@@ -64,7 +64,14 @@ public class MainView extends AppLayout {
             setContent(lemmaComponent.getMainLayout());
         });
 
-        tabs.add(tabSites, tabOptions, tabLemma);
+        Tab tabIndexing = new Tab("Индексация");
+        tabIndexing.getElement().addEventListener("click", domEvent -> {
+            IndexingComponent indexingComponent = new IndexingComponent();
+            indexingComponent.dataAccess(fieldRepository,pageRepository, siteRepository);
+            setContent(indexingComponent.getMainLayout());
+        });
+
+        tabs.add(tabSites, tabOptions, tabLemma, tabIndexing);
 
         addToDrawer(tabs);
         addToNavbar(toggle, title);
