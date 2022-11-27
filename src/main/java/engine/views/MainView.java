@@ -13,6 +13,9 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 @Route
 @Getter
 public class MainView extends AppLayout {
@@ -29,6 +32,9 @@ public class MainView extends AppLayout {
     @Autowired
     PartOfSpeechRepository partOfSpeechRepository;
 
+    @PersistenceContext
+    EntityManager entityManager;
+
     public MainView() {
         DrawerToggle toggle = new DrawerToggle();
         H1 title = new H1("Search Engine");
@@ -40,7 +46,7 @@ public class MainView extends AppLayout {
 
         Tab tabSites = new Tab("Сайты");
         tabSites.getElement().addEventListener("click", domEvent -> {
-            SiteComponent.setDataAccess(configRepository,siteRepository, pageRepository, fieldRepository, jdbcTemplate);
+            SiteComponent.setDataAccess(configRepository,siteRepository, pageRepository,fieldRepository, jdbcTemplate);
             SiteComponent siteComponent = new SiteComponent();
             setContent(siteComponent.getMainLayout());
             siteComponent.getGrid().setItems(siteRepository.findAll());
@@ -67,7 +73,10 @@ public class MainView extends AppLayout {
         Tab tabIndexing = new Tab("Индексация");
         tabIndexing.getElement().addEventListener("click", domEvent -> {
             IndexingComponent indexingComponent = new IndexingComponent();
-            indexingComponent.dataAccess(fieldRepository,pageRepository, siteRepository);
+            indexingComponent.dataAccess(fieldRepository,
+                    pageRepository,
+                    siteRepository,
+                    entityManager);
             setContent(indexingComponent.getMainLayout());
         });
 

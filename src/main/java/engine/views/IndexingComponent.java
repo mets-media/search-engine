@@ -4,32 +4,35 @@ package engine.views;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
-import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import engine.entity.Field;
 import engine.entity.Page;
 import engine.entity.Site;
 import engine.repository.FieldRepository;
 import engine.repository.PageRepository;
 import engine.repository.SiteRepository;
+import org.springframework.data.domain.PageRequest;
 
 import javax.annotation.PostConstruct;
-import java.awt.*;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class IndexingComponent {
     private SiteRepository siteRepository;
     private PageRepository pageRepository;
     private FieldRepository fieldRepository;
+    private EntityManager entityManager;
     private VerticalLayout mainLayout;
     private Grid<Field> fieldGrid = new Grid<>(Field.class, false);
-    private Grid<Page> pageGrid = new Grid<>(Page.class, false);
+    private Grid<Page> pageGrid = null;
+    private Grid<Page> gridVariant = null;
 
     private HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
 
@@ -38,6 +41,8 @@ public class IndexingComponent {
         mainLayout.add(CreateUI.getTopLayout("Настройки индексации", null));
 
         createTabs(List.of("Страницы сайта", "HTML Блоки"));
+
+
 
     }
 
@@ -96,25 +101,91 @@ public class IndexingComponent {
         return new VerticalLayout(fieldGrid);
     }
 
-    public void dataAccess(FieldRepository fieldRepository, PageRepository pageRepository, SiteRepository siteRepository) {
+    public void dataAccess(FieldRepository fieldRepository,
+                           PageRepository pageRepository,
+                           SiteRepository siteRepository,
+                           EntityManager entityManager) {
         this.fieldRepository = fieldRepository;
         this.pageRepository = pageRepository;
         this.siteRepository = siteRepository;
+        this.entityManager = entityManager;
     }
 
-    private VerticalLayout createPageComponent() {
-//        ComboBox<String> siteComboBox = new ComboBox<>();
-//        List<String> siteList = new ArrayList<>();
-//        for (Site site : siteRepository.findAll()) {
-//            String url = site.getUrl();
-//            siteList.add(url);
-//        }
-//        siteComboBox.setItems(siteList);
-//        return new VerticalLayout(siteComboBox);
 
-        pageGrid.addColumn(Page::getPath).setHeader("Path");
-        pageGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        pageGrid.setPageSize(10);
+    private VerticalLayout createPageComponent() {
+
+        ComboBox<String> siteComboBox = new ComboBox<>("страницы сайта:");
+        List<String> siteList = new ArrayList<>();
+
+
+        for (Site site : siteRepository.getSitesFromPageTable()) {
+            siteList.add(site.getUrl());
+        }
+
+        siteComboBox.setItems(siteList);
+
+
+        siteComboBox.addValueChangeListener(event -> {
+            siteRepository.getSiteByUrl(event.getValue()).ifPresent(site -> {
+
+                //==========================================================================================
+                List pages = entityManager.createQuery("from Page Where Site_Id = :siteId order by Path")
+                                        .setParameter("siteId", site.getId())
+                        .setMaxResults(10)
+                        .getResultList();
+                pageGrid.setItems(pages);
+                //==========================================================================================
+
+//                gridVariant.setItems(query -> (Stream<Page>) pageRepository.findLinksBySiteId(
+//                        site.getId(),PageRequest.of(query.getPage(),query.getPageSize())));
+
+
+            });
+
+
+
+        });
+
+        if (gridVariant == null) {
+            gridVariant = new Grid<>(Page.class, false);
+
+            //================= Сортировка ==========================
+//            gridVariant.addColumn(page -> page.getPath())
+//                    .setHeader("Path")
+//                    .setKey("path")  //ключь который передаётся в callback
+//                    .setSortable(true)
+//                    .setResizable(true);
+//            gridVariant.setItems(VaadinSpringDataHelpers.fromPagingRepository(pageRepository));
+            //=======================================================
+
+            //=======================================================
+
+            //=======================================================
+
+
+
+
+
+
+//            gridVariant.setItems(query -> {
+//               return pageRepository.findAll(
+//                       PageRequest.of(query.getPage(), query.getPageSize())
+//               ).stream();
+//            });
+        }
+
+
+
+        if (pageGrid == null) {
+            pageGrid = new Grid<>(Page.class, false);
+            pageGrid.addColumn(Page::getPath).setSortable(true).setResizable(true);
+            pageGrid.addColumn(Page::getCode).setSortable(true).setResizable(true);
+        }
+        //return new VerticalLayout(siteComboBox, pageGrid);
+        return new VerticalLayout(siteComboBox, gridVariant);
+
+
+
 
 //        DataProvider<Page, Void> dataProvider = DataProvider.fromCallbacks(
 //                query -> {
@@ -131,14 +202,16 @@ public class IndexingComponent {
 //
 //        );
 
-        VerticalLayout leftVLayout = new VerticalLayout(pageGrid);
-        leftVLayout.setSizeFull();
 
-        TextField textField = new TextField("Результат");
-        textField.setSizeFull();
-        VerticalLayout rightVLayout = new VerticalLayout(textField);
-
-
-        return new VerticalLayout();
+//        VerticalLayout leftVLayout = new VerticalLayout(pageGrid);
+//        leftVLayout.setSizeFull();
+//
+//        TextField textField = new TextField("Результат");
+//        textField.setSizeFull();
+//        VerticalLayout rightVLayout = new VerticalLayout(textField);
+//
+//
+//        return new VerticalLayout();
     }
+
 }

@@ -2,6 +2,7 @@ package engine.views;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
@@ -12,8 +13,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.renderer.LocalDateTimeRenderer;
-import com.vaadin.flow.function.ValueProvider;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
 import engine.repository.*;
@@ -27,11 +27,14 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @Getter
@@ -44,6 +47,7 @@ public class SiteComponent {
     private static ConfigRepository configRepository;
     private static SiteRepository siteRepository;
     private static PageRepository pageRepository;
+
     private static FieldRepository fieldRepository;
     private static JdbcTemplate jdbcTemplate;
 
@@ -61,36 +65,25 @@ public class SiteComponent {
         //grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
         grid.addColumn(Site::getName).setHeader("Наименование").setResizable(true).setSortable(true);
-        grid.addColumn(Site::getUrl).setHeader("Адрес(url)").setResizable(true).setSortable(true);
-        grid.addColumn(Site::getPageCount).setHeader("Страниц в базе").setResizable(true)
-                .setTextAlign(ColumnTextAlign.CENTER);
+        grid.addColumn(Site::getUrl)
+                .setHeader("Адрес(url)")
+                .setResizable(true)
+                .setSortable(true);
+//        grid.addColumn(Site::getPageCount).setHeader("Страниц в базе").setResizable(true)
+//                .setTextAlign(ColumnTextAlign.CENTER);
+
         grid.addColumn(Site::getStatus).setHeader("Статус").setResizable(true)
                 .setTextAlign(ColumnTextAlign.CENTER);
 
 
-//        grid.addColumn(new LocalDateTimeRenderer<>(new ValueProvider<Site, LocalDateTime>() {
-//            @Override
-//            public LocalDateTime apply(Site site) {
-//                return site.getStatusTime();
-//            }
-//        }));
+        //grid.addColumn(new LocalDateTimeRenderer<>((ValueProvider<Site, LocalDateTime>) site ->
+        //        site.getStatusTime())).setHeader("Дата статуса ").setResizable(true);
 
+        //grid.addColumn(Site::getLastError).setHeader("Сообщение").setResizable(true);
 
-//        grid.addColumn(new LocalDateTimeRenderer<Site>(new ValueProvider<Site, LocalDateTime>() {
-//            @Override
-//            public LocalDateTime apply(Site site) {
-//                return site.getStatusTime();
-//            }
-//        })).setHeader("преобразование времени").setResizable(true);
+        grid.setItemDetailsRenderer(createSiteDetailRenderer());
 
-
-        grid.addColumn(new LocalDateTimeRenderer<>((ValueProvider<Site, LocalDateTime>) site ->
-                site.getStatusTime())).setHeader("Дата статуса ").setResizable(true);
-
-//        grid.addColumn(new LocalDateTimeRenderer<>((ValueProvider<Site, LocalDateTime>) Site::getStatusTime))
-//                .setHeader("Дата статуса").setResizable(true);
-
-        grid.addColumn(Site::getLastError).setHeader("Сообщение").setResizable(true);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         mainLayout.add(grid);
 
@@ -331,11 +324,66 @@ public class SiteComponent {
         });
     }
 
-    public static void setDataAccess(ConfigRepository configRepository, SiteRepository siteRepository, PageRepository pageRepository, FieldRepository fieldRepository, JdbcTemplate jdbcTemplate) {
+    public static void setDataAccess(ConfigRepository configRepository,
+                                     SiteRepository siteRepository,
+                                     PageRepository pageRepository,
+                                     FieldRepository fieldRepository,
+                                     JdbcTemplate jdbcTemplate) {
         SiteComponent.configRepository = configRepository;
         SiteComponent.siteRepository = siteRepository;
         SiteComponent.pageRepository = pageRepository;
         SiteComponent.fieldRepository = fieldRepository;
         SiteComponent.jdbcTemplate = jdbcTemplate;
     }
+
+    private static class SiteDetailFormLayout extends FormLayout {
+        private final TextField pageCountTextField = new TextField("Страниц в базе данных");
+        private final TextField siteStatusTextField = new TextField("Статус");
+        private final TextField statusTimeTextField = new TextField("время установки статуса");
+        private final TextField lastErrorTextField = new TextField("Сообщение");
+
+
+
+
+        public SiteDetailFormLayout() {
+            Stream.of(pageCountTextField, siteStatusTextField, statusTimeTextField, lastErrorTextField)
+                    .forEach(field -> {
+                        field.setReadOnly(true);
+                        field.setSizeFull();
+                    });
+
+
+            //Статус и время установки статуса
+            var horizontalLayout = new HorizontalLayout(siteStatusTextField, statusTimeTextField);
+
+
+            var verticalLayout = new VerticalLayout(pageCountTextField, horizontalLayout, lastErrorTextField);
+
+            verticalLayout.setAlignItems(FlexComponent.Alignment.END);
+            verticalLayout.setSizeFull();
+
+            add(verticalLayout);
+        }
+
+        public void setSite(Site site) {
+            Integer pageCount = pageRepository.countBySiteId(site.getId());
+            site.setPageCount(pageCount);
+            pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
+            siteStatusTextField.setValue(site.getStatus().toString());
+
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yy (HH:mm)");
+            statusTimeTextField.setValue(dateTimeFormatter.format(site.getStatusTime()));
+
+            String lastError = site.getLastError();
+            if (!(lastError == null))
+                lastErrorTextField.setValue(lastError);
+        }
+    }
+
+    private static ComponentRenderer<SiteDetailFormLayout, Site> createSiteDetailRenderer() {
+        return new ComponentRenderer<>(SiteDetailFormLayout::new,
+                SiteDetailFormLayout::setSite);
+    }
+
+
 }

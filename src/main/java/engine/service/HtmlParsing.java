@@ -151,7 +151,6 @@ public class HtmlParsing {
 
         for (Element e : elements) {
             String hRef = e.absUrl("href");
-            ;
 
             String RegEx = "\\.[A-z]{3,4}$";
             Pattern pattern = Pattern.compile(RegEx);

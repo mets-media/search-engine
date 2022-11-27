@@ -8,24 +8,21 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import engine.entity.Config;
 import engine.entity.Page;
 import engine.entity.Site;
+import engine.entity.SiteStatus;
 import engine.repository.ConfigRepository;
 import engine.repository.PageRepository;
 import engine.repository.SiteRepository;
 import engine.views.ConfigComponent;
-import engine.views.MainView;
-import engine.views.SiteComponent;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.sound.midi.Soundbank;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -597,6 +594,13 @@ public class Parser extends RecursiveAction {
             }
         } else {
             //Если ссылка есть в readyLinks - то не следует ничего делать!
+            inProcessLinks.remove(path);
+            if (inProcessLinks.size()==0) {
+                site.setStatus(SiteStatus.LOADED);
+                siteRepository.save(site);
+                stop(site);
+                System.out.println(site.getUrl() + " -> Загрузка завершена.");
+            }
             return;
         }
         Set<String> hReference = HtmlParsing.getAllLinks(document, domainName);
