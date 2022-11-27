@@ -7,7 +7,6 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
-import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import engine.entity.Field;
 import engine.entity.Page;
 import engine.entity.Site;
@@ -15,14 +14,13 @@ import engine.repository.FieldRepository;
 import engine.repository.PageRepository;
 import engine.repository.SiteRepository;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class IndexingComponent {
     private SiteRepository siteRepository;
@@ -31,8 +29,7 @@ public class IndexingComponent {
     private EntityManager entityManager;
     private VerticalLayout mainLayout;
     private Grid<Field> fieldGrid = new Grid<>(Field.class, false);
-    private Grid<Page> pageGrid = null;
-    private Grid<Page> gridVariant = null;
+    private Grid<Page> grid = null;
 
     private HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
 
@@ -125,64 +122,37 @@ public class IndexingComponent {
         siteComboBox.setItems(siteList);
 
 
-        siteComboBox.addValueChangeListener(event -> {
+        siteComboBox.addValueChangeListener(event -> { //==============================================================
             siteRepository.getSiteByUrl(event.getValue()).ifPresent(site -> {
+                //------------------------------------------------------------------------------------------
+//                List pages = entityManager.createQuery("from Page Where Site_Id = :siteId order by Path")
+//                                        .setParameter("siteId", site.getId())
+//                        .setMaxResults(10)
+//                        .getResultList();
+//                pageGrid.setItems(pages);
+                //------------------------------------------------------------------------------------------
 
-                //==========================================================================================
-                List pages = entityManager.createQuery("from Page Where Site_Id = :siteId order by Path")
-                                        .setParameter("siteId", site.getId())
-                        .setMaxResults(10)
-                        .getResultList();
-                pageGrid.setItems(pages);
-                //==========================================================================================
-
-//                gridVariant.setItems(query -> (Stream<Page>) pageRepository.findLinksBySiteId(
-//                        site.getId(),PageRequest.of(query.getPage(),query.getPageSize())));
-
-
+                grid.setItems(query -> pageRepository
+                        .findBySiteId(
+                                site.getId(),
+                                PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path")))
+                        .stream());
             });
+        });//===========================================================================================================
 
-
-
-        });
-
-        if (gridVariant == null) {
-            gridVariant = new Grid<>(Page.class, false);
-
-            //================= Сортировка ==========================
-//            gridVariant.addColumn(page -> page.getPath())
-//                    .setHeader("Path")
-//                    .setKey("path")  //ключь который передаётся в callback
-//                    .setSortable(true)
-//                    .setResizable(true);
-//            gridVariant.setItems(VaadinSpringDataHelpers.fromPagingRepository(pageRepository));
-            //=======================================================
-
-            //=======================================================
-
-            //=======================================================
-
-
-
-
-
-
-//            gridVariant.setItems(query -> {
-//               return pageRepository.findAll(
-//                       PageRequest.of(query.getPage(), query.getPageSize())
-//               ).stream();
-//            });
+        if (grid == null) {
+            grid = new Grid<>(Page.class, false);
+            grid.addColumn(Page::getCode)
+                    .setHeader("Code")
+                    .setSortable(true)
+                    .setAutoWidth(true);
+            grid.addColumn(Page::getPath)
+                    .setHeader("Path")
+                    .setKey("path")
+                    .setSortable(true)
+                    .setResizable(true);
         }
-
-
-
-        if (pageGrid == null) {
-            pageGrid = new Grid<>(Page.class, false);
-            pageGrid.addColumn(Page::getPath).setSortable(true).setResizable(true);
-            pageGrid.addColumn(Page::getCode).setSortable(true).setResizable(true);
-        }
-        //return new VerticalLayout(siteComboBox, pageGrid);
-        return new VerticalLayout(siteComboBox, gridVariant);
+        return new VerticalLayout(siteComboBox, grid);
 
 
 

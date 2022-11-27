@@ -16,7 +16,6 @@ import engine.views.ConfigComponent;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.jsoup.nodes.Document;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -719,7 +718,7 @@ public class Parser extends RecursiveAction {
             dialog.close();
             ConfigComponent.showMessage("Результаты сохранены", 500, Notification.Position.MIDDLE);
 
-            List<String> links = pageRepository.findLinksBySiteId(site.getId());
+            List<String> links = pageRepository.getLinksBySiteId(site.getId());
 
             String path = site.getUrl();
 

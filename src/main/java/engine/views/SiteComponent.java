@@ -204,11 +204,7 @@ public class SiteComponent {
         confirm.addClickListener(clickEvent -> {
 
             sites.forEach(delSite -> {
-                new Thread() {
-                    public void run() {
-                        pageRepository.deleteBySiteId(delSite.getId());
-                    }
-                }.start();
+                new Thread(() -> pageRepository.deleteBySiteId(delSite.getId())).start();
 
                 siteRepository.delete(delSite);
 
