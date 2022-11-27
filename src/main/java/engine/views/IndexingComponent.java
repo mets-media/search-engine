@@ -40,7 +40,6 @@ public class IndexingComponent {
         createTabs(List.of("Страницы сайта", "HTML Блоки"));
 
 
-
     }
 
     public VerticalLayout getMainLayout() {
@@ -112,14 +111,19 @@ public class IndexingComponent {
     private VerticalLayout createPageComponent() {
 
         ComboBox<String> siteComboBox = new ComboBox<>("страницы сайта:");
-        List<String> siteList = new ArrayList<>();
+
+//        List<String> siteList = new ArrayList<>();
+//        for (Site site : siteRepository.findSitesFromPageTable()) {
+//            siteList.add(site.getUrl());
+//        }
+//        siteComboBox.setItems(siteList);
 
 
-        for (Site site : siteRepository.getSitesFromPageTable()) {
-            siteList.add(site.getUrl());
-        }
-
-        siteComboBox.setItems(siteList);
+        siteComboBox.setItems(query -> {
+            return siteRepository.getSitesUrlFromPageTable(
+                    PageRequest.of(query.getPage(), query.getPageSize())
+            ).stream();
+        });
 
 
         siteComboBox.addValueChangeListener(event -> { //==============================================================
@@ -140,6 +144,8 @@ public class IndexingComponent {
             });
         });//===========================================================================================================
 
+
+
         if (grid == null) {
             grid = new Grid<>(Page.class, false);
             grid.addColumn(Page::getCode)
@@ -153,8 +159,6 @@ public class IndexingComponent {
                     .setResizable(true);
         }
         return new VerticalLayout(siteComboBox, grid);
-
-
 
 
 //        DataProvider<Page, Void> dataProvider = DataProvider.fromCallbacks(
