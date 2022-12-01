@@ -1,26 +1,35 @@
 package engine.views;
 
 
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import engine.entity.Field;
 import engine.entity.Page;
-import engine.entity.Site;
 import engine.repository.FieldRepository;
 import engine.repository.PageRepository;
 import engine.repository.SiteRepository;
+import engine.service.HtmlParsing;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class IndexingComponent {
     private SiteRepository siteRepository;
@@ -30,6 +39,8 @@ public class IndexingComponent {
     private VerticalLayout mainLayout;
     private Grid<Field> fieldGrid = new Grid<>(Field.class, false);
     private Grid<Page> grid = null;
+
+    private TextField pageCountTextField = new TextField("Страниц в базе данных");
 
     private HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
 
@@ -136,56 +147,85 @@ public class IndexingComponent {
 //                pageGrid.setItems(pages);
                 //------------------------------------------------------------------------------------------
 
+                Integer pageCount = pageRepository.countBySiteId(site.getId());
+                site.setPageCount(pageCount);
+                pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
+
                 grid.setItems(query -> pageRepository
                         .findBySiteId(
                                 site.getId(),
                                 PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path")))
                         .stream());
             });
+
         });//===========================================================================================================
 
 
+        var horizontalLayout = new HorizontalLayout();
+        horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
+
+        TextField cssTextField = new TextField("css query:");
+        Button jsoupStartButton = new Button("Найти");
+
+        horizontalLayout.add(siteComboBox, pageCountTextField, cssTextField, jsoupStartButton);
+
+        TextArea titleTextArea = new TextArea("Title");
+        titleTextArea.setWidth("100%");
+        titleTextArea.setHeight("50%");
+
+        TextArea bodyTextArea = new TextArea("Body");
+        bodyTextArea.setWidth("100%");
+        bodyTextArea.setHeight("50%");
 
         if (grid == null) {
+            pageCountTextField.setReadOnly(true);
+
             grid = new Grid<>(Page.class, false);
-            grid.addColumn(Page::getCode)
-                    .setHeader("Code")
-                    .setSortable(true)
-                    .setAutoWidth(true);
+
             grid.addColumn(Page::getPath)
                     .setHeader("Path")
                     .setKey("path")
-                    .setSortable(true)
                     .setResizable(true);
+            grid.addColumn(Page::getCode)
+                    .setHeader("Code")
+                    .setAutoWidth(true);
+
+            grid.addSelectionListener(selectionEvent -> {
+                selectionEvent.getFirstSelectedItem().ifPresent(page -> {
+                    String content = "";
+                    content = page.getContent();
+                    //Search titles
+                    if (!content.isBlank()) {
+                        Set<String> titles = HtmlParsing.getAllTitles(content);
+
+                        if (!(titles == null)) {
+                            StringBuilder stringBuilder = new StringBuilder();
+                            titles.forEach(title -> stringBuilder.append(title).append('\n'));
+                            titleTextArea.setValue(stringBuilder.toString());
+                        }
+                    }
+                    //Search Body
+                    Document doc = Jsoup.parseBodyFragment(content);
+                    bodyTextArea.setValue(doc.body().text());
+                });
+            });
         }
-        return new VerticalLayout(siteComboBox, grid);
 
+        jsoupStartButton.addClickListener(buttonClickEvent -> {
+            String content = grid.getSelectedItems().stream().findFirst().get().getContent();
+            Set<String> titles = HtmlParsing.getAllTitles(content);
 
-//        DataProvider<Page, Void> dataProvider = DataProvider.fromCallbacks(
-//                query -> {
-//                        int offset = query.getOffset();
-//                        int limit = query.getLimit();
-//
-//                        OffsetRequest request = new OffsetRequest();
-//                        request.setLimit(limit);
-//                        request.setOffset(offset);
-//
-//                        return pageRepository.findAll(request, sort);
-//                }
-//
-//
-//        );
+            if (!(titles == null)) {
+                StringBuilder stringBuilder = new StringBuilder();
+                titles.forEach(title -> stringBuilder.append(title).append('\n'));
+                titleTextArea.setValue(stringBuilder.toString());
+            }
+        });
 
+        HorizontalLayout titleAndBodyHorizontalLayout = new HorizontalLayout(titleTextArea, bodyTextArea);
+        titleAndBodyHorizontalLayout.setWidth("100%");
+        return new VerticalLayout(horizontalLayout, grid, titleAndBodyHorizontalLayout);
 
-//        VerticalLayout leftVLayout = new VerticalLayout(pageGrid);
-//        leftVLayout.setSizeFull();
-//
-//        TextField textField = new TextField("Результат");
-//        textField.setSizeFull();
-//        VerticalLayout rightVLayout = new VerticalLayout(textField);
-//
-//
-//        return new VerticalLayout();
     }
 
 }

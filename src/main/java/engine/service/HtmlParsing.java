@@ -178,5 +178,30 @@ public class HtmlParsing {
         return links;
     }
 
+    public static Set<String> getAllTitles(String content) {
 
+        Set<String> titles = new TreeSet<>();
+
+        Document document = Jsoup.parseBodyFragment(content);
+
+        //Pattern pattern = Pattern.compile("\\Wtitle\\W");
+
+        document.getAllElements().forEach(element -> {
+            element.attributes().forEach(attr -> {
+                if (!(attr.getValue() == null))
+                    if (attr.getValue().contains("title")) {
+                    //if (pattern.matcher(attr.getValue()).find()) {
+                        String[] strings = element.toString().split(">");
+                        String titleString = element.toString();
+//                        if (strings.length >= 2) {
+//                            titleString = strings[1].substring(0, strings[1].indexOf("<")).trim();
+//                        }
+
+                        if (!titleString.isBlank())
+                            titles.add(titleString);
+                    }
+            });
+        });
+        return titles;
+    }
 }
