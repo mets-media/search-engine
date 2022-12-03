@@ -23,6 +23,8 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static engine.service.HtmlParsing.getRussianWords;
+
 @Component
 @Getter
 public class LemmaComponent {
@@ -217,14 +219,6 @@ public class LemmaComponent {
     private Boolean includeForm(String lemma) {
         List<String> lemmaForms = luceneMorph.getMorphInfo(lemma);
         return !lemmaForms.stream().anyMatch(this::hasProperty);
-    }
-
-    private String[] getRussianWords(String text) {
-        String[] words = text.toLowerCase()
-                .replaceAll("[^\\p{IsCyrillic}]", " ")
-                .trim()
-                .split("[\\s+]");
-        return words;
     }
 
     private Set<String> getLemmaInfo(String text) {

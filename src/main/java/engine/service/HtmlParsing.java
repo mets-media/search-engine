@@ -1,10 +1,10 @@
 package engine.service;
 
+import engine.entity.Lemma;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
@@ -17,7 +17,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class HtmlParsing {
 
@@ -190,18 +190,74 @@ public class HtmlParsing {
             element.attributes().forEach(attr -> {
                 if (!(attr.getValue() == null))
                     if (attr.getValue().contains("title")) {
-                    //if (pattern.matcher(attr.getValue()).find()) {
+                        //if (pattern.matcher(attr.getValue()).find()) {
                         String[] strings = element.toString().split(">");
+
                         String titleString = element.toString();
 //                        if (strings.length >= 2) {
 //                            titleString = strings[1].substring(0, strings[1].indexOf("<")).trim();
 //                        }
 
                         if (!titleString.isBlank())
-                            titles.add(titleString);
+                            titles.add(titleString + '\n');
+
                     }
             });
         });
         return titles;
     }
+
+    public static String[] getRussianWords(String text) {
+        String[] words = text.toLowerCase()
+                .replaceAll("[^\\p{IsCyrillic}]", " ")
+                .trim()
+                .split("[\\s+]+");
+        return words;
+    }
+
+    public static String getTagBody(Element element) {
+        String resultStr = element.toString();
+        int posForwardBracket = resultStr.substring(0,resultStr.lastIndexOf(">") - 1).lastIndexOf(">");
+        int posBackwardBracket = resultStr.lastIndexOf("<");
+        resultStr = resultStr.substring(posForwardBracket + 1, posBackwardBracket);
+        return resultStr.trim();
+    }
+
+    public static List<Element> getHtmlElementsByRegEx(String regEx, String content) {
+
+        List<Element> resultSet = new ArrayList<>();
+        Document document = Jsoup.parseBodyFragment(content);
+
+        Pattern pattern = Pattern.compile(regEx);
+
+        document.getAllElements().forEach(element -> {
+            element.attributes().forEach(attr -> {
+                if (!(attr.getValue() == null))
+                    if (pattern.matcher(attr.getValue()).find()) {
+                        //String resultString =  String.join(" ", getRussianWords(element.toString()));
+
+//                        String resultString =  element.toString();
+//                        if (!resultString.isBlank())
+//                            resultSet.add(resultString);
+                        resultSet.add(element);
+                    }
+            });
+        });
+        return resultSet;
+    }
+
+    public static List<String> findElementsByCss(String cssSelector, String content) {
+        List<String> result = new ArrayList<>();
+        Document document = Jsoup.parseBodyFragment(content);
+        Elements elements = document.select(cssSelector);
+        elements.forEach(element -> {
+            result.add(element.toString().concat("\n\n"));
+        });
+        return result;
+    }
+    public static Stream<Lemma> findLemma(List<String> cssSelector) {
+
+        return null;
+    }
+
 }

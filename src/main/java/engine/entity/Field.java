@@ -2,6 +2,7 @@ package engine.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -22,5 +23,14 @@ public class Field {
     private String selector;
     @NotNull
     private Float weight;
+    @NotNull
+    @ColumnDefault("true")
+    private boolean active;
 
+
+    public Field(String name, String selector, Float weight) {
+        this.name = name;
+        this.selector = selector;
+        this.weight = weight;
+    }
 }
