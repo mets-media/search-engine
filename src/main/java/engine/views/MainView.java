@@ -3,6 +3,7 @@ package engine.views;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 
@@ -13,8 +14,10 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.HashMap;
 
 @Route
 @Getter
@@ -35,6 +38,14 @@ public class MainView extends AppLayout {
     @PersistenceContext
     EntityManager entityManager;
 
+    private SiteComponent siteComponent;
+    private HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
+
+    @PostConstruct
+    private void getSites() {
+        siteComponent.getGrid().setItems(siteRepository.findAll());
+    }
+
     public MainView() {
         DrawerToggle toggle = new DrawerToggle();
         H1 title = new H1("Search Engine");
@@ -45,48 +56,96 @@ public class MainView extends AppLayout {
         tabs.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         Tab tabSites = new Tab("Сайты");
-        tabSites.getElement().addEventListener("click", domEvent -> {
-            SiteComponent.setDataAccess(configRepository,siteRepository, pageRepository,fieldRepository, jdbcTemplate);
-            SiteComponent siteComponent = new SiteComponent();
-            setContent(siteComponent.getMainLayout());
-            siteComponent.getGrid().setItems(siteRepository.findAll());
-        });
-
         Tab tabOptions = new Tab("Настройки");
-        tabOptions.getElement().addEventListener("click", domEvent -> {
-//            if (configRepository.count()==0)
-//                configRepository.initData();
-
-            ConfigComponent.setConfigRepository(configRepository);
-            ConfigComponent configComponent = new ConfigComponent();
-            setContent(configComponent.getMainLayout());
-            configComponent.getGrid().setItems(configRepository.findAll());
-        });
-
         Tab tabLemma = new Tab("Лемматизатор");
-        tabLemma.getElement().addEventListener("click", domEvent -> {
-            LemmaComponent lemmaComponent = new LemmaComponent();
-            lemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
-            setContent(lemmaComponent.getMainLayout());
+        Tab tabIndexing = new Tab("Индексация");
+
+        tabs.addSelectedChangeListener(event -> {
+            String label = tabs.getSelectedTab().getLabel();
+
+            switch (label) {
+                case "Сайты" -> {
+                    if (!contentsHashMap.containsKey(label)) {
+                        SiteComponent.setDataAccess(configRepository,siteRepository, pageRepository,fieldRepository, jdbcTemplate);
+                        siteComponent = new SiteComponent();
+                        setContent(siteComponent.getMainLayout());
+                        //siteComponent.getGrid().setItems(siteRepository.findAll());
+                        contentsHashMap.put(label,siteComponent.getMainLayout());
+                    } else {
+                        //siteComponent.getGrid().setItems(siteRepository.findAll());
+                    }
+                }
+                case "Настройки" -> {
+                    if (!contentsHashMap.containsKey(label)) {
+                        ConfigComponent.setConfigRepository(configRepository);
+                        ConfigComponent configComponent = new ConfigComponent();
+                        setContent(configComponent.getMainLayout());
+                        configComponent.getGrid().setItems(configRepository.findAll());
+                        contentsHashMap.put(label,configComponent.getMainLayout());
+                    }
+                }
+                case "Лемматизатор" -> {
+                    if (!contentsHashMap.containsKey(label)) {
+                        LemmaComponent lemmaComponent = new LemmaComponent();
+                        lemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
+                        setContent(lemmaComponent.getMainLayout());
+                        contentsHashMap.put(label,lemmaComponent.getMainLayout());
+                    }
+                }
+                case "Индексация" -> {
+                    if (!contentsHashMap.containsKey(label)) {
+                        IndexingComponent indexingComponent = new IndexingComponent();
+                        indexingComponent.dataAccess(fieldRepository,
+                                pageRepository,
+                                siteRepository,
+                                partOfSpeechRepository,
+                                entityManager);
+                        setContent(indexingComponent.getMainLayout());
+                        contentsHashMap.put(label,indexingComponent.getMainLayout());
+                    }
+                }
+            }
+            setContent(contentsHashMap.get(label));
         });
 
-        Tab tabIndexing = new Tab("Индексация");
-        tabIndexing.getElement().addEventListener("click", domEvent -> {
-            IndexingComponent indexingComponent = new IndexingComponent();
-            indexingComponent.dataAccess(fieldRepository,
-                    pageRepository,
-                    siteRepository,
-                    entityManager);
-            setContent(indexingComponent.getMainLayout());
-        });
+//        Tab tabSites = new Tab("Сайты");
+//        tabSites.getElement().addEventListener("click", domEvent -> {
+//            SiteComponent.setDataAccess(configRepository,siteRepository, pageRepository,fieldRepository, jdbcTemplate);
+//            SiteComponent siteComponent = new SiteComponent();
+//            setContent(siteComponent.getMainLayout());
+//            siteComponent.getGrid().setItems(siteRepository.findAll());
+//        });
+//
+//        Tab tabOptions = new Tab("Настройки");
+//        tabOptions.getElement().addEventListener("click", domEvent -> {
+//
+//            ConfigComponent.setConfigRepository(configRepository);
+//            ConfigComponent configComponent = new ConfigComponent();
+//            setContent(configComponent.getMainLayout());
+//            configComponent.getGrid().setItems(configRepository.findAll());
+//        });
+//
+//        Tab tabLemma = new Tab("Лемматизатор");
+//        tabLemma.getElement().addEventListener("click", domEvent -> {
+//            LemmaComponent lemmaComponent = new LemmaComponent();
+//            lemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
+//            setContent(lemmaComponent.getMainLayout());
+//        });
+//
+//        Tab tabIndexing = new Tab("Индексация");
+//        tabIndexing.getElement().addEventListener("click", domEvent -> {
+//            IndexingComponent indexingComponent = new IndexingComponent();
+//            indexingComponent.dataAccess(fieldRepository,
+//                    pageRepository,
+//                    siteRepository,
+//                    entityManager);
+//            setContent(indexingComponent.getMainLayout());
+//        });
 
         tabs.add(tabSites, tabOptions, tabLemma, tabIndexing);
 
         addToDrawer(tabs);
         addToNavbar(toggle, title);
     }
-
-
-
 }
 

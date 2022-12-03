@@ -1,5 +1,6 @@
 package engine.views;
 
+import com.sun.jna.WString;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
@@ -16,6 +17,7 @@ import engine.repository.PartOfSpeechRepository;
 import lombok.Getter;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -31,17 +33,21 @@ public class LemmaComponent {
     private PartOfSpeechRepository partOfSpeechRepository;
     private final LuceneMorphology luceneMorph;
     private List<String> excludeList;
-    private final VerticalLayout mainLayout;
+    private VerticalLayout mainLayout;
     private final Grid<PartsOfSpeech> gridPartsOfSpeech = new Grid<>();
     private final TextArea resultTextArea = new TextArea("Результаты морфологического анализа");
     private final TextArea textArea = new TextArea("Текст для морфологического анализа");
     private final HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
 
-    public LemmaComponent() {
-        mainLayout = CreateUI.getMainLayout();
-        mainLayout.add(CreateUI.getTopLayout("Настройки лемматизатора", null));
 
-        createTabs(List.of("Лемматизатор", "Части речи", "Леммы"));
+    public LemmaComponent() {
+
+
+            mainLayout = CreateUI.getMainLayout();
+            mainLayout.add(CreateUI.getTopLayout("Настройки лемматизатора", null));
+
+            createTabs(List.of("Лемматизатор", "Части речи", "Леммы"));
+
 
 
         try {
@@ -84,6 +90,7 @@ public class LemmaComponent {
 
         return vLayout;
     }
+
 
 
     private VerticalLayout createLemmatisatorContent() {
@@ -241,6 +248,14 @@ public class LemmaComponent {
         return lemmaInfo;
     }
 
+    public HashMap<String, Integer> calcLemmaCount(String text) {
+        excludeList = partOfSpeechRepository.findByInclude(false)
+                .stream()
+                .map(p -> p.getShortName())
+                .collect(Collectors.toList());
+        return getLemmaCount(text);
+        }
+
     private HashMap<String, Integer> getLemmaCount(String text) {
 
         String[] words = getRussianWords(text);
@@ -251,7 +266,7 @@ public class LemmaComponent {
             if (!word.isBlank()) {
                 List<String> wordNormalForms = luceneMorph.getNormalForms(word);
                 wordNormalForms.forEach(normalForm -> {
-                    List<String> info = luceneMorph.getMorphInfo(normalForm);
+                    //List<String> info = luceneMorph.getMorphInfo(normalForm);
                     if (includeForm(normalForm)) {
                         //lemmaHashMap.put(word + "->" + normalForm + " -> " + info, 1);
                         Integer count = 1;

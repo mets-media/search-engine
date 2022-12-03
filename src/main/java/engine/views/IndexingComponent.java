@@ -19,14 +19,17 @@ import engine.entity.Field;
 import engine.entity.Page;
 import engine.repository.FieldRepository;
 import engine.repository.PageRepository;
+import engine.repository.PartOfSpeechRepository;
 import engine.repository.SiteRepository;
 import engine.service.HtmlParsing;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
@@ -35,7 +38,9 @@ import java.util.*;
 
 import static engine.views.ConfigComponent.showMessage;
 
+
 public class IndexingComponent {
+    private PartOfSpeechRepository partOfSpeechRepository;
     private SiteRepository siteRepository;
     private PageRepository pageRepository;
     private FieldRepository fieldRepository;
@@ -93,8 +98,12 @@ public class IndexingComponent {
             }
             contentsHashMap.get(label).setVisible(true);
         });
-        contentsHashMap.put("Страницы сайта", createPageComponent());
-        mainLayout.add(contentsHashMap.get("Страницы сайта"));
+
+        if (contentsHashMap.size() == 0) {
+            contentsHashMap.put("Страницы сайта", createPageComponent());
+            mainLayout.add(contentsHashMap.get("Страницы сайта"));
+        }
+
     }
 
     private List<Button> createButtons(List<String> captions) {
@@ -192,7 +201,6 @@ public class IndexingComponent {
         dialog.open();
     }
 
-    @PostConstruct
     private VerticalLayout createHtmlBlocksContent() {
         var verticalLayout = new VerticalLayout();
 
@@ -220,10 +228,12 @@ public class IndexingComponent {
     public void dataAccess(FieldRepository fieldRepository,
                            PageRepository pageRepository,
                            SiteRepository siteRepository,
+                           PartOfSpeechRepository partOfSpeechRepository,
                            EntityManager entityManager) {
         this.fieldRepository = fieldRepository;
         this.pageRepository = pageRepository;
         this.siteRepository = siteRepository;
+        this.partOfSpeechRepository = partOfSpeechRepository;
         this.entityManager = entityManager;
     }
 
@@ -384,11 +394,25 @@ public class IndexingComponent {
             }
         });
 
+        Button lemmaButton = new Button("Лемматизатор");
+        lemmaButton.addClickListener(buttonClickEvent -> {
+            LemmaComponent lemmaComponent = new LemmaComponent();
+            lemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
+            HashMap<String, Integer> lemmaHashMap = lemmaComponent.calcLemmaCount(cssSelectorTextArea.getValue());
+            StringBuilder stringBuilder = new StringBuilder();
+            lemmaHashMap.entrySet().forEach(x -> {
+                stringBuilder.append(x.getKey() + " -> " + x.getValue() + "\n");
+            });
+            cssSelectorTextArea.setValue(stringBuilder.toString());
+        });
+        var cssControlsLayout = new HorizontalLayout(cssSelectorComboBox, lemmaButton);
+        cssControlsLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+
         cssVerticalLayout = new VerticalLayout();
 
         cssSelectorTextArea.setWidth("100%");
         cssVerticalLayout.setSpacing(false);
-        cssVerticalLayout.add(cssSelectorComboBox, cssSelectorTextArea);
+        cssVerticalLayout.add(cssControlsLayout, cssSelectorTextArea);
 
         cssVerticalLayout.setEnabled(false);
     }
