@@ -43,23 +43,16 @@ public class IndexingComponent {
     private VerticalLayout mainLayout;
     private Grid<Field> fieldGrid = new Grid<>(Field.class, false);
     private Grid<Page> grid = null;
-
     private ComboBox<String> cssSelectorComboBox = new ComboBox<>("CSS-селектор");
     private TextArea cssSelectorTextArea = new TextArea("Найдены элементы");
-    private HorizontalLayout titleAndBodyHorizontalLayout = new HorizontalLayout();
     private VerticalLayout cssVerticalLayout = new VerticalLayout();
-
     private TextField pageCountTextField = new TextField("Страниц в базе данных");
-
     private HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
 
     public IndexingComponent() {
         mainLayout = CreateUI.getMainLayout();
         mainLayout.add(CreateUI.getTopLayout("Настройки индексации", null));
-
         createTabs(List.of("Страницы сайта", "HTML Блоки"));
-
-
     }
 
     public VerticalLayout getMainLayout() {
@@ -140,7 +133,6 @@ public class IndexingComponent {
                 }
             }
         }
-
         return buttons;
     }
 
@@ -258,6 +250,7 @@ public class IndexingComponent {
 
             cssSelectorComboBox.clear();
             cssSelectorTextArea.clear();
+            cssSelectorTextArea.setReadOnly(true);
 
             siteRepository.getSiteByUrl(event.getValue()).ifPresent(site -> {
                 //------------------------------------------------------------------------------------------
@@ -290,14 +283,6 @@ public class IndexingComponent {
 
         horizontalLayout.add(siteComboBox, pageCountTextField, cssTextField, jsoupStartButton);
 
-        TextArea titleTextArea = new TextArea("Title");
-        titleTextArea.setWidth("100%");
-        titleTextArea.setHeight("50%");
-
-        TextArea bodyTextArea = new TextArea("Body");
-        bodyTextArea.setWidth("100%");
-        bodyTextArea.setHeight("50%");
-
         if (grid == null) {
             pageCountTextField.setReadOnly(true);
 
@@ -314,50 +299,49 @@ public class IndexingComponent {
             grid.addSelectionListener(selectionEvent -> {
 
                 cssVerticalLayout.setEnabled(true);
+                cssSelectorComboBox.clear();
+                cssSelectorTextArea.clear();
 
-                selectionEvent.getFirstSelectedItem().ifPresent(page -> {
-                    String content = "";
-                    content = page.getContent();
-                    //Search titles
-                    if (!content.isBlank()) {
-                        //Set<String> titles = HtmlParsing.getHtmlElementsByRegEx("title\\W", content);
-//                        if (!(titles == null)) {
-//                            StringBuilder stringBuilder = new StringBuilder();
-//                            titles.forEach(title -> stringBuilder.append(title).append('\n'));
-//                            titleTextArea.setValue(stringBuilder.toString());
+//                selectionEvent.getFirstSelectedItem().ifPresent(page -> {
+//                    String content = "";
+//                    content = page.getContent();
+//                    //Search titles
+//                    if (!content.isBlank()) {
+//                        //Set<String> titles = HtmlParsing.getHtmlElementsByRegEx("title\\W", content);
+////                        if (!(titles == null)) {
+////                            StringBuilder stringBuilder = new StringBuilder();
+////                            titles.forEach(title -> stringBuilder.append(title).append('\n'));
+////                            titleTextArea.setValue(stringBuilder.toString());
+////                        }
+//
+//                        List<Element> titles = HtmlParsing.getHtmlElementsByRegEx("title\\W", content);
+//                        if (titles.size() > 0) {
+//                            var stringBuilder = new StringBuilder();
+//                            for (Element element : titles) {
+//                                //stringBuilder.append(String.join(" ",
+//                                //        HtmlParsing.getRussianWords(title.toString())));
+//
+//                                stringBuilder.append(HtmlParsing.getTagBody(element).concat("\n\n"));
+//                            }
+//                            titleTextArea.setValue(stringBuilder.toString().concat("\n"));
+//
 //                        }
-
-                        List<Element> titles = HtmlParsing.getHtmlElementsByRegEx("title\\W", content);
-                        if (titles.size() > 0) {
-                            var stringBuilder = new StringBuilder();
-                            for (Element element : titles) {
-                                //stringBuilder.append(String.join(" ",
-                                //        HtmlParsing.getRussianWords(title.toString())));
-
-                                stringBuilder.append(HtmlParsing.getTagBody(element).concat("\n\n"));
-                            }
-                            titleTextArea.setValue(stringBuilder.toString().concat("\n"));
-
-                        }
-
-                        //Search Body
-                        Document doc = Jsoup.parseBodyFragment(content);
-                        bodyTextArea.setValue(doc.body().text());
-                    }
-                });
+//
+//                        //Search Body
+//                        Document doc = Jsoup.parseBodyFragment(content);
+//                        bodyTextArea.setValue(doc.body().text());
+//                    }
+//                });
             });
         }
 
-        jsoupStartButton.addClickListener(buttonClickEvent ->  {
+        jsoupStartButton.addClickListener(buttonClickEvent -> {
             String content = grid.getSelectedItems().stream().findFirst().get().getContent();
-            bodyTextArea.setValue(HtmlParsing.findElementsByCss(cssTextField.getValue(), content).toString());
+            cssSelectorTextArea.setValue(HtmlParsing.findElementsByCss(cssTextField.getValue(), content).toString());
         });
 
-        //var titleAndBodyHorizontalLayout = new HorizontalLayout(titleTextArea, bodyTextArea);
-        titleAndBodyHorizontalLayout.add(titleTextArea);
-        titleAndBodyHorizontalLayout.setWidth("100%");
         fillCssLayout();
-        return new  VerticalLayout(horizontalLayout, grid, cssVerticalLayout, titleAndBodyHorizontalLayout);
+        return new VerticalLayout(horizontalLayout, grid, cssVerticalLayout);
     }
 
     private void fillCssLayout() {
@@ -369,17 +353,35 @@ public class IndexingComponent {
             ).stream();
         });
 
-        cssSelectorComboBox.addValueChangeListener(event->{
+        cssSelectorComboBox.addValueChangeListener(event -> {
             String cssName = event.getValue();
-            Field field = fieldRepository.findByName(cssName);
+
+            if (cssName == null)
+                return;
+
 
             String content = grid.getSelectedItems().stream().findFirst().get().getContent();
             Document document = Jsoup.parseBodyFragment(content);
 
-            Elements elements = document.select(field.getSelector());
+            Field field = fieldRepository.findByName(cssName);
+            switch (field.getSelector()) {
+                case "title" -> {
+                    cssSelectorTextArea.setValue(document.title());
+                }
+                case "body" -> {
+                    cssSelectorTextArea.setValue(document.body().text());
+                }
+                default -> {
+                    Elements elements = document.select(field.getSelector());
 
-            cssSelectorTextArea.setValue(elements.text());
-
+                    StringBuilder stringBuilder = new StringBuilder();
+                    elements.forEach(element -> {
+                        //stringBuilder.append(element.toString().concat("\n"));
+                        stringBuilder.append(HtmlParsing.getTagBody(element).concat("\n"));
+                    });
+                    cssSelectorTextArea.setValue(stringBuilder.toString().replace("&nbsp;", " "));
+                }
+            }
         });
 
         cssVerticalLayout = new VerticalLayout();
