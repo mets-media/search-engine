@@ -321,9 +321,8 @@ public class IndexingComponent {
         cssSelectorComboBox.addValueChangeListener(event -> {
             String cssName = event.getValue();
 
-            if (cssName == null)
+            if ((cssName == null) || (cssName.isBlank()))
                 return;
-
 
             String content = grid.getSelectedItems().stream().findFirst().get().getContent();
             Document document = Jsoup.parseBodyFragment(content);
@@ -357,7 +356,7 @@ public class IndexingComponent {
                     .map(p -> p.getShortName())
                     .collect(Collectors.toList());
 
-            Lemmatization lemma = new Lemmatization(excludeList);
+            Lemmatization lemma = new Lemmatization(excludeList, null);
 
             HashMap<String, Integer> lemmaHashMap = lemma.getLemmaCount(cssSelectorTextArea.getValue());
 
@@ -367,7 +366,38 @@ public class IndexingComponent {
             });
             cssSelectorTextArea.setValue(stringBuilder.toString());
         });
-        var cssControlsLayout = new HorizontalLayout(cssSelectorComboBox, lemmaButton);
+
+        Button indexingButton = new Button("Индексация");
+        indexingButton.addClickListener(buttonClickEvent ->  {
+            cssSelectorComboBox.setValue("");
+            List<String> excludeList = partOfSpeechRepository.findByInclude(false)
+                    .stream()
+                    .map(p -> p.getShortName())
+                    .collect(Collectors.toList());
+
+            Lemmatization lemmatization = new Lemmatization(excludeList, fieldRepository.findByActive(true));
+
+            grid.getSelectedItems().stream().findFirst().ifPresent(page -> {
+                List<HashMap<String, Lemmatization.LemmaInfo>> list =
+                        lemmatization.getHashMapsLemmaForEachCssSelector(page.getPath(),page.getContent());
+
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int i = 0; i < list.size();i++) {
+                    stringBuilder.append(list.get(i).size() + "\n\n");
+                }
+
+                HashMap<String, Lemmatization.LemmaInfo> hm = lemmatization.mergeAllHashMaps(list);
+                hm.entrySet().forEach(e -> stringBuilder.append(e.getValue().getLemma() + "," +
+                        e.getValue().getCount() + ", " + e.getValue().getRank()+"\n\n"));
+
+                stringBuilder.append("\n\n Size посе BiFunction: " + hm.size() + "\n\n");
+
+                cssSelectorTextArea.setValue(stringBuilder.toString());
+            });
+        });
+
+
+        var cssControlsLayout = new HorizontalLayout(cssSelectorComboBox, lemmaButton, indexingButton);
         cssControlsLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
         cssVerticalLayout = new VerticalLayout();

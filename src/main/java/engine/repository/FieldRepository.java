@@ -23,4 +23,6 @@ public interface FieldRepository extends JpaRepository<Field,Integer> {
     List<String> getAllNames(Pageable pageable);
 
     Field findByName(String cssName);
+
+    List<Field> findByActive(Boolean active);
 }

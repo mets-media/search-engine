@@ -470,12 +470,14 @@ public class Parser extends RecursiveAction {
 
 //        saveHashMapToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
 //                domainName, readyLinksHashMap.get(site.getId()), false, SaveFileMode.REWRITE);
-        System.out.format(READY_LINKS_FILENAME + " записан за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
+        System.out.format(READY_LINKS_FILENAME + " записан за %s\n",
+                TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
         TimeMeasure.setStartTime();
         //writeToDatabase(readyLinks.values().stream().toList());
         writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
-        System.out.format("запись в базу данных за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
+        System.out.format("запись в базу данных за %s\n",
+                TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
     }
 
     private static List<Page> getLinksSetEmptyPage(ConcurrentHashMap<String, Page> pageHashMap,
@@ -532,7 +534,7 @@ public class Parser extends RecursiveAction {
                 content = document.body().toString();
             } catch (Exception e) {
                 //throw new RuntimeException(e);
-//                e.printStackTrace();
+                //e.printStackTrace();
                 code = HtmlParsing.getStatusFromExceptionString(e.toString());
                 String errorLinkString;
                 if (code == -2) {

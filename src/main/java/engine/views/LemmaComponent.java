@@ -15,10 +15,7 @@ import engine.entity.PartsOfSpeech;
 import engine.repository.PartOfSpeechRepository;
 import engine.service.Lemmatization;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,10 +43,6 @@ public class LemmaComponent {
     private VerticalLayout createPartOfSpeechContent() {
         var vLayout = new VerticalLayout();
         vLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.END);
-//        var startButton = new Button("Все части речи");
-//        startButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-//        startButton.addClickListener(event -> {
-//        });
 
         gridPartsOfSpeech.addThemeVariants(GridVariant.LUMO_COMPACT);
         gridPartsOfSpeech.setSelectionMode(Grid.SelectionMode.SINGLE);
@@ -83,7 +76,7 @@ public class LemmaComponent {
                             .map(p -> p.getShortName())
                             .collect(Collectors.toList());
 
-                    Lemmatization lemma = new Lemmatization(excludeList);
+                    Lemmatization lemma = new Lemmatization(excludeList, null);
 
                     StringBuilder stringBuilder = new StringBuilder();
                     lemma.getLemmaCount(textArea.getValue()).entrySet().forEach(x -> {
@@ -116,7 +109,7 @@ public class LemmaComponent {
                     .map(p -> p.getShortName())
                     .collect(Collectors.toList());
 
-            Lemmatization lemma = new Lemmatization(excludeList);
+            Lemmatization lemma = new Lemmatization(excludeList, null);
             StringBuilder stringBuilder = new StringBuilder();
             lemma.getLemmaInfo(textArea.getValue()).forEach(l -> {
                 stringBuilder.append(l + '\n');
