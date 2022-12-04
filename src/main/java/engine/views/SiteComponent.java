@@ -36,25 +36,23 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Component
+import static com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.START;
+
 @Getter
 public class SiteComponent {
 
-    @Autowired
-    PartOfSpeechRepository partOfSpeechRepository;
     private final VerticalLayout mainLayout;
     private final Grid<Site> grid;
     private static ConfigRepository configRepository;
     private static SiteRepository siteRepository;
     private static PageRepository pageRepository;
-
     private static FieldRepository fieldRepository;
     private static JdbcTemplate jdbcTemplate;
 
 
     public SiteComponent() {
         mainLayout = CreateUI.getMainLayout();
-        mainLayout.add(CreateUI.getTopLayout("Сканирование сайтов", createButtons()));
+        mainLayout.add(CreateUI.getTopLayout("Сканирование сайтов", "xl", createButtons()));
         mainLayout.setMinHeight("100%");
 
         grid = new Grid<>(Site.class, false);
@@ -97,7 +95,6 @@ public class SiteComponent {
         buttons.add(testButton);
         testButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         testButton.addClickListener(event -> {
-            fieldRepository.initData();
         });
         //========================= ДОБАВИТЬ САЙТ ==========================================
         Button createButton = new Button("Добавить");
@@ -121,7 +118,6 @@ public class SiteComponent {
             showDeleteSiteDialog(sitesForDelete);
         });
 
-
         //========================= СКАНИРОВАТЬ САЙТ ==========================================
         Button parseButton = new Button("Сканировать");
         buttons.add(parseButton);
@@ -140,8 +136,6 @@ public class SiteComponent {
                 Parser.start(site);
             });
             grid.setItems(siteRepository.findAll());
-
-            //setContent(getSimpleGrid());
         });
 
         //========================= СТОП СКАНИРОВАНИЕ ==========================================
@@ -193,7 +187,7 @@ public class SiteComponent {
         dialog.getFooter().add(cancel, confirm);
 
         VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.START);
+        verticalLayout.setDefaultHorizontalComponentAlignment(START);
 
         for (Site site : sites) {
             verticalLayout.add(new Label(site.getUrl()));
@@ -338,9 +332,6 @@ public class SiteComponent {
         private final TextField statusTimeTextField = new TextField("время установки статуса");
         private final TextField lastErrorTextField = new TextField("Сообщение");
 
-
-
-
         public SiteDetailFormLayout() {
             Stream.of(pageCountTextField, siteStatusTextField, statusTimeTextField, lastErrorTextField)
                     .forEach(field -> {
@@ -348,15 +339,12 @@ public class SiteComponent {
                         field.setSizeFull();
                     });
 
+            var horizontalLayout = new HorizontalLayout(pageCountTextField, siteStatusTextField, statusTimeTextField);
+            horizontalLayout.setAlignItems(START);
+            horizontalLayout.setSizeFull();
 
-            //Статус и время установки статуса
-            var horizontalLayout = new HorizontalLayout(siteStatusTextField, statusTimeTextField);
-
-
-            var verticalLayout = new VerticalLayout(pageCountTextField, horizontalLayout, lastErrorTextField);
-
-            verticalLayout.setAlignItems(FlexComponent.Alignment.END);
-            verticalLayout.setSizeFull();
+            var verticalLayout = new VerticalLayout(horizontalLayout, lastErrorTextField);
+            verticalLayout.setAlignItems(START);
 
             add(verticalLayout);
         }

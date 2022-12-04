@@ -22,42 +22,40 @@ import engine.repository.PageRepository;
 import engine.repository.PartOfSpeechRepository;
 import engine.repository.SiteRepository;
 import engine.service.HtmlParsing;
+import engine.service.Lemmatization;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static engine.views.ConfigComponent.showMessage;
 
 
 public class IndexingComponent {
-    private PartOfSpeechRepository partOfSpeechRepository;
-    private SiteRepository siteRepository;
-    private PageRepository pageRepository;
-    private FieldRepository fieldRepository;
-    private EntityManager entityManager;
-    private VerticalLayout mainLayout;
-    private Grid<Field> fieldGrid = new Grid<>(Field.class, false);
+    private static PartOfSpeechRepository partOfSpeechRepository;
+    private static SiteRepository siteRepository;
+    private static PageRepository pageRepository;
+    private static FieldRepository fieldRepository;
+    private static EntityManager entityManager;
+    private final VerticalLayout mainLayout;
+    private final Grid<Field> fieldGrid = new Grid<>(Field.class, false);
     private Grid<Page> grid = null;
-    private ComboBox<String> cssSelectorComboBox = new ComboBox<>("CSS-селектор");
-    private TextArea cssSelectorTextArea = new TextArea("Найдены элементы");
+    private final ComboBox<String> cssSelectorComboBox = new ComboBox<>("CSS-селектор");
+    private final TextArea cssSelectorTextArea = new TextArea("Результат");
     private VerticalLayout cssVerticalLayout = new VerticalLayout();
-    private TextField pageCountTextField = new TextField("Страниц в базе данных");
-    private HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
+    private final TextField pageCountTextField = new TextField("Страниц в базе данных");
+    private final HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
 
     public IndexingComponent() {
         mainLayout = CreateUI.getMainLayout();
-        mainLayout.add(CreateUI.getTopLayout("Настройки индексации", null));
-        createTabs(List.of("Страницы сайта", "HTML Блоки"));
+        mainLayout.add(CreateUI.getTopLayout("Настройки индексации", "xl", null));
+        createTabs(List.of("HTML-поля", "Страницы сайта"));
     }
 
     public VerticalLayout getMainLayout() {
@@ -77,10 +75,9 @@ public class IndexingComponent {
 
         tabs.addSelectedChangeListener(event -> {
             String label = tabs.getSelectedTab().getLabel();
-            CreateUI.hideAllVerticalLayouts(mainLayout);
             VerticalLayout content = null;
             switch (label) {
-                case "HTML Блоки" -> {
+                case "HTML-поля" -> {
                     if (!contentsHashMap.containsKey(label)) {
                         content = createHtmlBlocksContent();
                         contentsHashMap.put(label, content);
@@ -96,14 +93,11 @@ public class IndexingComponent {
                     }
                 }
             }
+            CreateUI.hideAllVerticalLayouts(mainLayout);
             contentsHashMap.get(label).setVisible(true);
         });
-
-        if (contentsHashMap.size() == 0) {
-            contentsHashMap.put("Страницы сайта", createPageComponent());
-            mainLayout.add(contentsHashMap.get("Страницы сайта"));
-        }
-
+        contentsHashMap.put("HTML-поля", createHtmlBlocksContent());
+        mainLayout.add(contentsHashMap.get("HTML-поля"));
     }
 
     private List<Button> createButtons(List<String> captions) {
@@ -203,9 +197,10 @@ public class IndexingComponent {
 
     private VerticalLayout createHtmlBlocksContent() {
         var verticalLayout = new VerticalLayout();
+        verticalLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
 
         List<Button> buttons = createButtons(List.of("Добавить", "Редактировать", "Удалить"));
-        verticalLayout.add(CreateUI.getTopLayout("Настройки индексации.", buttons), fieldGrid);
+        verticalLayout.add(CreateUI.getTopLayout("Поля на страницах сайтов", "m", buttons), fieldGrid);
 
         fieldGrid.addComponentColumn(item -> {
             Checkbox checkbox = new Checkbox();
@@ -225,16 +220,16 @@ public class IndexingComponent {
         return verticalLayout;
     }
 
-    public void dataAccess(FieldRepository fieldRepository,
-                           PageRepository pageRepository,
-                           SiteRepository siteRepository,
-                           PartOfSpeechRepository partOfSpeechRepository,
+    public static void dataAccess(FieldRepository fRepository,
+                           PageRepository pRepository,
+                           SiteRepository sRepository,
+                           PartOfSpeechRepository posRepository,
                            EntityManager entityManager) {
-        this.fieldRepository = fieldRepository;
-        this.pageRepository = pageRepository;
-        this.siteRepository = siteRepository;
-        this.partOfSpeechRepository = partOfSpeechRepository;
-        this.entityManager = entityManager;
+        fieldRepository = fRepository;
+        pageRepository = pRepository;
+        siteRepository = sRepository;
+        partOfSpeechRepository = posRepository;
+        entityManager = entityManager;
     }
 
 
@@ -288,10 +283,7 @@ public class IndexingComponent {
         var horizontalLayout = new HorizontalLayout();
         horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
 
-        TextField cssTextField = new TextField("css query:");
-        Button jsoupStartButton = new Button("Найти");
-
-        horizontalLayout.add(siteComboBox, pageCountTextField, cssTextField, jsoupStartButton);
+        horizontalLayout.add(siteComboBox, pageCountTextField);
 
         if (grid == null) {
             pageCountTextField.setReadOnly(true);
@@ -311,49 +303,12 @@ public class IndexingComponent {
                 cssVerticalLayout.setEnabled(true);
                 cssSelectorComboBox.clear();
                 cssSelectorTextArea.clear();
-
-//                selectionEvent.getFirstSelectedItem().ifPresent(page -> {
-//                    String content = "";
-//                    content = page.getContent();
-//                    //Search titles
-//                    if (!content.isBlank()) {
-//                        //Set<String> titles = HtmlParsing.getHtmlElementsByRegEx("title\\W", content);
-////                        if (!(titles == null)) {
-////                            StringBuilder stringBuilder = new StringBuilder();
-////                            titles.forEach(title -> stringBuilder.append(title).append('\n'));
-////                            titleTextArea.setValue(stringBuilder.toString());
-////                        }
-//
-//                        List<Element> titles = HtmlParsing.getHtmlElementsByRegEx("title\\W", content);
-//                        if (titles.size() > 0) {
-//                            var stringBuilder = new StringBuilder();
-//                            for (Element element : titles) {
-//                                //stringBuilder.append(String.join(" ",
-//                                //        HtmlParsing.getRussianWords(title.toString())));
-//
-//                                stringBuilder.append(HtmlParsing.getTagBody(element).concat("\n\n"));
-//                            }
-//                            titleTextArea.setValue(stringBuilder.toString().concat("\n"));
-//
-//                        }
-//
-//                        //Search Body
-//                        Document doc = Jsoup.parseBodyFragment(content);
-//                        bodyTextArea.setValue(doc.body().text());
-//                    }
-//                });
             });
         }
-
-        jsoupStartButton.addClickListener(buttonClickEvent -> {
-            String content = grid.getSelectedItems().stream().findFirst().get().getContent();
-            cssSelectorTextArea.setValue(HtmlParsing.findElementsByCss(cssTextField.getValue(), content).toString());
-        });
 
         fillCssLayout();
         return new VerticalLayout(horizontalLayout, grid, cssVerticalLayout);
     }
-
     private void fillCssLayout() {
         cssVerticalLayout.setWidth("100%");
 
@@ -396,9 +351,16 @@ public class IndexingComponent {
 
         Button lemmaButton = new Button("Лемматизатор");
         lemmaButton.addClickListener(buttonClickEvent -> {
-            LemmaComponent lemmaComponent = new LemmaComponent();
-            lemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
-            HashMap<String, Integer> lemmaHashMap = lemmaComponent.calcLemmaCount(cssSelectorTextArea.getValue());
+
+            List<String> excludeList = partOfSpeechRepository.findByInclude(false)
+                    .stream()
+                    .map(p -> p.getShortName())
+                    .collect(Collectors.toList());
+
+            Lemmatization lemma = new Lemmatization(excludeList);
+
+            HashMap<String, Integer> lemmaHashMap = lemma.getLemmaCount(cssSelectorTextArea.getValue());
+
             StringBuilder stringBuilder = new StringBuilder();
             lemmaHashMap.entrySet().forEach(x -> {
                 stringBuilder.append(x.getKey() + " -> " + x.getValue() + "\n");

@@ -11,6 +11,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import engine.entity.Config;
 import engine.repository.ConfigRepository;
 import lombok.Getter;
@@ -22,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Component
 @Getter
 public class ConfigComponent {
     private VerticalLayout mainLayout;
@@ -36,7 +36,7 @@ public class ConfigComponent {
     public ConfigComponent() {
         mainLayout = CreateUI.getMainLayout();
         List<Button> buttons = createButtons(List.of("Добавить", "Редактировать", "Удалить"));
-        mainLayout.add(CreateUI.getTopLayout("Настройки сканирования.", buttons));
+        mainLayout.add(CreateUI.getTopLayout("Настройки сканирования.", "xl", buttons));
 
         grid = new Grid(Config.class, false);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);

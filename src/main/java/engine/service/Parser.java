@@ -42,10 +42,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Parser extends RecursiveAction {
     private Site site;
     private String path;
-    private Integer code;
     private String content;
     private String domainName;
-
     private static JdbcTemplate jdbcTemplate;
     private static PageRepository pageRepository;
     private static SiteRepository siteRepository;
@@ -58,20 +56,16 @@ public class Parser extends RecursiveAction {
     private static ConcurrentHashMap<Integer, ConcurrentSkipListSet> inProcessLinksHashMap = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<Integer, ConcurrentSkipListSet> errorLinksHashMap = new ConcurrentHashMap<>();
     private static Integer batchSize = 100;
-    private static boolean saveLinksInShortFormat = false;
+    private static final boolean saveLinksInShortFormat = false;
     public static Long maxMemory;
     public static Runtime runtime;
     public static Page emptyPage = new Page(-1, "", -1, "");
     private static ConcurrentHashMap<String, Page> cache = new ConcurrentHashMap<>();
-
-    private static HashSet<Integer> stopList = new HashSet<>();
-    private static AtomicLong totalCountLinks = new AtomicLong();
-
+    private static final HashSet<Integer> stopList = new HashSet<>();
+    private static final AtomicLong totalCountLinks = new AtomicLong();
     public static Set<Integer> getStopList() {
         return stopList;
     }
-
-
     public static void setDataAccess(ConfigRepository configRepository,
                                      SiteRepository siteRepository,
                                      PageRepository pageRepository,
@@ -81,7 +75,6 @@ public class Parser extends RecursiveAction {
         Parser.pageRepository = pageRepository;
         Parser.jdbcTemplate = jdbcTemplate;
     }
-
     public Parser(Site site, String path, String domainName) {
         this.jdbcTemplate = jdbcTemplate;
         this.path = path;
@@ -90,7 +83,6 @@ public class Parser extends RecursiveAction {
         runtime = Runtime.getRuntime();
         maxMemory = runtime.maxMemory();
     }
-
     private static void deleteFile(String fileName) {
         try {
             Files.delete(Paths.get(fileName));
@@ -98,7 +90,6 @@ public class Parser extends RecursiveAction {
             //e.printStackTrace();
         }
     }
-
     public static List<String> loadLinksFromFile(String fileName) {
 
         List<String> links = null;
@@ -534,11 +525,9 @@ public class Parser extends RecursiveAction {
         inProcessLinks.add(path);
 
         if (!readyLinks.keySet().contains(path)) {
+            Integer code;
             try {
                 code = HtmlParsing.getStatusCode(path);
-//                System.out.printf("число пулов %d, Активных потоков: %d         ",
-//                        activePools.size(), pool.getActiveThreadCount());
-//                System.out.format(totalCountLinks + ": download: [%d]  %s\n", code, path);
                 document = HtmlParsing.getHtmlDocument(path);
                 content = document.body().toString();
             } catch (Exception e) {
@@ -567,7 +556,6 @@ public class Parser extends RecursiveAction {
             }
             if (code == 200) {
                 readyLinks.put(path, new Page(site.getId(), path, code, content));
-                //readyLinks.put(path, new Page(site.getId(), path, code, ""));
                 inProcessLinks.remove(path);
 
                 System.out.printf("%s -> readyLinks: %d, inProcessLinks: %d\n", domainName, readyLinks.size(), inProcessLinks.size());
@@ -594,14 +582,17 @@ public class Parser extends RecursiveAction {
         } else {
             //Если ссылка есть в readyLinks - то не следует ничего делать!
             inProcessLinks.remove(path);
-            if (inProcessLinks.size()==0) {
-                site.setStatus(SiteStatus.LOADED);
-                siteRepository.save(site);
-                stop(site);
-                System.out.println(site.getUrl() + " -> Загрузка завершена.");
-            }
             return;
         }
+
+        //Проверка на окончание загрузки
+        if (inProcessLinks.size()==0) {
+            site.setStatus(SiteStatus.LOADED);
+            siteRepository.save(site);
+            stop(site);
+            System.out.println(site.getUrl() + " -> Загрузка завершена.");
+        }
+
         Set<String> hReference = HtmlParsing.getAllLinks(document, domainName);
         if (hReference != null)
             for (String hRef : hReference) {

@@ -11,11 +11,11 @@ import java.util.TreeSet;
 
 import static engine.service.HtmlParsing.getRussianWords;
 
-public class Lemma {
+public class Lemmatization {
     private final LuceneMorphology luceneMorph;
     private List<String> excludeList;
 
-    public Lemma(List<String> excludeList) {
+    public Lemmatization(List<String> excludeList) {
         this.excludeList = excludeList;
         try {
             luceneMorph = new RussianLuceneMorphology();
@@ -38,7 +38,7 @@ public class Lemma {
         return !lemmaForms.stream().anyMatch(this::hasProperty);
     }
 
-    private Set<String> getLemmaInfo(String text) {
+    public Set<String> getLemmaInfo(String text) {
         String[] words = getRussianWords(text);
         TreeSet<String> lemmaInfo = new TreeSet<>();
 
@@ -58,11 +58,7 @@ public class Lemma {
         return lemmaInfo;
     }
 
-    public HashMap<String, Integer> calcLemmaCount(String text) {
-        return getLemmaCount(text);
-    }
-
-    private HashMap<String, Integer> getLemmaCount(String text) {
+    public HashMap<String, Integer> getLemmaCount(String text) {
 
         String[] words = getRussianWords(text);
 
@@ -82,8 +78,6 @@ public class Lemma {
                         lemmaHashMap.put(normalForm, count);
                     }
                 });
-
-
             }
         }
         return lemmaHashMap;
