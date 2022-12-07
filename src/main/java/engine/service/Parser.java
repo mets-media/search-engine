@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -40,6 +42,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 @RequiredArgsConstructor
 public class Parser extends RecursiveAction {
+
     private Site site;
     private String path;
     private String content;
@@ -51,10 +54,10 @@ public class Parser extends RecursiveAction {
     public final static String READY_LINKS_FILENAME = "links.txt";
     public final static String STOP_LINKS_FILENAME = "Stoplinks.txt";
     public final static String ERROR_LINKS_FILENAME = "Error_Links.txt";
-    private static HashMap<Integer, ForkJoinPool> activePools = new HashMap<>();
-    private static ConcurrentHashMap<Integer, ConcurrentHashMap<String, Page>> readyLinksHashMap = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<Integer, ConcurrentSkipListSet> inProcessLinksHashMap = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<Integer, ConcurrentSkipListSet> errorLinksHashMap = new ConcurrentHashMap<>();
+    private static final HashMap<Integer, ForkJoinPool> activePools = new HashMap<>();
+    private static final ConcurrentHashMap<Integer, ConcurrentHashMap<String, Page>> readyLinksHashMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet> inProcessLinksHashMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet> errorLinksHashMap = new ConcurrentHashMap<>();
     private static Integer batchSize = 100;
     private static final boolean saveLinksInShortFormat = false;
     public static Long maxMemory;
@@ -63,9 +66,11 @@ public class Parser extends RecursiveAction {
     private static ConcurrentHashMap<String, Page> cache = new ConcurrentHashMap<>();
     private static final HashSet<Integer> stopList = new HashSet<>();
     private static final AtomicLong totalCountLinks = new AtomicLong();
+
     public static Set<Integer> getStopList() {
         return stopList;
     }
+
     public static void setDataAccess(ConfigRepository configRepository,
                                      SiteRepository siteRepository,
                                      PageRepository pageRepository,
@@ -74,15 +79,19 @@ public class Parser extends RecursiveAction {
         Parser.siteRepository = siteRepository;
         Parser.pageRepository = pageRepository;
         Parser.jdbcTemplate = jdbcTemplate;
+
     }
+
     public Parser(Site site, String path, String domainName) {
-        this.jdbcTemplate = jdbcTemplate;
         this.path = path;
         this.domainName = domainName;
         this.site = site;
+
+
         runtime = Runtime.getRuntime();
         maxMemory = runtime.maxMemory();
     }
+
     private static void deleteFile(String fileName) {
         try {
             Files.delete(Paths.get(fileName));
@@ -90,6 +99,7 @@ public class Parser extends RecursiveAction {
             //e.printStackTrace();
         }
     }
+
     public static List<String> loadLinksFromFile(String fileName) {
 
         List<String> links = null;
@@ -308,11 +318,6 @@ public class Parser extends RecursiveAction {
     public static void initSite(Site site, String readyLinksFilename, String stopLinksFilename) {
 
         int siteId = site.getId();
-        if (activePools.containsKey(siteId)) {
-            readyLinksHashMap.get(siteId).clear();
-            inProcessLinksHashMap.get(siteId).clear();
-            errorLinksHashMap.get(siteId).clear();
-        }
 
         int parallelism = Runtime.getRuntime().availableProcessors();
         Config config = configRepository.findByKey("tps");
@@ -382,6 +387,7 @@ public class Parser extends RecursiveAction {
 
         TimeMeasure.setStartTime();
         stopList.remove(site.getId());
+
         Parser parser;
         if (readyLinks.size() == 0) {
             parser = new Parser(site, path, domainName);
@@ -402,14 +408,17 @@ public class Parser extends RecursiveAction {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    //@Transactional(propagation = Propagation.NEVER)
     public static void writeToDatabase(List<Page> pages) {
         System.out.println("Записываю: " + pages.size());
         String sql = "Insert into Page (Site_Id, Code, Path, Content) values (?,?,?,?)";
-        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+
+        int[] result = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 Page page = pages.get(i);
-                if (page==null)
+                if (page == null)
                     System.out.println("page is null, pages.size = :" + pages.size());
 
                 Integer siteId = page.getSiteId();
@@ -419,12 +428,18 @@ public class Parser extends RecursiveAction {
                 ps.setString(3, page.getPath());
                 ps.setString(4, page.getContent());
             }
+
             @Override
             public int getBatchSize() {
                 return pages.size();
             }
         });
+
+        //for (int i = 0; i < result.length; i++) System.out.println(result[i]);
     }
+
+
+
 
     public static void stop(Site site) {
         System.out.printf("!!!!!!!!!!!! Стоп сайта: %s\n", site.getUrl());
@@ -445,48 +460,15 @@ public class Parser extends RecursiveAction {
         TimeMeasure.setStartTime();
         writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
         System.out.format("Запись в базу за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
-    }
 
-    public void stopScanSite(Site site) {
-        if (!activePools.containsKey(site.getId()))
-            return;
-
-        //удаляем ссылки предыдушего стопа
-        deleteFile("data/" + domainName + "/" + STOP_LINKS_FILENAME);
-        //останавливаем сканирование
-        stopList.add(site.getId());
-        System.out.printf("Стоп сканирования для сайта: %s\n", site.getUrl());
-
-        TimeMeasure.setStartTime();
-        String domainName = HtmlParsing.getDomainName(site.getUrl());
-
-        ConcurrentHashMap<String, Page> readyLinks = readyLinksHashMap.get(site.getId());
-        if (!(readyLinks == null))
-            saveLinksToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
-                    domainName,
-                    new ArrayList<>(readyLinks.keySet()),
-                    false,
-                    SaveFileMode.REWRITE);
-
-//        saveHashMapToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
-//                domainName, readyLinksHashMap.get(site.getId()), false, SaveFileMode.REWRITE);
-        System.out.format(READY_LINKS_FILENAME + " записан за %s\n",
-                TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
-
-        TimeMeasure.setStartTime();
-        //writeToDatabase(readyLinks.values().stream().toList());
-        writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
-        System.out.format("запись в базу данных за %s\n",
-                TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
+        System.out.println("Страниц после записи: " + pageRepository.countBySiteId(site.getId()));
     }
 
     private static List<Page> getLinksSetEmptyPage(ConcurrentHashMap<String, Page> pageHashMap,
                                                    String domainName,
                                                    boolean saveLinksInShortFormat) {
         List<Page> listPage = new ArrayList<>();
-        Iterator<Page> iterator = pageHashMap.values().iterator();
-        while (iterator.hasNext()) {
-            Page page = iterator.next();
+        for (Page page : pageHashMap.values())
             if (!page.equals(emptyPage)) {
                 if (saveLinksInShortFormat) {
                     String shortLink = HtmlParsing.getShortLink(page.getPath(), domainName);
@@ -501,7 +483,6 @@ public class Parser extends RecursiveAction {
                     e.printStackTrace();
                 }
             }
-        }
         System.out.println("Передаю на запись " + listPage.size() + " старниц");
         return listPage;
     }
@@ -524,7 +505,7 @@ public class Parser extends RecursiveAction {
             return;
         }
         Document document = null;
-        inProcessLinks.add(path);
+        //inProcessLinks.add(path);
 
         if (!readyLinks.keySet().contains(path)) {
             Integer code;
@@ -558,15 +539,8 @@ public class Parser extends RecursiveAction {
             }
             if (code == 200) {
                 readyLinks.put(path, new Page(site.getId(), path, code, content));
-                inProcessLinks.remove(path);
 
                 System.out.printf("%s -> readyLinks: %d, inProcessLinks: %d\n", domainName, readyLinks.size(), inProcessLinks.size());
-
-                //Сайт полностью отсканирован - проверить 0 или 1
-//                if ((inProcessLinks.size() == 0) && (readyLinks.size() > 0)) {
-//                    System.out.println("Завершение сканирования " + domainName);
-//                    stopScanSite(site);
-//                }
 
                 totalCountLinks.addAndGet(1L);
 
@@ -577,16 +551,30 @@ public class Parser extends RecursiveAction {
                     writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
                     System.out.println(domainName + " -> время записи в базу данных: " + TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
+                    int pageInBase = pageRepository.countBySiteId(site.getId());
+                    System.out.println("Страниц после записи: " + pageInBase);
+
                     site.setPageCount(readyLinks.size());
                     siteRepository.save(site);
                 }
             }
         } else {
             //Если ссылка есть в readyLinks - то не следует ничего делать!
-            inProcessLinks.remove(path);
             return;
         }
+        inProcessLinks.remove(path);
 
+
+        Set<String> hReference = HtmlParsing.getAllLinks(document, domainName);
+        if (hReference != null)
+            for (String hRef : hReference) {
+                if (!inProcessLinks.contains(hRef))
+                    if ((HtmlParsing.isCurrentSite(hRef, domainName)) && (!readyLinks.keySet().contains(hRef))) {
+                        inProcessLinks.add(hRef);
+                        Parser parser = new Parser(site, hRef, domainName);
+                        pool.execute(parser);
+                    }
+            }
         //Проверка на окончание загрузки
         if (inProcessLinks.size()==0) {
             site.setStatus(SiteStatus.LOADED);
@@ -595,15 +583,6 @@ public class Parser extends RecursiveAction {
             System.out.println(site.getUrl() + " -> Загрузка завершена.");
         }
 
-        Set<String> hReference = HtmlParsing.getAllLinks(document, domainName);
-        if (hReference != null)
-            for (String hRef : hReference) {
-                if (!inProcessLinks.contains(hRef))
-                    if ((HtmlParsing.isCurrentSite(hRef, domainName)) && (!readyLinks.keySet().contains(hRef))) {
-                        Parser parser = new Parser(site, hRef, domainName);
-                        pool.execute(parser);
-                    }
-            }
     }
 
     public static void loadCache(String fileName) {
@@ -716,7 +695,8 @@ public class Parser extends RecursiveAction {
             String path = site.getUrl();
 
             //Удаление предыдущих результатов
-            readyLinks.clear();;
+            readyLinks.clear();
+            ;
 
             //readyLinks.put("/", emptyPage);
             readyLinks.put(site.getUrl(), emptyPage);

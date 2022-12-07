@@ -43,7 +43,12 @@ public class MainView extends AppLayout {
 
     @PostConstruct
     private void getSites() {
-        SiteComponent.setDataAccess(configRepository,siteRepository, pageRepository,fieldRepository, jdbcTemplate);
+        SiteComponent.setDataAccess(configRepository,
+                siteRepository,
+                pageRepository,
+                fieldRepository,
+                jdbcTemplate,
+                entityManager);
         siteComponent.getGrid().setItems(siteRepository.findAll());
     }
 
@@ -67,11 +72,16 @@ public class MainView extends AppLayout {
             switch (label) {
                 case "Сайты" -> {
                     if (!contentsHashMap.containsKey(label)) {
-                        SiteComponent.setDataAccess(configRepository,siteRepository, pageRepository,fieldRepository, jdbcTemplate);
+                        SiteComponent.setDataAccess(configRepository,
+                                siteRepository,
+                                pageRepository,
+                                fieldRepository,
+                                jdbcTemplate,
+                                entityManager);
                         siteComponent = new SiteComponent();
                         setContent(siteComponent.getMainLayout());
                         //siteComponent.getGrid().setItems(siteRepository.findAll());
-                        contentsHashMap.put(label,siteComponent.getMainLayout());
+                        contentsHashMap.put(label, siteComponent.getMainLayout());
                     } else {
                         //siteComponent.getGrid().setItems(siteRepository.findAll());
                     }
@@ -82,7 +92,7 @@ public class MainView extends AppLayout {
                         ConfigComponent configComponent = new ConfigComponent();
                         setContent(configComponent.getMainLayout());
                         configComponent.getGrid().setItems(configRepository.findAll());
-                        contentsHashMap.put(label,configComponent.getMainLayout());
+                        contentsHashMap.put(label, configComponent.getMainLayout());
                     }
                 }
                 case "Лемматизатор" -> {
@@ -90,7 +100,7 @@ public class MainView extends AppLayout {
                         LemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
                         LemmaComponent lemmaComponent = new LemmaComponent();
                         setContent(lemmaComponent.getMainLayout());
-                        contentsHashMap.put(label,lemmaComponent.getMainLayout());
+                        contentsHashMap.put(label, lemmaComponent.getMainLayout());
                     }
                 }
                 case "Индексация" -> {
@@ -102,7 +112,7 @@ public class MainView extends AppLayout {
                                 entityManager);
                         IndexingComponent indexingComponent = new IndexingComponent();
                         setContent(indexingComponent.getMainLayout());
-                        contentsHashMap.put(label,indexingComponent.getMainLayout());
+                        contentsHashMap.put(label, indexingComponent.getMainLayout());
                     }
                 }
             }

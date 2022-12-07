@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -48,6 +49,8 @@ public class SiteComponent {
     private static PageRepository pageRepository;
     private static FieldRepository fieldRepository;
     private static JdbcTemplate jdbcTemplate;
+
+    private static EntityManager entityManager;
 
 
     public SiteComponent() {
@@ -124,7 +127,10 @@ public class SiteComponent {
         parseButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         parseButton.addClickListener(buttonClickEvent -> {
-            Parser.setDataAccess(configRepository, siteRepository, pageRepository, jdbcTemplate);
+            Parser.setDataAccess(configRepository,
+                    siteRepository,
+                    pageRepository,
+                    jdbcTemplate);
 
             Set<Site> selectedSites = grid.getSelectedItems();
             selectedSites.forEach(site -> {
@@ -318,12 +324,14 @@ public class SiteComponent {
                                      SiteRepository siteRepository,
                                      PageRepository pageRepository,
                                      FieldRepository fieldRepository,
-                                     JdbcTemplate jdbcTemplate) {
+                                     JdbcTemplate jdbcTemplate,
+                                     EntityManager entityManager) {
         SiteComponent.configRepository = configRepository;
         SiteComponent.siteRepository = siteRepository;
         SiteComponent.pageRepository = pageRepository;
         SiteComponent.fieldRepository = fieldRepository;
         SiteComponent.jdbcTemplate = jdbcTemplate;
+        SiteComponent.entityManager = entityManager;
     }
 
     private static class SiteDetailFormLayout extends FormLayout {
