@@ -2,6 +2,7 @@ package engine;
 
 import engine.repository.ConfigRepository;
 import engine.repository.FieldRepository;
+import engine.repository.PageContainerRepository;
 import engine.repository.PartOfSpeechRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +21,8 @@ public class Application extends SpringBootServletInitializer {
     @Bean
     public CommandLineRunner dataGenerator(ConfigRepository configRepository,
                                            PartOfSpeechRepository partOfSpeechRepository,
-                                           FieldRepository fieldRepository) {
+                                           FieldRepository fieldRepository,
+                                           PageContainerRepository pageContainerRepository) {
         return args -> {
             if (configRepository.count() == 0)
                 configRepository.initData();
@@ -30,6 +32,9 @@ public class Application extends SpringBootServletInitializer {
 
             if (fieldRepository.count() == 0)
                 fieldRepository.initData();
+
+             pageContainerRepository.createFunction();
+             pageContainerRepository.createTrigger();
         };
     }
 

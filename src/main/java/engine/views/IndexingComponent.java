@@ -379,7 +379,7 @@ public class IndexingComponent {
 
             grid.getSelectedItems().stream().findFirst().ifPresent(page -> {
                 List<HashMap<String, Lemmatization.LemmaInfo>> list =
-                        lemmatization.getHashMapsLemmaForEachCssSelector(page.getPath(),page.getContent());
+                        lemmatization.getHashMapsLemmaForEachCssSelector(page.getContent());
 
                 StringBuilder stringBuilder = new StringBuilder();
                 for (int i = 0; i < list.size();i++) {
@@ -390,7 +390,7 @@ public class IndexingComponent {
                 hm.entrySet().forEach(e -> stringBuilder.append(e.getValue().getLemma() + "," +
                         e.getValue().getCount() + ", " + e.getValue().getRank()+"\n\n"));
 
-                stringBuilder.append("\n\n Size посе BiFunction: " + hm.size() + "\n\n");
+                //stringBuilder.append("\n\n Size посе BiFunction: " + hm.size() + "\n\n");
 
                 cssSelectorTextArea.setValue(stringBuilder.toString());
             });
@@ -408,5 +408,6 @@ public class IndexingComponent {
 
         cssVerticalLayout.setEnabled(false);
     }
+
 
 }

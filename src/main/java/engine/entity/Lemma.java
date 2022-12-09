@@ -4,19 +4,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
 @Data
 @NoArgsConstructor
+@Table(uniqueConstraints={@UniqueConstraint(name = "siteId_lemma_unique",columnNames={"siteId", "lemma"})})
 public class Lemma {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @NotNull
+    private Integer siteId;
     @NotNull
     private String lemma;
     @NotNull

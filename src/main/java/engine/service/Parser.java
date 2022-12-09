@@ -9,9 +9,7 @@ import engine.entity.Config;
 import engine.entity.Page;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
-import engine.repository.ConfigRepository;
-import engine.repository.PageRepository;
-import engine.repository.SiteRepository;
+import engine.repository.*;
 import engine.views.ConfigComponent;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
@@ -32,11 +30,9 @@ import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 //@Component
 @Service
@@ -51,16 +47,18 @@ public class Parser extends RecursiveAction {
     private static PageRepository pageRepository;
     private static SiteRepository siteRepository;
     private static ConfigRepository configRepository;
+    private static PartOfSpeechRepository partOfSpeechRepository;
+    private static FieldRepository fieldRepository;
+
     public final static String READY_LINKS_FILENAME = "links.txt";
     public final static String STOP_LINKS_FILENAME = "Stoplinks.txt";
     public final static String ERROR_LINKS_FILENAME = "Error_Links.txt";
     private static final HashMap<Integer, ForkJoinPool> activePools = new HashMap<>();
     //private static final ConcurrentHashMap<Integer, ConcurrentHashMap<String, Page>> readyLinksHashMap = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet> readyLinksHashMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> readyLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, List<Page>> pageHashMap = new ConcurrentHashMap<>();
-
-    private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet> inProcessLinksHashMap = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet> errorLinksHashMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> inProcessLinksHashMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> errorLinksHashMap = new ConcurrentHashMap<>();
     private static Integer batchSize = 100;
     private static final boolean saveLinksInShortFormat = false;
     public static Long maxMemory;
@@ -77,11 +75,16 @@ public class Parser extends RecursiveAction {
     public static void setDataAccess(ConfigRepository configRepository,
                                      SiteRepository siteRepository,
                                      PageRepository pageRepository,
+                                     PartOfSpeechRepository partOfSpeechRepository,
+                                     FieldRepository fieldRepository,
                                      JdbcTemplate jdbcTemplate) {
         Parser.configRepository = configRepository;
         Parser.siteRepository = siteRepository;
         Parser.pageRepository = pageRepository;
+        Parser.partOfSpeechRepository = partOfSpeechRepository;
+        Parser.fieldRepository = fieldRepository;
         Parser.jdbcTemplate = jdbcTemplate;
+
 
     }
 
@@ -348,6 +351,7 @@ public class Parser extends RecursiveAction {
         inProcessLinksHashMap.put(siteId, new ConcurrentSkipListSet());
         //readyLinksHashMap.put(siteId, new ConcurrentHashMap<>());
         readyLinksHashMap.put(siteId, new ConcurrentSkipListSet());
+        //pageHashMap.put(siteId, new ArrayList<>());
         pageHashMap.put(siteId, new ArrayList<>());
         errorLinksHashMap.put(siteId, new ConcurrentSkipListSet());
 
@@ -382,7 +386,7 @@ public class Parser extends RecursiveAction {
         //Инициализация статических переменных для класса Parser
         initSite(site, readyLinksFilename, stopLinksFilename);
         //ConcurrentHashMap<String, Page> readyLinks = readyLinksHashMap.get(site.getId());
-        ConcurrentSkipListSet readyLinks = readyLinksHashMap.get(site.getId());
+        var readyLinks = readyLinksHashMap.get(site.getId());
 
         int pageCount = pageRepository.countBySiteId(site.getId());
 
@@ -435,6 +439,7 @@ public class Parser extends RecursiveAction {
                 ps.setInt(2, code);
                 ps.setString(3, page.getPath());
                 ps.setString(4, page.getContent());
+
             }
 
             @Override
@@ -447,7 +452,75 @@ public class Parser extends RecursiveAction {
         //for (int i = 0; i < result.length; i++) System.out.println(result[i]);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public static Integer writeTempTableToDatabase(List<Page> pages, Lemmatization lemmatizator) {
+        System.out.println("Записываю: " + pages.size());
+        String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
 
+        int[] result = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Page page = pages.get(i);
+                if (page == null)
+                    System.out.println("page is null, pages.size = :" + pages.size());
+
+                Integer siteId = page.getSiteId();
+                ps.setInt(1, siteId);
+                Integer code = page.getCode();
+                ps.setInt(2, code);
+                ps.setString(3, page.getPath());
+                String content = page.getContent();
+                ps.setString(4, content);
+                ps.setString(5, getLemmatizationInfo(content, lemmatizator));
+            }
+            @Override
+            public int getBatchSize() {
+                return pages.size();
+            }
+        });
+
+
+        for (int j : result) System.out.println(j);
+
+        return result.length;
+    }
+
+//    CREATE OR REPLACE FUNCTION new_page_function()
+//    RETURNS trigger AS
+//            $$
+//    declare page_id integer;
+//    declare lemma_id integer;
+//
+//    Declare lemmainfo Varchar(50);
+//
+//    declare lemma VarChar(50);
+//    declare count Int;
+//    declare rank real;
+//    BEGIN
+//
+//    INSERT INTO page(Site_id,Path, Code, Content)
+//    VALUES(new.Site_id,new.Path, new.Code, new.Content)
+//    Returning Id into page_id;
+//
+//	for lemmainfo in select unnest(string_to_array(new.lemmatization,';'))
+//    loop
+//	    if (length(lemmainfo) > 0) then
+//            lemma = Split_Part(lemmaInfo,',',1);
+//    count = Cast(Split_Part(lemmaInfo,',',2) as Integer);
+//    rank  = Cast(Split_Part(lemmaInfo,',',3) as real);
+//        	--return next;
+//    insert into LEMMA (Lemma,Frequency, Rank) values (lemma,count,rank) returning id into lemma_id;
+//    end if;
+//    end loop;
+//    RETURN NULL;
+//    END;
+//
+//
+//    CREATE TRIGGER page_trigger
+//    AFTER INSERT
+//    ON Page_Container
+//    FOR EACH ROW
+//    EXECUTE PROCEDURE new_page_function();
 
 
     public static void stop(Site site) {
@@ -463,7 +536,6 @@ public class Parser extends RecursiveAction {
         if (!(readyLinks == null))
             saveLinksToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
                     domainName,
-                    //new ArrayList<>(readyLinks.keySet()),
                     readyLinks,
                     false,
                     SaveFileMode.REWRITE);
@@ -504,10 +576,10 @@ public class Parser extends RecursiveAction {
         int siteId = site.getId();
 
         ForkJoinPool pool = activePools.get(siteId);
-        ConcurrentSkipListSet<String> inProcessLinks = inProcessLinksHashMap.get(siteId);
+        var inProcessLinks = inProcessLinksHashMap.get(siteId);
         //ConcurrentHashMap<String, Page> readyLinks = readyLinksHashMap.get(siteId);
-        ConcurrentSkipListSet readyLinks = readyLinksHashMap.get(siteId);
-        List<Page> readyPages = pageHashMap.get(siteId);
+        var readyLinks = readyLinksHashMap.get(siteId);
+        var readyPages = pageHashMap.get(siteId);
 
         if (stopList.contains(siteId)) {
             pool.shutdown();
@@ -555,7 +627,9 @@ public class Parser extends RecursiveAction {
             if (code == 200) {
                 //readyLinks.put(path, new Page(site.getId(), path, code, content));
                 readyLinks.add(path);
-                readyPages.add(new Page(site.getId(), path, code, content));
+                Page page = new Page(site.getId(), path, code, content);
+                readyPages.add(page);
+
 
                 System.out.printf("%s -> readyLinks: %d, inProcessLinks: %d\n", domainName, readyLinks.size(), inProcessLinks.size());
 
@@ -566,7 +640,22 @@ public class Parser extends RecursiveAction {
                     System.out.println("Запись в базу данных");
                     TimeMeasure.setStartTime();
                     //writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
-                    writeToDatabase(readyPages);
+
+                    //writeToDatabase(readyPages);
+
+                    List<String> excludeList = partOfSpeechRepository.findByInclude(false)
+                            .stream()
+                            .map(p -> p.getShortName())
+                            .collect(Collectors.toList());
+
+                    Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
+
+                    List<Page> pagesForSave = new ArrayList<>(readyPages);
+                    for (Page p : pagesForSave)
+                        readyPages.remove(p);
+
+                    Integer writePageCount = writeTempTableToDatabase(pagesForSave,lemmatizator);
+
                     System.out.println(domainName + " -> время записи в базу данных: " + TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
                     int pageInBase = pageRepository.countBySiteId(site.getId());
@@ -729,6 +818,22 @@ public class Parser extends RecursiveAction {
                 readyLinks.add(links.get(i));
         });
         dialog.open();
+    }
+    public static String getLemmatizationInfo(String content, Lemmatization lemmatizator) {
+
+        List<HashMap<String, Lemmatization.LemmaInfo>> list =
+                lemmatizator.getHashMapsLemmaForEachCssSelector(content);
+
+        HashMap<String, Lemmatization.LemmaInfo> totalInfo = lemmatizator.mergeAllHashMaps(list);
+
+        String totalString = "";
+        for (Map.Entry<String, Lemmatization.LemmaInfo> entry : totalInfo.entrySet()) {
+            Lemmatization.LemmaInfo lemmaInfo = entry.getValue();
+            totalString += lemmaInfo.getLemma().concat(",")
+                    .concat(lemmaInfo.getCount().toString()).concat(",")
+                    .concat(lemmaInfo.getRank().toString()).concat(";");
+        }
+        return totalString;
     }
 
 }

@@ -11,6 +11,7 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import static engine.service.HtmlParsing.getRussianWords;
 
@@ -132,7 +133,7 @@ public class Lemmatization {
         }
         return result;
     }
-    public List<HashMap<String, LemmaInfo>> getHashMapsLemmaForEachCssSelector(String path, String content) {
+    public List<HashMap<String, LemmaInfo>> getHashMapsLemmaForEachCssSelector(String content) {
         List<HashMap<String, LemmaInfo>> htmlFields = new ArrayList<>();
         Document document = Jsoup.parseBodyFragment(content);
 

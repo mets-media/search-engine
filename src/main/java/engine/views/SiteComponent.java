@@ -48,6 +48,9 @@ public class SiteComponent {
     private static SiteRepository siteRepository;
     private static PageRepository pageRepository;
     private static FieldRepository fieldRepository;
+
+    private static PartOfSpeechRepository partOfSpeechRepository;
+
     private static JdbcTemplate jdbcTemplate;
 
     private static EntityManager entityManager;
@@ -98,6 +101,7 @@ public class SiteComponent {
         buttons.add(testButton);
         testButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         testButton.addClickListener(event -> {
+
         });
         //========================= ДОБАВИТЬ САЙТ ==========================================
         Button createButton = new Button("Добавить");
@@ -130,6 +134,8 @@ public class SiteComponent {
             Parser.setDataAccess(configRepository,
                     siteRepository,
                     pageRepository,
+                    partOfSpeechRepository,
+                    fieldRepository,
                     jdbcTemplate);
 
             Set<Site> selectedSites = grid.getSelectedItems();
@@ -324,12 +330,14 @@ public class SiteComponent {
                                      SiteRepository siteRepository,
                                      PageRepository pageRepository,
                                      FieldRepository fieldRepository,
+                                     PartOfSpeechRepository partOfSpeechRepository,
                                      JdbcTemplate jdbcTemplate,
                                      EntityManager entityManager) {
         SiteComponent.configRepository = configRepository;
         SiteComponent.siteRepository = siteRepository;
         SiteComponent.pageRepository = pageRepository;
         SiteComponent.fieldRepository = fieldRepository;
+        SiteComponent.partOfSpeechRepository = partOfSpeechRepository;
         SiteComponent.jdbcTemplate = jdbcTemplate;
         SiteComponent.entityManager = entityManager;
     }

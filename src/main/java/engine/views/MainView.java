@@ -12,12 +12,15 @@ import com.vaadin.flow.router.Route;
 import engine.repository.*;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @Route
 @Getter
@@ -35,6 +38,9 @@ public class MainView extends AppLayout {
     @Autowired
     PartOfSpeechRepository partOfSpeechRepository;
 
+    @Autowired
+    private ApplicationContext context;
+
     @PersistenceContext
     EntityManager entityManager;
 
@@ -47,6 +53,7 @@ public class MainView extends AppLayout {
                 siteRepository,
                 pageRepository,
                 fieldRepository,
+                partOfSpeechRepository,
                 jdbcTemplate,
                 entityManager);
         siteComponent.getGrid().setItems(siteRepository.findAll());
@@ -76,6 +83,7 @@ public class MainView extends AppLayout {
                                 siteRepository,
                                 pageRepository,
                                 fieldRepository,
+                                partOfSpeechRepository,
                                 jdbcTemplate,
                                 entityManager);
                         siteComponent = new SiteComponent();
@@ -84,6 +92,7 @@ public class MainView extends AppLayout {
                         contentsHashMap.put(label, siteComponent.getMainLayout());
                     } else {
                         //siteComponent.getGrid().setItems(siteRepository.findAll());
+
                     }
                 }
                 case "Настройки" -> {
@@ -93,6 +102,10 @@ public class MainView extends AppLayout {
                         setContent(configComponent.getMainLayout());
                         configComponent.getGrid().setItems(configRepository.findAll());
                         contentsHashMap.put(label, configComponent.getMainLayout());
+
+//                        Arrays.stream(context.getBeanDefinitionNames()).sorted()
+//                                .collect(Collectors.toList())
+//                                .forEach(System.out::println);
                     }
                 }
                 case "Лемматизатор" -> {
@@ -118,40 +131,6 @@ public class MainView extends AppLayout {
             }
             setContent(contentsHashMap.get(label));
         });
-
-//        Tab tabSites = new Tab("Сайты");
-//        tabSites.getElement().addEventListener("click", domEvent -> {
-//            SiteComponent.setDataAccess(configRepository,siteRepository, pageRepository,fieldRepository, jdbcTemplate);
-//            SiteComponent siteComponent = new SiteComponent();
-//            setContent(siteComponent.getMainLayout());
-//            siteComponent.getGrid().setItems(siteRepository.findAll());
-//        });
-//
-//        Tab tabOptions = new Tab("Настройки");
-//        tabOptions.getElement().addEventListener("click", domEvent -> {
-//
-//            ConfigComponent.setConfigRepository(configRepository);
-//            ConfigComponent configComponent = new ConfigComponent();
-//            setContent(configComponent.getMainLayout());
-//            configComponent.getGrid().setItems(configRepository.findAll());
-//        });
-//
-//        Tab tabLemma = new Tab("Лемматизатор");
-//        tabLemma.getElement().addEventListener("click", domEvent -> {
-//            LemmaComponent lemmaComponent = new LemmaComponent();
-//            lemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
-//            setContent(lemmaComponent.getMainLayout());
-//        });
-//
-//        Tab tabIndexing = new Tab("Индексация");
-//        tabIndexing.getElement().addEventListener("click", domEvent -> {
-//            IndexingComponent indexingComponent = new IndexingComponent();
-//            indexingComponent.dataAccess(fieldRepository,
-//                    pageRepository,
-//                    siteRepository,
-//                    entityManager);
-//            setContent(indexingComponent.getMainLayout());
-//        });
 
         tabs.add(tabSites, tabOptions, tabLemma, tabIndexing);
 
