@@ -70,7 +70,7 @@ public class MainView extends AppLayout {
 
         Tab tabSites = new Tab("Сайты");
         Tab tabOptions = new Tab("Настройки");
-        Tab tabLemma = new Tab("Лемматизатор");
+        Tab tabLemma = new Tab("Поиск");
         Tab tabIndexing = new Tab("Индексация");
 
         tabs.addSelectedChangeListener(event -> {
@@ -108,7 +108,7 @@ public class MainView extends AppLayout {
 //                                .forEach(System.out::println);
                     }
                 }
-                case "Лемматизатор" -> {
+                case "Поиск" -> {
                     if (!contentsHashMap.containsKey(label)) {
                         LemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
                         LemmaComponent lemmaComponent = new LemmaComponent();
@@ -132,7 +132,7 @@ public class MainView extends AppLayout {
             setContent(contentsHashMap.get(label));
         });
 
-        tabs.add(tabSites, tabOptions, tabLemma, tabIndexing);
+        tabs.add(tabSites, tabOptions, tabIndexing, tabLemma);
 
         addToDrawer(tabs);
         addToNavbar(toggle, title);

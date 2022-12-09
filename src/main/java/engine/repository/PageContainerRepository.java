@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 public interface PageContainerRepository extends JpaRepository<PageContainer, Integer>{
     @Modifying
     @Transactional
-    @Query(value = "CREATE OR REPLACE FUNCTION new_insert_lemma_from_container(\n" +
+    @Query(value = "CREATE OR REPLACE FUNCTION public.parse_page_container(\n" +
             "\t)\n" +
             "    RETURNS void\n" +
             "    LANGUAGE 'plpgsql'\n" +
@@ -31,7 +31,6 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\n" +
             "for container in (Select * from page_container) \n" +
             "loop\n" +
-            "\n" +
             "    with page_insert as (\n" +
             "    insert into PAGE (Site_id, Path, Code, Content)\n" +
             "\tvalues (container.site_id, container.path, container.code, container.content)\n" +
@@ -39,7 +38,6 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\treturning id)\n" +
             "    select id from page_insert into page_id; \n" +
             "\t\n" +
-            "\n" +
             "\tfor lemmainfo in select unnest(string_to_array(container.lemmatization,';'))\n" +
             "\tloop\n" +
             "\t    if (length(lemmainfo) > 0) then \t    \n" +
@@ -57,10 +55,9 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t\n" +
             "\t\t\tinsert into INDEX (page_id, lemma_id, rank) \n" +
             "\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
-            "\t\n" +
-            "\n" +
             "\t\tend if;\t\n" +
             "\tend loop;\n" +
+            "\tdelete from page_container where id = container.id;\n" +
             "end loop;\n" +
             "\n" +
             "end; \n" +
@@ -71,7 +68,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
 
     @Modifying
     @Transactional
-    @Query(value = "CREATE OR REPLACE FUNCTION public.new_page_function()\n" +
+    @Query(value = "CREATE OR REPLACE FUNCTION new_page_function()\n" +
             "    RETURNS trigger\n" +
             "    LANGUAGE 'plpgsql'\n" +
             "    COST 100\n" +
@@ -111,8 +108,10 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
             "\t\n" +
             "\n" +
-            "\t\tend if;\t\n" +
+            "\t\tend if;\n" +
             "\tend loop;\n" +
+            "\n" +
+            "\tdelete from page_container where id = new.id;\n" +
             "\t\n" +
             "    RETURN NULL;\n" +
             "END;    \n" +
@@ -122,7 +121,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "    AFTER INSERT\n" +
             "    ON public.page_container\n" +
             "    FOR EACH ROW\n" +
-            "    EXECUTE FUNCTION public.new_page_function();",
+            "    EXECUTE FUNCTION new_page_function();",
             nativeQuery = true)
     void createTrigger();
 

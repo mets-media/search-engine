@@ -5,10 +5,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import engine.entity.Config;
-import engine.entity.Page;
-import engine.entity.Site;
-import engine.entity.SiteStatus;
+import engine.entity.*;
 import engine.repository.*;
 import engine.views.ConfigComponent;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +40,7 @@ public class Parser extends RecursiveAction {
     private String path;
     private String content;
     private String domainName;
+
     private static JdbcTemplate jdbcTemplate;
     private static PageRepository pageRepository;
     private static SiteRepository siteRepository;
@@ -60,6 +58,7 @@ public class Parser extends RecursiveAction {
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> inProcessLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> errorLinksHashMap = new ConcurrentHashMap<>();
     private static Integer batchSize = 100;
+    private static Boolean checkPartOfSpeech = true;
     private static final boolean saveLinksInShortFormat = false;
     public static Long maxMemory;
     public static Runtime runtime;
@@ -92,7 +91,6 @@ public class Parser extends RecursiveAction {
         this.path = path;
         this.domainName = domainName;
         this.site = site;
-
 
         runtime = Runtime.getRuntime();
         maxMemory = runtime.maxMemory();
@@ -345,6 +343,15 @@ public class Parser extends RecursiveAction {
                     2000, Notification.Position.MIDDLE);
         }
 
+        config = configRepository.findByKey("isPoS");
+        try {
+            if (!(config == null))
+                checkPartOfSpeech = Boolean.parseBoolean(config.getValue());
+        } catch (Exception e) {
+            ConfigComponent.showMessage("Тип свойства 'isPoS' должен быть true/false!",
+                    2000, Notification.Position.MIDDLE);
+        }
+
         activePools.put(siteId, new ForkJoinPool(parallelism,
                 ForkJoinPool.defaultForkJoinWorkerThreadFactory,
                 null, true));
@@ -473,6 +480,7 @@ public class Parser extends RecursiveAction {
                 ps.setString(4, content);
                 ps.setString(5, getLemmatizationInfo(content, lemmatizator));
             }
+
             @Override
             public int getBatchSize() {
                 return pages.size();
@@ -643,10 +651,14 @@ public class Parser extends RecursiveAction {
 
                     //writeToDatabase(readyPages);
 
-                    List<String> excludeList = partOfSpeechRepository.findByInclude(false)
-                            .stream()
-                            .map(p -> p.getShortName())
-                            .collect(Collectors.toList());
+                    List<String> excludeList = null;
+                    if (checkPartOfSpeech)
+                        excludeList = partOfSpeechRepository.findByInclude(false)
+                                .stream()
+                                .map(p -> p.getShortName())
+                                .collect(Collectors.toList());
+                    else
+                        excludeList = new ArrayList<>();
 
                     Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
 
@@ -654,7 +666,7 @@ public class Parser extends RecursiveAction {
                     for (Page p : pagesForSave)
                         readyPages.remove(p);
 
-                    Integer writePageCount = writeTempTableToDatabase(pagesForSave,lemmatizator);
+                    Integer writePageCount = writeTempTableToDatabase(pagesForSave, lemmatizator);
 
                     System.out.println(domainName + " -> время записи в базу данных: " + TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
@@ -684,7 +696,7 @@ public class Parser extends RecursiveAction {
                     }
             }
         //Проверка на окончание загрузки
-        if (inProcessLinks.size()==0) {
+        if (inProcessLinks.size() == 0) {
             site.setStatus(SiteStatus.LOADED);
             siteRepository.save(site);
             stop(site);
@@ -819,6 +831,7 @@ public class Parser extends RecursiveAction {
         });
         dialog.open();
     }
+
     public static String getLemmatizationInfo(String content, Lemmatization lemmatizator) {
 
         List<HashMap<String, Lemmatization.LemmaInfo>> list =

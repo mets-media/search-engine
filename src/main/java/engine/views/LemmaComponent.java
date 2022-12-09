@@ -34,8 +34,8 @@ public class LemmaComponent {
 
     public LemmaComponent() {
         mainLayout = CreateUI.getMainLayout();
-        mainLayout.add(CreateUI.getTopLayout("Настройки лемматизатора", "xl", null));
-        createTabs(List.of("Части речи", "Лемматизатор", "Леммы"));
+        mainLayout.add(CreateUI.getTopLayout("Система поиска", "xl", null));
+        createTabs(List.of("Части речи", "Леммы", "Поиск"));
     }
     public static void setPartOfSpeechRepository(PartOfSpeechRepository repository) {
         partOfSpeechRepository = repository;
@@ -67,7 +67,7 @@ public class LemmaComponent {
 
     private HorizontalLayout createButtons() {
 
-        var startButton = new Button("Start");
+        var startButton = new Button("Поиск");
         startButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         startButton.addClickListener(event -> {
@@ -76,17 +76,18 @@ public class LemmaComponent {
                             .map(p -> p.getShortName())
                             .collect(Collectors.toList());
 
-                    Lemmatization lemma = new Lemmatization(excludeList, null);
+                    Lemmatization lemmatizator = new Lemmatization(excludeList, null);
 
                     StringBuilder stringBuilder = new StringBuilder();
-                    lemma.getLemmaCount(textArea.getValue()).entrySet().forEach(x -> {
+
+                    lemmatizator.getLemmaCount(textArea.getValue()).entrySet().forEach(x -> {
                         stringBuilder.append(x.getKey() + " -> " + x.getValue() + "\n");
                     });
                     resultTextArea.setValue(stringBuilder.toString());
                 }
         );
 
-        var splitButton = new Button("Split");
+        var splitButton = new Button("Разделить на слова");
         splitButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         splitButton.addClickListener(event -> {
@@ -99,7 +100,7 @@ public class LemmaComponent {
             resultTextArea.setValue(stringBuilder.toString());
         });
 
-        Button infoButton = new Button("Info");
+        Button infoButton = new Button("Части речи");
         infoButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         infoButton.addClickListener(event -> {
@@ -119,7 +120,7 @@ public class LemmaComponent {
             resultTextArea.setValue(stringBuilder.toString());
         });
 
-        return new HorizontalLayout(splitButton, startButton, infoButton);
+        return new HorizontalLayout(splitButton, infoButton, startButton);
 
     }
     private VerticalLayout createLemmatisatorContent() {
@@ -165,7 +166,7 @@ public class LemmaComponent {
             CreateUI.hideAllVerticalLayouts(mainLayout);
             VerticalLayout content;
             switch (label) {
-                case "Лемматизатор" -> {
+                case "Поиск" -> {
                     if (!contentsHashMap.containsKey(label)) {
                         content = createLemmatisatorContent();
                         contentsHashMap.put(label, content);
@@ -182,7 +183,7 @@ public class LemmaComponent {
                     gridPartsOfSpeech.setItems(partOfSpeechRepository.findAll());
                 }
                 case "Леммы" -> {
-                    CreateUI.hideAllVerticalLayouts(mainLayout);
+                    //CreateUI.hideAllVerticalLayouts(mainLayout);
                 }
             }
             contentsHashMap.get(label).setVisible(true);

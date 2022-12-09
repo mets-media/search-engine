@@ -138,7 +138,6 @@ public class Lemmatization {
         Document document = Jsoup.parseBodyFragment(content);
 
         for (Field cssSelector : cssSelectors) {
-            float weight = cssSelector.getWeight();
             htmlFields.add(getLemmaCountRankHashMap(document.select(cssSelector.getSelector()).toString(),
                     cssSelector.getWeight()));
         }
