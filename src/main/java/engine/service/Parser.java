@@ -657,10 +657,17 @@ public class Parser extends RecursiveAction {
                                 .stream()
                                 .map(p -> p.getShortName())
                                 .collect(Collectors.toList());
-                    else
-                        excludeList = new ArrayList<>();
 
                     Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
+
+
+
+//                    List<String>  excludeList = partOfSpeechRepository.findByInclude(false)
+//                            .stream()
+//                            .map(p -> p.getShortName())
+//                            .collect(Collectors.toList());
+//                    Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
+
 
                     List<Page> pagesForSave = new ArrayList<>(readyPages);
                     for (Page p : pagesForSave)

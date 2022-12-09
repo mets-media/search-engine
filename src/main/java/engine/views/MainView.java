@@ -20,6 +20,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Route
@@ -31,6 +32,9 @@ public class MainView extends AppLayout {
     SiteRepository siteRepository;
     @Autowired
     PageRepository pageRepository;
+
+    @Autowired
+    LemmaRepository lemmaRepository;
     @Autowired
     ConfigRepository configRepository;
     @Autowired
@@ -70,8 +74,9 @@ public class MainView extends AppLayout {
 
         Tab tabSites = new Tab("Сайты");
         Tab tabOptions = new Tab("Настройки");
-        Tab tabLemma = new Tab("Поиск");
+        Tab tabLemma = new Tab("Лемматизатор");
         Tab tabIndexing = new Tab("Индексация");
+        Tab tabSearch = new Tab("Поиск");
 
         tabs.addSelectedChangeListener(event -> {
             String label = tabs.getSelectedTab().getLabel();
@@ -108,7 +113,7 @@ public class MainView extends AppLayout {
 //                                .forEach(System.out::println);
                     }
                 }
-                case "Поиск" -> {
+                case "Лемматизатор" -> {
                     if (!contentsHashMap.containsKey(label)) {
                         LemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
                         LemmaComponent lemmaComponent = new LemmaComponent();
@@ -127,12 +132,24 @@ public class MainView extends AppLayout {
                         setContent(indexingComponent.getMainLayout());
                         contentsHashMap.put(label, indexingComponent.getMainLayout());
                     }
+
+                }
+                case "Поиск" -> {
+                    if (!contentsHashMap.containsKey(label)) {
+                        SearchComponent.setDataAccess(pageRepository,
+                                siteRepository,
+                                lemmaRepository,
+                                partOfSpeechRepository);
+                        SearchComponent searchComponent = new SearchComponent();
+                        setContent(searchComponent.getMainLayout());
+                        contentsHashMap.put(label,searchComponent.getMainLayout());
+                    }
                 }
             }
             setContent(contentsHashMap.get(label));
         });
 
-        tabs.add(tabSites, tabOptions, tabIndexing, tabLemma);
+        tabs.add(tabSites, tabOptions, tabIndexing, tabLemma, tabSearch);
 
         addToDrawer(tabs);
         addToNavbar(toggle, title);

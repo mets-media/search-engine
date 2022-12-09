@@ -49,7 +49,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t\t\tinsert into LEMMA (Site_Id, Lemma,Frequency, Rank) \n" +
             "\t\t\t\tvalues (container.site_id, new_lemma, new_count, new_rank) \n" +
             "\t\t\t\ton conflict on constraint siteId_lemma_unique \n" +
-            "\t\t\t\tdo update set Frequency = LEMMA.Frequency + new_count\n" +
+            "\t\t\t\tdo update set Frequency = LEMMA.Frequency + 1\n" +
             "\t\t\t\treturning id)\n" +
             "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
             "\t\n" +
@@ -100,7 +100,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t\t\tinsert into LEMMA (Site_Id, Lemma,Frequency, Rank) \n" +
             "\t\t\t\tvalues (new.site_id, new_lemma, new_count, new_rank) \n" +
             "\t\t\t\ton conflict on constraint siteId_lemma_unique \n" +
-            "\t\t\t\tdo update set Frequency = LEMMA.Frequency + new_count\n" +
+            "\t\t\t\tdo update set Frequency = LEMMA.Frequency + 1\n" +
             "\t\t\t\treturning id)\n" +
             "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
             "\t\n" +

@@ -34,8 +34,8 @@ public class LemmaComponent {
 
     public LemmaComponent() {
         mainLayout = CreateUI.getMainLayout();
-        mainLayout.add(CreateUI.getTopLayout("Система поиска", "xl", null));
-        createTabs(List.of("Части речи", "Леммы", "Поиск"));
+        mainLayout.add(CreateUI.getTopLayout("Лемматизатор", "xl", null));
+        createTabs(List.of("Части речи", "Леммы", "Лемматизатор"));
     }
     public static void setPartOfSpeechRepository(PartOfSpeechRepository repository) {
         partOfSpeechRepository = repository;
@@ -67,7 +67,7 @@ public class LemmaComponent {
 
     private HorizontalLayout createButtons() {
 
-        var startButton = new Button("Поиск");
+        var startButton = new Button("Леммы");
         startButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         startButton.addClickListener(event -> {
@@ -110,9 +110,9 @@ public class LemmaComponent {
                     .map(p -> p.getShortName())
                     .collect(Collectors.toList());
 
-            Lemmatization lemma = new Lemmatization(excludeList, null);
+            Lemmatization lemmatizator = new Lemmatization(excludeList, null);
             StringBuilder stringBuilder = new StringBuilder();
-            lemma.getLemmaInfo(textArea.getValue()).forEach(l -> {
+            lemmatizator.getLemmaInfo(textArea.getValue()).forEach(l -> {
                 stringBuilder.append(l + '\n');
                 //partOfSpeechRepository.save(new PartsOfSpeech(l,true));
 
@@ -166,7 +166,7 @@ public class LemmaComponent {
             CreateUI.hideAllVerticalLayouts(mainLayout);
             VerticalLayout content;
             switch (label) {
-                case "Поиск" -> {
+                case "Лемматизатор" -> {
                     if (!contentsHashMap.containsKey(label)) {
                         content = createLemmatisatorContent();
                         contentsHashMap.put(label, content);

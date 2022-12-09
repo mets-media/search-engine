@@ -99,7 +99,11 @@ public class Lemmatization {
             if (!word.isBlank()) {
                 List<String> wordNormalForms = luceneMorph.getNormalForms(word);
                 wordNormalForms.forEach(normalForm -> {
-                    if (includeForm(normalForm)) {
+                    boolean includeForm = true;
+                    if (!(excludeList == null)) {
+                        includeForm = includeForm(normalForm);
+                    }
+                    if (includeForm) {
                         Integer count = 1;
                         if (lemmaHashMap.containsKey(normalForm)) {
                             count = count + lemmaHashMap.get(normalForm).count;

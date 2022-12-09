@@ -25,8 +25,9 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
 
     List<Page> findBySiteId(int siteId, Pageable pageable);
 
-    @Query(value="Select count(*) from page where site_Id = :siteId", nativeQuery = true)
-    Integer countBySiteId(@Param("siteId") Integer pageSiteId);
+    //@Query(value="Select count(*) from page where site_Id = :siteId", nativeQuery = true)
+    //Integer countBySiteId(@Param("siteId") Integer pageSiteId);
+    Integer countBySiteId(Integer siteId);
 
 
 

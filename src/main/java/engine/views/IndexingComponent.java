@@ -243,16 +243,13 @@ public class IndexingComponent {
 //        }
 //        siteComboBox.setItems(siteList);
 
-
         siteComboBox.setItems(query -> {
             return siteRepository.getSitesUrlFromPageTable(
                     PageRequest.of(query.getPage(), query.getPageSize())
             ).stream();
         });
 
-
         siteComboBox.addValueChangeListener(event -> { //==============================================================
-
             cssSelectorComboBox.clear();
             cssSelectorTextArea.clear();
             cssSelectorTextArea.setReadOnly(true);
