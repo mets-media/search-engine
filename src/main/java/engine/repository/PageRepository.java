@@ -46,5 +46,11 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "where Lemma.Lemma = :lemma and Lemma.Site_Id = :siteId " +
             "order by Path",nativeQuery = true)
     List<String> getPathsBySiteIdLemma(@Param("lemma") String lemma, @Param("siteId") Integer siteId);
+
+    @Query(value="Select Count(*) from Page " +
+            "join Index on Index.Page_Id = Page.Id " +
+            "join Lemma on Lemma.Id = Index.Lemma_Id " +
+            "where Lemma.Lemma in :lemmaList and Lemma.Site_Id = :siteId ", nativeQuery = true)
+    Integer countAllBySiteIdAndLemmaIn(@Param("lemmaList") List<String> lemmaList, @Param("siteId") Integer siteId);
 }
 

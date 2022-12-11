@@ -132,10 +132,9 @@ public class SearchComponent {
         });
     }
 
-
     private void createColumnsLemmaGrid() {
         lemmaGrid.setSelectionMode(Grid.SelectionMode.MULTI);
-        CreateUI.setAllCheckboxVisibility(lemmaGrid, true);
+        CreateUI.setAllCheckboxVisibility(lemmaGrid, false);
         lemmaGrid.addColumn(Lemma::getFrequency).setHeader("Частота")
                 .setAutoWidth(true)
                 .setTextAlign(ColumnTextAlign.CENTER);
@@ -155,7 +154,10 @@ public class SearchComponent {
                     pagesHashMap.put(selectedLemma, paths);
             });
 
-            pageGrid.setItems(retainAllSelectedLemmas());
+            List<String> pageList = retainAllSelectedLemmas();
+
+            pageGrid.setItems(pageList);
+            pageGrid.getColumns().get(0).setHeader("Страниц: " + pageList.size());
         });
     }
 
@@ -179,7 +181,7 @@ public class SearchComponent {
     }
 
     private Button createSearchButton() {
-        Button searchButton = new Button("Найти страницы");
+        Button searchButton = new Button("Найти");
 
         searchButton.addClickListener(buttonClickEvent -> {
 
@@ -192,12 +194,16 @@ public class SearchComponent {
 
             HashMap<String, Integer> requestLemmas = lemmatizator.getLemmaCount(requestTextField.getValue());
 
+            Integer siteId = site.getId();
+            List<String> lemmaList = requestLemmas.keySet().stream().toList();
+
             lemmaGrid.setItems(query -> lemmaRepository
                     .findBySiteIdAndLemmaIn(
-                            site.getId(),
-                            requestLemmas.keySet().stream().toList(),
+                            siteId,
+                            lemmaList,
                             PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("frequency")))
                     .stream());
+
         });
         return searchButton;
     }
