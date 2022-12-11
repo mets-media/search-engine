@@ -8,6 +8,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import engine.entity.*;
 import engine.repository.*;
 import engine.views.ConfigComponent;
+import engine.views.CreateUI;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.jsoup.nodes.Document;
@@ -330,7 +331,7 @@ public class Parser extends RecursiveAction {
             if (!(config == null))
                 parallelism = Integer.parseInt(config.getValue());
         } catch (Exception e) {
-            ConfigComponent.showMessage("Тип свойства 'tps' должен быть Integer",
+            CreateUI.showMessage("Тип свойства 'tps' должен быть Integer",
                     2000, Notification.Position.MIDDLE);
         }
 
@@ -339,7 +340,7 @@ public class Parser extends RecursiveAction {
             if (!(config == null))
                 batchSize = Integer.parseInt(config.getValue());
         } catch (Exception e) {
-            ConfigComponent.showMessage("Тип свойства 'batch' должен быть Integer",
+            CreateUI.showMessage("Тип свойства 'batch' должен быть Integer",
                     2000, Notification.Position.MIDDLE);
         }
 
@@ -348,7 +349,7 @@ public class Parser extends RecursiveAction {
             if (!(config == null))
                 checkPartOfSpeech = Boolean.parseBoolean(config.getValue());
         } catch (Exception e) {
-            ConfigComponent.showMessage("Тип свойства 'isPoS' должен быть true/false!",
+            CreateUI.showMessage("Тип свойства 'isPoS' должен быть true/false!",
                     2000, Notification.Position.MIDDLE);
         }
 
@@ -816,7 +817,7 @@ public class Parser extends RecursiveAction {
         });
         cancel.addClickListener(clickEvent -> {
             dialog.close();
-            ConfigComponent.showMessage("Результаты сохранены", 500, Notification.Position.MIDDLE);
+            CreateUI.showMessage("Результаты сохранены", 500, Notification.Position.MIDDLE);
 
             List<String> links = pageRepository.getLinksBySiteId(site.getId());
 
@@ -824,7 +825,6 @@ public class Parser extends RecursiveAction {
 
             //Удаление предыдущих результатов
             readyLinks.clear();
-            ;
 
             //readyLinks.put("/", emptyPage);
             //readyLinks.put(site.getUrl(), emptyPage);

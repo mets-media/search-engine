@@ -31,10 +31,13 @@ import org.springframework.data.domain.Sort;
 
 import javax.persistence.EntityManager;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static engine.views.ConfigComponent.showMessage;
+import static engine.views.CreateUI.showMessage;
 
 
 public class IndexingComponent {

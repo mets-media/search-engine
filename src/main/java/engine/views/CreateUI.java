@@ -1,13 +1,17 @@
 package engine.views;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import engine.entity.Site;
 
 import java.util.List;
 
@@ -64,5 +68,26 @@ public class CreateUI {
         }
         return tabs;
     }
+
+    public static void setAllCheckboxVisibility(Grid grid, boolean visible) {
+        if (visible) {
+            ((GridMultiSelectionModel<?>) grid.getSelectionModel())
+                    .setSelectAllCheckboxVisibility(
+                            GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE
+                    );
+        } else
+            ((GridMultiSelectionModel<?>) grid.getSelectionModel())
+                    .setSelectAllCheckboxVisibility(
+                            GridMultiSelectionModel.SelectAllCheckboxVisibility.HIDDEN
+                    );
+    }
+
+    public static void showMessage(String text, int duration, Notification.Position position) {
+        Notification notification = new Notification(text, duration);
+        notification.setPosition(position);
+        notification.open();
+    }
+
+
 
 }

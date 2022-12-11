@@ -9,13 +9,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface PageRepository extends JpaRepository<Page, Integer> {
-   /*
-    @Query(value = "Insert into Page (page, content) values (:page, :content)", nativeQuery = true)
-    savePage(@Param("page") String page, @Param("content") String content);
-   */
 
     @Transactional
     void deleteBySiteId(int pageSiteId);
@@ -25,11 +22,29 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
 
     List<Page> findBySiteId(int siteId, Pageable pageable);
 
-    //@Query(value="Select count(*) from page where site_Id = :siteId", nativeQuery = true)
-    //Integer countBySiteId(@Param("siteId") Integer pageSiteId);
     Integer countBySiteId(Integer siteId);
 
+    @Query(value="select p.id, p.path from page p\n" +
+            "join index i on i.page_id = p.id\n" +
+            "join lemma l on l.id = i.lemma_id\n" +
+            "where l.lemma = :lemma\n" +
+            "  and l.site_id = :siteId", nativeQuery = true)
+    List<Page> findByLemmaBySiteId(@Param("siteId") Integer siteId, @Param("lemma") String lemma);
 
+    @Query(value="Select * from page\n" +
+            "where id in (select page_id \n" +
+            "\t\t\t   from index \n" +
+            "\t\t\t   where lemma_id in (Select id \n" +
+            "\t\t\t\t\t\t\t\t    from lemma \n" +
+            "\t\t\t\t\t\t\t\t    where lemma = :lemma\n" +
+            "\t\t\t\t\t\t\t\t      and site_id = :siteId))\n",nativeQuery = true)
+    List<Page> findByLemmaSiteId(@Param("siteId") Integer siteId, @Param("lemma") String lemma);
 
+    @Query(value="Select Path from Page " +
+            "join Index on Index.Page_Id = Page.Id " +
+            "join Lemma on Lemma.Id = Index.Lemma_Id " +
+            "where Lemma.Lemma = :lemma and Lemma.Site_Id = :siteId " +
+            "order by Path",nativeQuery = true)
+    List<String> getPathsBySiteIdLemma(@Param("lemma") String lemma, @Param("siteId") Integer siteId);
 }
 

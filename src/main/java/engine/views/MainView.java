@@ -36,6 +36,8 @@ public class MainView extends AppLayout {
     @Autowired
     LemmaRepository lemmaRepository;
     @Autowired
+    IndexRepository indexRepository;
+    @Autowired
     ConfigRepository configRepository;
     @Autowired
     FieldRepository fieldRepository;
@@ -139,6 +141,7 @@ public class MainView extends AppLayout {
                         SearchComponent.setDataAccess(pageRepository,
                                 siteRepository,
                                 lemmaRepository,
+                                indexRepository,
                                 partOfSpeechRepository);
                         SearchComponent searchComponent = new SearchComponent();
                         setContent(searchComponent.getMainLayout());

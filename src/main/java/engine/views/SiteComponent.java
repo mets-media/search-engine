@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.START;
+import static engine.views.CreateUI.showMessage;
 
 @Getter
 public class SiteComponent {
@@ -64,7 +65,7 @@ public class SiteComponent {
         grid = new Grid<>(Site.class, false);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
-        setAllCheckboxVisibility(grid, true);
+        CreateUI.setAllCheckboxVisibility(grid, true);
 
         //grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
@@ -119,7 +120,7 @@ public class SiteComponent {
         deleteButton.addClickListener(buttonClickEvent -> {
             List<Site> sitesForDelete = grid.getSelectedItems().stream().collect(Collectors.toList());
             if (sitesForDelete.isEmpty()) {
-                ConfigComponent.showMessage("Не выбраны сайты для удаления", 1000, Notification.Position.MIDDLE);
+                showMessage("Не выбраны сайты для удаления", 1000, Notification.Position.MIDDLE);
                 return;
             }
             showDeleteSiteDialog(sitesForDelete);
@@ -172,18 +173,18 @@ public class SiteComponent {
     }
 
 
-    public static void setAllCheckboxVisibility(Grid<Site> grid, boolean visible) {
-        if (visible) {
-            ((GridMultiSelectionModel<?>) grid.getSelectionModel())
-                    .setSelectAllCheckboxVisibility(
-                            GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE
-                    );
-        } else
-            ((GridMultiSelectionModel<?>) grid.getSelectionModel())
-                    .setSelectAllCheckboxVisibility(
-                            GridMultiSelectionModel.SelectAllCheckboxVisibility.HIDDEN
-                    );
-    }
+//    public static void setAllCheckboxVisibility(Grid<Site> grid, boolean visible) {
+//        if (visible) {
+//            ((GridMultiSelectionModel<?>) grid.getSelectionModel())
+//                    .setSelectAllCheckboxVisibility(
+//                            GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE
+//                    );
+//        } else
+//            ((GridMultiSelectionModel<?>) grid.getSelectionModel())
+//                    .setSelectAllCheckboxVisibility(
+//                            GridMultiSelectionModel.SelectAllCheckboxVisibility.HIDDEN
+//                    );
+//    }
 
     private void showDeleteSiteDialog(List<Site> sites) {
         Dialog dialog = new Dialog();
@@ -292,7 +293,7 @@ public class SiteComponent {
 
         Button saveButton = new Button("Сохранить", e -> {
             if (textFieldUrl.isEmpty())
-                ConfigComponent.showMessage("URL сайта не может быть пустым!", 1000, Notification.Position.MIDDLE);
+                showMessage("URL сайта не может быть пустым!", 1000, Notification.Position.MIDDLE);
             else {
                 String newUrl = textFieldUrl.getValue();
 

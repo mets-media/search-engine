@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static engine.views.CreateUI.showMessage;
+
 @Getter
 public class ConfigComponent {
     private VerticalLayout mainLayout;
@@ -212,10 +214,5 @@ public class ConfigComponent {
         dialog.open();
     }
 
-    public static void showMessage(String text, int duration, Notification.Position position) {
-        Notification notification = new Notification(text, duration);
-        notification.setPosition(position);
-        notification.open();
-    }
 
 }
