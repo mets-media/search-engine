@@ -81,21 +81,18 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "declare lemma_id integer;\n" +
             "declare page_id integer;\n" +
             "BEGIN\n" +
-            "\t\n" +
             "\twith page_insert as (\n" +
             "    insert into PAGE (Site_id, Path, Code, Content)\n" +
             "\tvalues (new.site_id, new.path, new.code, new.content)\n" +
             "\t--on conflict on constraint siteId_path_unique do nothing\n" +
             "\treturning id)\n" +
             "    select id from page_insert into page_id; \n" +
-            "\t\n" +
             "\tfor lemmainfo in select unnest(string_to_array(new.lemmatization,';'))\n" +
             "\tloop\n" +
             "\t    if (length(lemmainfo) > 0) then \t    \n" +
             "\t \t\tnew_lemma = Split_Part(lemmaInfo,',',1);\n" +
             "\t  \t\tnew_count = Cast(Split_Part(lemmaInfo,',',2) as Integer);\n" +
             "\t\t\tnew_rank  = Cast(Split_Part(lemmaInfo,',',3) as real);\n" +
-            "\n" +
             "\t\t\twith lemma_upsert as (\n" +
             "\t\t\tinsert into LEMMA (Site_Id, Lemma,Frequency, Rank) \n" +
             "\t\t\t\tvalues (new.site_id, new_lemma, new_count, new_rank) \n" +
@@ -103,16 +100,16 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t\t\t\tdo update set Frequency = LEMMA.Frequency + 1\n" +
             "\t\t\t\treturning id)\n" +
             "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
-            "\t\n" +
+            "\n" +
             "\t\t\tinsert into INDEX (page_id, lemma_id, rank) \n" +
             "\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
-            "\t\n" +
+            "\n" +
             "\n" +
             "\t\tend if;\n" +
             "\tend loop;\n" +
             "\n" +
             "\tdelete from page_container where id = new.id;\n" +
-            "\t\n" +
+            "\n" +
             "    RETURN NULL;\n" +
             "END;    \n" +
             "$BODY$;\n" +

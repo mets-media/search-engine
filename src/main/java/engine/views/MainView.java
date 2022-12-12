@@ -43,6 +43,8 @@ public class MainView extends AppLayout {
     FieldRepository fieldRepository;
     @Autowired
     PartOfSpeechRepository partOfSpeechRepository;
+    @Autowired
+    PathTableRepository pathTableRepository;
 
     @Autowired
     private ApplicationContext context;
@@ -141,8 +143,8 @@ public class MainView extends AppLayout {
                         SearchComponent.setDataAccess(pageRepository,
                                 siteRepository,
                                 lemmaRepository,
-                                indexRepository,
-                                partOfSpeechRepository);
+                                partOfSpeechRepository,
+                                pathTableRepository);
                         SearchComponent searchComponent = new SearchComponent();
                         setContent(searchComponent.getMainLayout());
                         contentsHashMap.put(label,searchComponent.getMainLayout());

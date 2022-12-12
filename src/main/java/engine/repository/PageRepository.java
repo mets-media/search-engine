@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
 
 @Repository
 public interface PageRepository extends JpaRepository<Page, Integer> {
@@ -45,12 +44,14 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "join Lemma on Lemma.Id = Index.Lemma_Id " +
             "where Lemma.Lemma = :lemma and Lemma.Site_Id = :siteId " +
             "order by Path",nativeQuery = true)
-    List<String> getPathsBySiteIdLemma(@Param("lemma") String lemma, @Param("siteId") Integer siteId);
+    List<String> findPathsBySiteIdLemmaIn(@Param("lemma") String lemma, @Param("siteId") Integer siteId);
 
-    @Query(value="Select Count(*) from Page " +
+    @Query(value="Select Page.id Page_Id from Page " +
             "join Index on Index.Page_Id = Page.Id " +
             "join Lemma on Lemma.Id = Index.Lemma_Id " +
-            "where Lemma.Lemma in :lemmaList and Lemma.Site_Id = :siteId ", nativeQuery = true)
-    Integer countAllBySiteIdAndLemmaIn(@Param("lemmaList") List<String> lemmaList, @Param("siteId") Integer siteId);
+            "where Lemma.Lemma = :lemma and Lemma.Site_Id = :siteId " +
+            "order by Path",nativeQuery = true)
+    List<Integer> getPageIdBySiteIdLemmaIn(@Param("lemma") String lemma, @Param("siteId") Integer siteId);
+
 }
 
