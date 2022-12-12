@@ -144,7 +144,7 @@ public class SearchComponent {
         Grid.Column<PathTable> absRelevanceColumn = relevanceGrid.addColumn(PathTable::getAbsRelevance)
                 .setHeader("Абсолютная")
                 .setTextAlign(ColumnTextAlign.CENTER);
-        
+
         Grid.Column<PathTable> relRelevanceColumn = relevanceGrid.addColumn(PathTable::getRelRelevance)
                 .setHeader("Относительная")
                 .setTextAlign(ColumnTextAlign.CENTER);
@@ -195,44 +195,43 @@ public class SearchComponent {
                 List<Integer> pageIdList = pageRepository.getPageIdBySiteIdLemmaIn(selectedLemma, siteId);
                 if (!pageIdHashMap.containsKey(selectedLemma))
                     pageIdHashMap.put(selectedLemma, pageIdList);
-
-
             });
+
             //Пересечение всех выбранных множеств
             List<String> pageList = retainAllSelectedLemmas();
 
-            List<Integer> pageIdRetained = retainAllPageId(pageIdHashMap);
-            System.out.println("RetainAllInteger: " + pageIdRetained.size());
 
             pageGrid.setItems(pageList);
             pageGrid.getColumns().get(0).setHeader("Страниц: " + pageList.size());
 
-//            List<PathTable> pathTableList = new ArrayList<>();
-//            pageList.forEach(p->pathTableList.add(new PathTable(p,0.0f,0.0f)));
-//            relevanceGrid.setItems(pathTableList);
-
-
             StringBuilder stringBuilder = new StringBuilder();
-            selectionEvent.getAllSelectedItems().forEach(l-> stringBuilder.append(l.getLemma()).append(";"));
+            selectionEvent.getAllSelectedItems().forEach(l -> stringBuilder.append(l.getLemma()).append(";"));
             String includeLemma = stringBuilder.toString();
+
+            List<Integer> pageIdRetained = retainAllPageId(pageIdHashMap);
+            //System.out.println("RetainAllInteger: " + pageIdRetained.size());
+            stringBuilder.delete(0, stringBuilder.length());
+            pageIdRetained.forEach(pageId -> stringBuilder.append(pageId.toString()).append(","));
+            String includedPageId = stringBuilder.toString();
+            includedPageId = includedPageId.substring(0, includedPageId.length() - 1);
+
 
             if (includeLemma.isEmpty()) {
                 relevanceGrid.setItems(new ArrayList<>());
                 return;
             }
-            includeLemma = "'" + includeLemma.substring(0,includeLemma.length() - 1) + "'";
+            includeLemma = "'" + includeLemma.substring(0, includeLemma.length() - 1) + "'";
 
             List<PathTable> pathTableList = pathTableRepository
-                    .getResultTable(siteId, includeLemma);
+                    .getResultTable(siteId, includeLemma, includedPageId);
             relevanceGrid.setItems(pathTableList);
             relevanceGrid.getColumns().get(0).setHeader("Страниц: " + pathTableList.size());
-
 
 
         });
     }
 
-    private List<String> retainAllSelectedLemmas()  {
+    private List<String> retainAllSelectedLemmas() {
 
         List<Lemma> sortedLemma = lemmaGrid.getSelectedItems()
                 .stream()
@@ -252,7 +251,8 @@ public class SearchComponent {
         Collections.sort(result);
         return result;
     }
-    private List<Integer> retainAllPageId(HashMap<String, List<Integer>> hashMap)  {
+
+    private List<Integer> retainAllPageId(HashMap<String, List<Integer>> hashMap) {
 
         List<Lemma> sortedLemma = lemmaGrid.getSelectedItems()
                 .stream()
