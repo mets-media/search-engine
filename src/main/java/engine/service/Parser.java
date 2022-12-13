@@ -477,7 +477,7 @@ public class Parser extends RecursiveAction {
                 String content = page.getContent();
                 ps.setString(4, content);
                 ps.setString(5, getLemmaString(content, lemmatizator));
-                ps.setString(6,"");
+                ps.setString(6,HtmlParsing.getBoldRussianText(content));
             }
 
             @Override

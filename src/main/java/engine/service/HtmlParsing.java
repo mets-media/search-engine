@@ -269,7 +269,7 @@ public class HtmlParsing {
             if (startPos < 0)
                 break;
             endPos = exploreString.indexOf("</b>", startPos + 4);
-            String find = exploreString.substring(startPos, endPos + 4);
+            String find = exploreString.substring(startPos, endPos + 5);
             if (getRussianWords(find).length > 0)
                 stringBuilder.append(find).append("\n...\n");
             endPos++;

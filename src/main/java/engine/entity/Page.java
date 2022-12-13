@@ -3,6 +3,7 @@ package engine.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
@@ -11,8 +12,7 @@ import java.io.Serializable;
 
 @Entity
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 //@Table(indexes = @Index(name = "path_IDX", columnList = "SubString(path from 1 for 50)"))
 @Table(uniqueConstraints={@UniqueConstraint(name = "siteId_path_unique",columnNames={"siteId", "path"})})
 public class Page implements Serializable {
@@ -29,8 +29,10 @@ public class Page implements Serializable {
     @NotNull
     @Column(nullable = false)
     private Integer code;
-    @Column(columnDefinition = "Text not null")
+    @Column(columnDefinition = "Text")
     private String content;
+    @Column(columnDefinition = "Text")
+    private String snippet;
 
     public Page(int siteId, String path, Integer code, String content) {
         this.path = path;

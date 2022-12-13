@@ -15,7 +15,7 @@ public class PageContainer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(columnDefinition = "bigint", nullable = false)
+    @Column(nullable = false)
     private Integer siteId;
     @Column(nullable = false)
     private String path;
