@@ -12,10 +12,5 @@ public class PathTable {
     private Float absRelevance;
     private Float relRelevance;
     private String path;
-
-    public PathTable(String path, Float absRelevance, Float relRelevance) {
-        this.path = path;
-        this.absRelevance = absRelevance;
-        this.relRelevance = relRelevance;
-    }
+    private String snippet;
 }

@@ -55,7 +55,12 @@ public class LemmaComponent {
                 partOfSpeechRepository.save(item);
             });
             return checkbox;
-        }).setHeader("Вкл").setAutoWidth(true).setSortable(true).setTextAlign(ColumnTextAlign.CENTER);
+        }).setHeader("Вкл").setAutoWidth(true)
+                .setSortable(false
+
+                )
+                .setWidth("10%")
+                .setTextAlign(ColumnTextAlign.CENTER);
         gridPartsOfSpeech.addColumn(PartsOfSpeech::getName)
                 .setHeader("Наименование").setAutoWidth(true).setSortable(true);
         gridPartsOfSpeech.addColumn(PartsOfSpeech::getShortName)

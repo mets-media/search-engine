@@ -17,6 +17,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import engine.entity.Field;
 import engine.entity.Page;
+import engine.entity.Site;
 import engine.repository.FieldRepository;
 import engine.repository.PageRepository;
 import engine.repository.PartOfSpeechRepository;
@@ -234,75 +235,73 @@ public class IndexingComponent {
         partOfSpeechRepository = posRepository;
         entityManager = entityManager;
     }
+   private ComboBox<Site> createSiteComboBox() {
 
+       ComboBox<Site> siteComboBox = new ComboBox<>("страницы сайта:");
+       siteComboBox.setItemLabelGenerator(Site::getUrl);
+
+       siteComboBox.setItems(query -> {
+           return siteRepository.getSitesUrlFromPageTable(
+                   PageRequest.of(query.getPage(), query.getPageSize())
+           ).stream();
+       });
+
+       //==================================================================================
+       siteComboBox.addValueChangeListener(event -> {
+           cssSelectorComboBox.clear();
+           cssSelectorTextArea.clear();
+           cssSelectorTextArea.setReadOnly(true);
+
+           Site site = event.getValue();
+           Integer pageCount = pageRepository.countBySiteId(site.getId());
+           site.setPageCount(pageCount);
+           pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
+
+           grid.setItems(query -> pageRepository
+                   .findBySiteId(
+                           site.getId(),
+                           PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path")))
+                   .stream());
+       });//===============================================================================
+
+        return siteComboBox;
+   }
 
     private VerticalLayout createPageComponent() {
 
-        ComboBox<String> siteComboBox = new ComboBox<>("страницы сайта:");
-
-//        List<String> siteList = new ArrayList<>();
-//        for (Site site : siteRepository.findSitesFromPageTable()) {
-//            siteList.add(site.getUrl());
-//        }
-//        siteComboBox.setItems(siteList);
-
-        siteComboBox.setItems(query -> {
-            return siteRepository.getSitesUrlFromPageTable(
-                    PageRequest.of(query.getPage(), query.getPageSize())
-            ).stream();
-        });
-
-        siteComboBox.addValueChangeListener(event -> { //==============================================================
-            cssSelectorComboBox.clear();
-            cssSelectorTextArea.clear();
-            cssSelectorTextArea.setReadOnly(true);
-
-            siteRepository.getSiteByUrl(event.getValue()).ifPresent(site -> {
-                //------------------------------------------------------------------------------------------
-//                List pages = entityManager.createQuery("from Page Where Site_Id = :siteId order by Path")
-//                                        .setParameter("siteId", site.getId())
-//                        .setMaxResults(10)
-//                        .getResultList();
-//                pageGrid.setItems(pages);
-                //------------------------------------------------------------------------------------------
-
-                Integer pageCount = pageRepository.countBySiteId(site.getId());
-                site.setPageCount(pageCount);
-                pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
-
-                grid.setItems(query -> pageRepository
-                        .findBySiteId(
-                                site.getId(),
-                                PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path")))
-                        .stream());
-            });
-
-        });//===========================================================================================================
 
 
         var horizontalLayout = new HorizontalLayout();
         horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
 
-        horizontalLayout.add(siteComboBox, pageCountTextField);
+        horizontalLayout.add(createSiteComboBox(), pageCountTextField);
 
         if (grid == null) {
             pageCountTextField.setReadOnly(true);
 
             grid = new Grid<>(Page.class, false);
 
+            grid.addColumn(Page::getCode)
+                    .setHeader("Code")
+                    .setTextAlign(ColumnTextAlign.CENTER)
+                    .setWidth("10%");
+
             grid.addColumn(Page::getPath)
                     .setHeader("Path")
                     .setKey("path")
+                    .setAutoWidth(true)
                     .setResizable(true);
-            grid.addColumn(Page::getCode)
-                    .setHeader("Code")
-                    .setAutoWidth(true);
+
 
             grid.addSelectionListener(selectionEvent -> {
 
                 cssVerticalLayout.setEnabled(true);
                 cssSelectorComboBox.clear();
                 cssSelectorTextArea.clear();
+            });
+
+            grid.addItemDoubleClickListener(pageItemDoubleClickEvent -> {
+                StartBrowser.startBrowser(pageItemDoubleClickEvent.getItem().getPath());
             });
         }
 

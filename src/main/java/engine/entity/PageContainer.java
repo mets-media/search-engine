@@ -3,14 +3,14 @@ package engine.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class PageContainer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,4 +25,6 @@ public class PageContainer {
     private String content;
     @Column(columnDefinition = "Text")
     private String lemmatization;
+    @Column(columnDefinition = "Text")
+    private String snippet;
 }

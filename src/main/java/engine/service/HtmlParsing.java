@@ -217,7 +217,7 @@ public class HtmlParsing {
 
     public static String getTagBody(Element element) {
         String resultStr = element.toString();
-        int posForwardBracket = resultStr.substring(0,resultStr.lastIndexOf(">") - 1).lastIndexOf(">");
+        int posForwardBracket = resultStr.substring(0, resultStr.lastIndexOf(">") - 1).lastIndexOf(">");
         int posBackwardBracket = resultStr.lastIndexOf("<");
         resultStr = resultStr.substring(posForwardBracket + 1, posBackwardBracket);
         return resultStr.trim();
@@ -255,9 +255,25 @@ public class HtmlParsing {
         });
         return result;
     }
-    public static Stream<Lemma> findLemma(List<String> cssSelector) {
 
-        return null;
+    public static String getBoldRussianText(String content) {
+        String exploreString = content.substring(content.indexOf("<b>"), content.lastIndexOf("</b>"));
+        StringBuilder stringBuilder = new StringBuilder();
+
+        int charCount = exploreString.length();
+        int startPos = 0;
+        int endPos = 0;
+
+        while (endPos < charCount - 3) {
+            startPos = exploreString.indexOf("<b>", startPos);
+            endPos = exploreString.indexOf("</b>", startPos + 3);
+
+            String find = exploreString.substring(startPos + 3, endPos - 1);
+            if (getRussianWords(find).length > 0)
+                stringBuilder.append(find).append("\n...");
+            startPos++;
+        }
+        return stringBuilder.toString();
     }
 
 }

@@ -7,7 +7,6 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import engine.entity.*;
 import engine.repository.*;
-import engine.views.ConfigComponent;
 import engine.views.CreateUI;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
@@ -18,8 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -461,9 +458,9 @@ public class Parser extends RecursiveAction {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public static Integer writeTempTableToDatabase(List<Page> pages, Lemmatization lemmatizator) {
+    public static Integer writeTempTable(List<Page> pages, Lemmatization lemmatizator) {
         System.out.println("Записываю: " + pages.size());
-        String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
+        String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization,snippet) values (?,?,?,?,?,?)";
 
         int[] result = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
@@ -479,7 +476,8 @@ public class Parser extends RecursiveAction {
                 ps.setString(3, page.getPath());
                 String content = page.getContent();
                 ps.setString(4, content);
-                ps.setString(5, getLemmatizationInfo(content, lemmatizator));
+                ps.setString(5, getLemmaString(content, lemmatizator));
+                ps.setString(6,"");
             }
 
             @Override
@@ -488,49 +486,10 @@ public class Parser extends RecursiveAction {
             }
         });
 
-
-        for (int j : result) System.out.println(j);
+        //for (int j : result) System.out.println(j);
 
         return result.length;
     }
-
-//    CREATE OR REPLACE FUNCTION new_page_function()
-//    RETURNS trigger AS
-//            $$
-//    declare page_id integer;
-//    declare lemma_id integer;
-//
-//    Declare lemmainfo Varchar(50);
-//
-//    declare lemma VarChar(50);
-//    declare count Int;
-//    declare rank real;
-//    BEGIN
-//
-//    INSERT INTO page(Site_id,Path, Code, Content)
-//    VALUES(new.Site_id,new.Path, new.Code, new.Content)
-//    Returning Id into page_id;
-//
-//	for lemmainfo in select unnest(string_to_array(new.lemmatization,';'))
-//    loop
-//	    if (length(lemmainfo) > 0) then
-//            lemma = Split_Part(lemmaInfo,',',1);
-//    count = Cast(Split_Part(lemmaInfo,',',2) as Integer);
-//    rank  = Cast(Split_Part(lemmaInfo,',',3) as real);
-//        	--return next;
-//    insert into LEMMA (Lemma,Frequency, Rank) values (lemma,count,rank) returning id into lemma_id;
-//    end if;
-//    end loop;
-//    RETURN NULL;
-//    END;
-//
-//
-//    CREATE TRIGGER page_trigger
-//    AFTER INSERT
-//    ON Page_Container
-//    FOR EACH ROW
-//    EXECUTE PROCEDURE new_page_function();
-
 
     public static void stop(Site site) {
         System.out.printf("!!!!!!!!!!!! Стоп сайта: %s\n", site.getUrl());
@@ -661,8 +620,6 @@ public class Parser extends RecursiveAction {
 
                     Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
 
-
-
 //                    List<String>  excludeList = partOfSpeechRepository.findByInclude(false)
 //                            .stream()
 //                            .map(p -> p.getShortName())
@@ -674,7 +631,7 @@ public class Parser extends RecursiveAction {
                     for (Page p : pagesForSave)
                         readyPages.remove(p);
 
-                    Integer writePageCount = writeTempTableToDatabase(pagesForSave, lemmatizator);
+                    writeTempTable(pagesForSave, lemmatizator);
 
                     System.out.println(domainName + " -> время записи в базу данных: " + TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
@@ -839,12 +796,12 @@ public class Parser extends RecursiveAction {
         dialog.open();
     }
 
-    public static String getLemmatizationInfo(String content, Lemmatization lemmatizator) {
+    public static String getLemmaString(String content, Lemmatization lemmatizator) {
 
-        List<HashMap<String, Lemmatization.LemmaInfo>> list =
+        var list =
                 lemmatizator.getHashMapsLemmaForEachCssSelector(content);
 
-        HashMap<String, Lemmatization.LemmaInfo> totalInfo = lemmatizator.mergeAllHashMaps(list);
+        var totalInfo = lemmatizator.mergeAllHashMaps(list);
 
         String totalString = "";
         for (Map.Entry<String, Lemmatization.LemmaInfo> entry : totalInfo.entrySet()) {

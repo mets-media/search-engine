@@ -29,7 +29,7 @@ public class PathTableRepository {
             ") " +
 
             "select * from page_query " +
-            "order by rel desc";
+            "order by rel desc, path";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
