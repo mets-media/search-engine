@@ -14,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import engine.config.YAMLConfig;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
 import engine.repository.*;
@@ -42,20 +43,15 @@ import static engine.views.CreateUI.showMessage;
 
 @Getter
 public class SiteComponent {
-
     private final VerticalLayout mainLayout;
     private final Grid<Site> grid;
     private static ConfigRepository configRepository;
     private static SiteRepository siteRepository;
     private static PageRepository pageRepository;
     private static FieldRepository fieldRepository;
-
     private static PartOfSpeechRepository partOfSpeechRepository;
-
     private static JdbcTemplate jdbcTemplate;
-
     private static EntityManager entityManager;
-
 
     public SiteComponent() {
         mainLayout = CreateUI.getMainLayout();
@@ -91,6 +87,8 @@ public class SiteComponent {
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         mainLayout.add(grid);
+
+
 
     }
 

@@ -269,8 +269,6 @@ public class IndexingComponent {
 
     private VerticalLayout createPageComponent() {
 
-
-
         var horizontalLayout = new HorizontalLayout();
         horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
 

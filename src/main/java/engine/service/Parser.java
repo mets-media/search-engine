@@ -509,7 +509,7 @@ public class Parser extends RecursiveAction {
 
         TimeMeasure.setStartTime();
         //writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
-        writeToDatabase(pageHashMap.get(site.getId()));
+        writeTempTable(pageHashMap.get(site.getId()), );
         System.out.format("Запись в базу за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
         System.out.println("Страниц после записи: " + pageRepository.countBySiteId(site.getId()));
@@ -618,13 +618,6 @@ public class Parser extends RecursiveAction {
                                 .collect(Collectors.toList());
 
                     Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
-
-//                    List<String>  excludeList = partOfSpeechRepository.findByInclude(false)
-//                            .stream()
-//                            .map(p -> p.getShortName())
-//                            .collect(Collectors.toList());
-//                    Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
-
 
                     List<Page> pagesForSave = new ArrayList<>(readyPages);
                     for (Page p : pagesForSave)

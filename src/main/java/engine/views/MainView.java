@@ -9,7 +9,10 @@ import com.vaadin.flow.component.tabs.Tabs;
 
 import com.vaadin.flow.router.Route;
 
+import engine.config.YAMLConfig;
+import engine.entity.SiteStatus;
 import engine.repository.*;
+import engine.service.Parser;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -18,6 +21,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +36,6 @@ public class MainView extends AppLayout {
     SiteRepository siteRepository;
     @Autowired
     PageRepository pageRepository;
-
     @Autowired
     LemmaRepository lemmaRepository;
     @Autowired
@@ -45,9 +48,8 @@ public class MainView extends AppLayout {
     PartOfSpeechRepository partOfSpeechRepository;
     @Autowired
     PathTableRepository pathTableRepository;
-
     @Autowired
-    private ApplicationContext context;
+    YAMLConfig yamlConfig;
 
     @PersistenceContext
     EntityManager entityManager;
@@ -64,6 +66,37 @@ public class MainView extends AppLayout {
                 partOfSpeechRepository,
                 jdbcTemplate,
                 entityManager);
+
+        var listSites = yamlConfig.getSites();
+        listSites.forEach(site -> {
+            if (!siteRepository.getSiteByUrl(site.getUrl()).isPresent()) {
+                site.setPageCount(0);
+                site.setStatus(SiteStatus.NEW_SITE);
+                site.setStatusTime(LocalDateTime.now());
+                siteRepository.save(site);
+            }
+        });
+
+
+        if (yamlConfig.getAutoScan()) {
+            Parser.setDataAccess(configRepository,
+                    siteRepository,
+                    pageRepository,
+                    partOfSpeechRepository,
+                    fieldRepository,
+                    jdbcTemplate);
+
+            listSites.forEach(site -> {
+                Parser.getStopList().remove(site);
+                site.setStatus(SiteStatus.DOWNLOADING);
+                siteRepository.save(site);
+                Parser.start(site);
+            });
+        }
+
+        siteComponent = new SiteComponent();
+        setContent(siteComponent.getMainLayout());
+        contentsHashMap.put("Сайты", siteComponent.getMainLayout());
         siteComponent.getGrid().setItems(siteRepository.findAll());
     }
 
@@ -88,21 +121,18 @@ public class MainView extends AppLayout {
             switch (label) {
                 case "Сайты" -> {
                     if (!contentsHashMap.containsKey(label)) {
-                        SiteComponent.setDataAccess(configRepository,
-                                siteRepository,
-                                pageRepository,
-                                fieldRepository,
-                                partOfSpeechRepository,
-                                jdbcTemplate,
-                                entityManager);
-                        siteComponent = new SiteComponent();
-                        setContent(siteComponent.getMainLayout());
-                        //siteComponent.getGrid().setItems(siteRepository.findAll());
-                        contentsHashMap.put(label, siteComponent.getMainLayout());
-                    } else {
-                        //siteComponent.getGrid().setItems(siteRepository.findAll());
-
+//                        SiteComponent.setDataAccess(configRepository,
+//                                siteRepository,
+//                                pageRepository,
+//                                fieldRepository,
+//                                partOfSpeechRepository,
+//                                jdbcTemplate,
+//                                entityManager);
+//                        siteComponent = new SiteComponent();
+//                        setContent(siteComponent.getMainLayout());
+//                        contentsHashMap.put(label, siteComponent.getMainLayout());
                     }
+
                 }
                 case "Настройки" -> {
                     if (!contentsHashMap.containsKey(label)) {
@@ -147,7 +177,7 @@ public class MainView extends AppLayout {
                                 pathTableRepository);
                         SearchComponent searchComponent = new SearchComponent();
                         setContent(searchComponent.getMainLayout());
-                        contentsHashMap.put(label,searchComponent.getMainLayout());
+                        contentsHashMap.put(label, searchComponent.getMainLayout());
                     }
                 }
             }

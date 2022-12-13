@@ -1,11 +1,15 @@
 package engine.service;
 
+import engine.Application;
+import engine.config.YAMLConfig;
 import engine.entity.Lemma;
+import lombok.Setter;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,10 +25,23 @@ import java.util.stream.Stream;
 
 public class HtmlParsing {
 
+    private static String userAgent;
+    private static String referrer;
+
+    private static Integer timeout;
+
+
     private static int saveFilesCount = 0;
 
-    public static int getSaveFilesCount() {
-        return saveFilesCount;
+    public static void setUserAgent(String userAgent) {
+        HtmlParsing.userAgent = userAgent;
+    }
+
+    public static void setReferrer(String referrer) {
+        HtmlParsing.referrer = referrer;
+    }
+    public static void setTimeout(Integer timeout) {
+        HtmlParsing.timeout = timeout;
     }
 
     public static String getShortLink(String link, String domainName) {
@@ -82,8 +99,8 @@ public class HtmlParsing {
 
         try {
             Connection.Response response = Jsoup.connect(url)
-                    .userAgent("Chrome/100.0.4896.127")
-                    .timeout(10000)
+                    .userAgent(userAgent)
+                    .timeout(timeout)
                     .execute();
             return response.statusCode();
 
@@ -94,9 +111,10 @@ public class HtmlParsing {
     }
 
     public static synchronized Document getHtmlDocument(String url) throws Exception {
+
         Document document = Jsoup.connect(url)
-                .userAgent("Chrome/100.0.4896.127")
-                .referrer("http://www.google.com")
+                .userAgent(userAgent)
+                .referrer(referrer)
                 //.ignoreContentType(true)
                 .get();
         return document;
