@@ -241,7 +241,7 @@ public class IndexingComponent {
        siteComboBox.setItemLabelGenerator(Site::getUrl);
 
        siteComboBox.setItems(query -> {
-           return siteRepository.getSitesUrlFromPageTable(
+           return siteRepository.getSitesFromPageTable(
                    PageRequest.of(query.getPage(), query.getPageSize())
            ).stream();
        });

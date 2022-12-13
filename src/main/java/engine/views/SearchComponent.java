@@ -16,14 +16,12 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.NumberRenderer;
-import com.vaadin.flow.data.renderer.Renderer;
 import engine.entity.Lemma;
-import engine.entity.Page;
 import engine.entity.PathTable;
 import engine.entity.Site;
 import engine.repository.*;
+import engine.service.HtmlParsing;
 import engine.service.Lemmatization;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -118,15 +116,28 @@ public class SearchComponent {
         htmlTextArea.setWidthFull();
         htmlTextArea.setReadOnly(true);
         createLemmaInPageComboBoxListener();
-        return new VerticalLayout(horizontalLayout, requestLayout, gridsLayout, lemmaInPageComboBox, htmlTextArea);
+        return new VerticalLayout(horizontalLayout, requestLayout,
+                gridsLayout, lemmaInPageComboBox,
+                createBoldTextButton("Bold text"),htmlTextArea);
     }
 
+    private Button createBoldTextButton(String caption) {
+        Button button = new Button(caption);
+        button.addClickListener(event -> {
+            relevanceGrid.getSelectedItems().stream().findFirst().ifPresent(pt->{
+                pageRepository.findById(pt.getPageId()).ifPresent(page -> {
+                    htmlTextArea.setValue(HtmlParsing.getBoldRussianText(page.getContent()));
+                });
+            });
+        });
+        return button;
+    }
     private ComboBox<Site> createSiteComboBox() {
         siteComboBox = new ComboBox<>("Сайт:");
         siteComboBox.setItemLabelGenerator(Site::getUrl);
 
         siteComboBox.setItems(query -> {
-            return siteRepository.getSitesUrlFromPageTable(
+            return siteRepository.getSitesFromPageTable(
                     PageRequest.of(query.getPage(), query.getPageSize())
             ).stream();
         });

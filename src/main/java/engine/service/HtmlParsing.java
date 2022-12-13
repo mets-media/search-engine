@@ -271,7 +271,7 @@ public class HtmlParsing {
             String find = exploreString.substring(startPos + 3, endPos - 1);
             if (getRussianWords(find).length > 0)
                 stringBuilder.append(find).append("\n...");
-            startPos++;
+            endPos++;
         }
         return stringBuilder.toString();
     }
