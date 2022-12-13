@@ -257,24 +257,18 @@ public class HtmlParsing {
     }
 
     public static String getBoldRussianText(String content) {
-        String exploreString = content.substring(content.indexOf("<b>"), content.lastIndexOf("</b>"));
         StringBuilder stringBuilder = new StringBuilder();
 
-        int charCount = exploreString.length();
-        int startPos = 0;
-        int endPos = 0;
+        Elements boldElements = Jsoup.parseBodyFragment(content).select("b");
 
-        while (startPos >= 0) {
-            startPos = exploreString.indexOf("<b>", endPos);
-            if (startPos < 0)
-                break;
-            endPos = exploreString.indexOf("</b>", startPos + 4);
-            String find = exploreString.substring(startPos, endPos + 5);
-            if (getRussianWords(find).length > 0)
-                stringBuilder.append(find).append("\n...\n");
-            endPos++;
+        if (boldElements.size() > 0)
+            boldElements.forEach(htmlString -> {
+                String[] words = getRussianWords(htmlString.text());
+                if (!(words[0] == ""))
+                    stringBuilder.append(htmlString).append("\n...\n");
+            });
 
-        }
+
         return stringBuilder.toString();
     }
 

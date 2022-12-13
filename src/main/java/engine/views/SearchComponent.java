@@ -1,5 +1,6 @@
 package engine.views;
 
+import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -41,7 +42,6 @@ public class SearchComponent {
     private static PageRepository pageRepository;
     private static LemmaRepository lemmaRepository;
     private static PathTableRepository pathTableRepository;
-
     private static PartOfSpeechRepository partOfSpeechRepository;
     private final VerticalLayout mainLayout;
     private final HorizontalLayout requestLayout = new HorizontalLayout();
@@ -53,9 +53,8 @@ public class SearchComponent {
     private final TextField pageCountTextField = new TextField("Количество страниц");
     private final TextField lemmaCountTextField = new TextField("Количество лемм");
     private final TextField requestTextField = new TextField("Поисковый запрос");
-    private static final ComboBox<Lemma> lemmaInPageComboBox = new ComboBox<>("Леммы на странице");
 
-    private static final TextArea htmlTextArea = new TextArea("Content");
+    private static final TextArea htmlTextArea = new TextArea("Snippet: <b> tag");
 
 
     public SearchComponent() {
@@ -66,7 +65,10 @@ public class SearchComponent {
         requestTextField.setSizeFull();
         lemmaGrid.setWidth("40%");
         relevanceGrid.setWidth("60%");
-        //pageGrid.setWidth("100%");
+
+        lemmaGrid.setHeight(250, Unit.PIXELS);
+        relevanceGrid.setHeight(250, Unit.PIXELS);
+
         createColumnsRelevanceGrid();
     }
 
@@ -115,23 +117,12 @@ public class SearchComponent {
 
         htmlTextArea.setWidthFull();
         htmlTextArea.setReadOnly(true);
-        createLemmaInPageComboBoxListener();
+
         return new VerticalLayout(horizontalLayout, requestLayout,
-                gridsLayout, lemmaInPageComboBox,
-                createBoldTextButton("Bold text"),htmlTextArea);
+                gridsLayout,
+                htmlTextArea);
     }
 
-    private Button createBoldTextButton(String caption) {
-        Button button = new Button(caption);
-        button.addClickListener(event -> {
-            relevanceGrid.getSelectedItems().stream().findFirst().ifPresent(pt->{
-                pageRepository.findById(pt.getPageId()).ifPresent(page -> {
-                    htmlTextArea.setValue(HtmlParsing.getBoldRussianText(page.getContent()));
-                });
-            });
-        });
-        return button;
-    }
     private ComboBox<Site> createSiteComboBox() {
         siteComboBox = new ComboBox<>("Сайт:");
         siteComboBox.setItemLabelGenerator(Site::getUrl);
@@ -151,16 +142,6 @@ public class SearchComponent {
             lemmaCountTextField.setValue(new DecimalFormat("#,###").format(lemmaCount));
         });
         return siteComboBox;
-    }
-
-    private void createLemmaInPageComboBoxListener() {
-        lemmaInPageComboBox.addValueChangeListener(event -> {
-            relevanceGrid.getSelectedItems().stream().findFirst().ifPresent(pt -> {
-                pageRepository.findById(pt.getPageId()).ifPresent(page -> {
-                    htmlTextArea.setValue(page.getContent());
-                });
-            });
-        });
     }
 
     private void createColumnsRelevanceGrid() {
@@ -213,9 +194,9 @@ public class SearchComponent {
 
                 List<Lemma> lemmaList = lemmaRepository.findByPageId(pageId);
 
-                lemmaInPageComboBox.setLabel("Леммы на сранице: " + lemmaList.size());
-                lemmaInPageComboBox.setItems(lemmaList);
-                lemmaInPageComboBox.setItemLabelGenerator(Lemma::getLemma);
+                pageRepository.findById(t.getPageId()).ifPresent(page -> {
+                    htmlTextArea.setValue(HtmlParsing.getBoldRussianText(page.getContent()));
+                });
 
             });
 
@@ -245,6 +226,7 @@ public class SearchComponent {
         //Действие при выборе леммы
         //--------------------------
         lemmaGrid.addSelectionListener(selectionEvent -> {
+            htmlTextArea.clear();
 
             Integer siteId = siteComboBox.getValue().getId();
 
@@ -257,9 +239,8 @@ public class SearchComponent {
                     pageIdHashMap.put(selectedLemma, pageIdList);
             });
 
-
             StringBuilder stringBuilder = new StringBuilder();
-            selectionEvent.getAllSelectedItems().forEach(l -> stringBuilder.append(l.getLemma()).append(";"));
+            selectionEvent.getAllSelectedItems().forEach(l -> stringBuilder.append(l.getLemma()).append(","));
             String includeLemma = stringBuilder.toString();
 
 
@@ -273,14 +254,25 @@ public class SearchComponent {
             var pageIdRetained = retainAllPageId(pageIdHashMap);
 
             stringBuilder.delete(0, stringBuilder.length());
-            pageIdRetained.forEach(pageId -> stringBuilder.append(pageId.toString()).append(","));
-            var includePageId = stringBuilder.toString();
-            includePageId = includePageId.substring(0, includePageId.length() - 1);
 
-            List<PathTable> pathTableList = pathTableRepository
-                    .getResultTable(siteId, includeLemma, includePageId);
-            relevanceGrid.setItems(pathTableList);
-            relevanceGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
+            pageIdRetained.forEach(pageId -> stringBuilder.append(pageId.toString()).append(","));
+
+            var includePageId = stringBuilder.toString();
+
+            if (!(includePageId.isBlank())) {
+                includePageId = includePageId.substring(0, includePageId.length() - 1);
+
+                List<PathTable> pathTableList = pathTableRepository
+                        .getResultTable(siteId, includeLemma, includePageId);
+
+                //Результаты
+                relevanceGrid.setItems(pathTableList);
+                relevanceGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
+            } else {
+                relevanceGrid.setItems(new ArrayList<>());
+                relevanceGrid.getColumns().get(2).setHeader("Страницы");
+            }
+
 
         });
     }

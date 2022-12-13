@@ -12,5 +12,4 @@ public class PathTable {
     private Float absRelevance;
     private Float relRelevance;
     private String path;
-    private String snippet;
 }

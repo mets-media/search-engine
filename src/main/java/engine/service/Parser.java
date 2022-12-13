@@ -460,7 +460,7 @@ public class Parser extends RecursiveAction {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public static Integer writeTempTable(List<Page> pages, Lemmatization lemmatizator) {
         System.out.println("Записываю: " + pages.size());
-        String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization,snippet) values (?,?,?,?,?,?)";
+        String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
 
         int[] result = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
@@ -477,7 +477,6 @@ public class Parser extends RecursiveAction {
                 String content = page.getContent();
                 ps.setString(4, content);
                 ps.setString(5, getLemmaString(content, lemmatizator));
-                ps.setString(6,HtmlParsing.getBoldRussianText(content));
             }
 
             @Override

@@ -31,8 +31,6 @@ public class Page implements Serializable {
     private Integer code;
     @Column(columnDefinition = "Text")
     private String content;
-    @Column(columnDefinition = "Text")
-    private String snippet;
 
     public Page(int siteId, String path, Integer code, String content) {
         this.path = path;

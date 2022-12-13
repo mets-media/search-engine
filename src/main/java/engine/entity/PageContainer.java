@@ -25,6 +25,4 @@ public class PageContainer {
     private String content;
     @Column(columnDefinition = "Text")
     private String lemmatization;
-    @Column(columnDefinition = "Text")
-    private String snippet;
 }
