@@ -53,6 +53,7 @@ public class Parser extends RecursiveAction {
     //private static final ConcurrentHashMap<Integer, ConcurrentHashMap<String, Page>> readyLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> readyLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, List<Page>> pageHashMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, Lemmatization> lemmatizatorHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> inProcessLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> errorLinksHashMap = new ConcurrentHashMap<>();
     private static Integer batchSize = 100;
@@ -360,6 +361,17 @@ public class Parser extends RecursiveAction {
         pageHashMap.put(siteId, new ArrayList<>());
         errorLinksHashMap.put(siteId, new ConcurrentSkipListSet());
 
+        List<String> excludeList = null;
+        if (checkPartOfSpeech)
+            excludeList = partOfSpeechRepository.findByInclude(false)
+                    .stream()
+                    .map(p -> p.getShortName())
+                    .collect(Collectors.toList());
+        Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
+
+        lemmatizatorHashMap.put(siteId,lemmatizator);
+
+
         //ConcurrentHashMap<String, Page> rLinksHashMap = new ConcurrentHashMap<>();
         ConcurrentSkipListSet rLinks = new ConcurrentSkipListSet();
         if (Files.exists(Paths.get(readyLinksFilename))) {
@@ -459,6 +471,8 @@ public class Parser extends RecursiveAction {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public static Integer writeTempTable(List<Page> pages, Lemmatization lemmatizator) {
+
+
         System.out.println("Записываю: " + pages.size());
         String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
 
@@ -507,9 +521,16 @@ public class Parser extends RecursiveAction {
                     false,
                     SaveFileMode.REWRITE);
 
+        var readyPages = pageHashMap.get(site.getId());
+        List<Page> pagesForSave = new ArrayList<>(readyPages);
+        for (Page p : pagesForSave)
+            readyPages.remove(p);
+
+        writeTempTable(pagesForSave, lemmatizatorHashMap.get(site.getId()));
+
         TimeMeasure.setStartTime();
         //writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
-        writeTempTable(pageHashMap.get(site.getId()), );
+        writeTempTable(pageHashMap.get(site.getId()), lemmatizatorHashMap.get(site.getId()));
         System.out.format("Запись в базу за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
         System.out.println("Страниц после записи: " + pageRepository.countBySiteId(site.getId()));
@@ -606,24 +627,23 @@ public class Parser extends RecursiveAction {
                 if (readyLinks.size() % batchSize == 0) {
                     System.out.println("Запись в базу данных");
                     TimeMeasure.setStartTime();
-                    //writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
 
-                    //writeToDatabase(readyPages);
+//                    List<String> excludeList = null;
+//                    if (checkPartOfSpeech)
+//                        excludeList = partOfSpeechRepository.findByInclude(false)
+//                                .stream()
+//                                .map(p -> p.getShortName())
+//                                .collect(Collectors.toList());
+//
+//                    Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
 
-                    List<String> excludeList = null;
-                    if (checkPartOfSpeech)
-                        excludeList = partOfSpeechRepository.findByInclude(false)
-                                .stream()
-                                .map(p -> p.getShortName())
-                                .collect(Collectors.toList());
-
-                    Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
 
                     List<Page> pagesForSave = new ArrayList<>(readyPages);
                     for (Page p : pagesForSave)
                         readyPages.remove(p);
 
-                    writeTempTable(pagesForSave, lemmatizator);
+//                    writeTempTable(pagesForSave, lemmatizator);
+                    writeTempTable(pagesForSave, lemmatizatorHashMap.get(siteId));
 
                     System.out.println(domainName + " -> время записи в базу данных: " + TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
