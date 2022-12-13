@@ -264,14 +264,16 @@ public class HtmlParsing {
         int startPos = 0;
         int endPos = 0;
 
-        while (endPos < charCount - 3) {
-            startPos = exploreString.indexOf("<b>", startPos);
-            endPos = exploreString.indexOf("</b>", startPos + 3);
-
-            String find = exploreString.substring(startPos + 3, endPos - 1);
+        while (startPos >= 0) {
+            startPos = exploreString.indexOf("<b>", endPos);
+            if (startPos < 0)
+                break;
+            endPos = exploreString.indexOf("</b>", startPos + 4);
+            String find = exploreString.substring(startPos, endPos + 4);
             if (getRussianWords(find).length > 0)
-                stringBuilder.append(find).append("\n...");
+                stringBuilder.append(find).append("\n...\n");
             endPos++;
+
         }
         return stringBuilder.toString();
     }
