@@ -24,6 +24,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 10
   datasource:
     hikari:
       data-source-properties:
@@ -39,7 +41,7 @@ sites:
     name: Лента.ру
   - url: https://www.skillbox.ru
     name: Skillbox
-autoScan: true
+autoScan: false
 userAgent: "Chrome/100.0.4896.127"
 referrer: "http://www.google.com"
 timeout: 1000

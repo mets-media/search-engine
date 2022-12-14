@@ -24,10 +24,10 @@ public class Page implements Serializable {
     //@Column(columnDefinition = "bigint not null default 0")
     @NotNull
     private Integer siteId;
-    @Column(columnDefinition = "Text not Null")
+    @NotNull
+    @Column(columnDefinition = "Text")
     private String path;
     @NotNull
-    @Column(nullable = false)
     private Integer code;
     @Column(columnDefinition = "Text")
     private String content;

@@ -11,6 +11,7 @@ import engine.views.CreateUI;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -38,7 +40,6 @@ public class Parser extends RecursiveAction {
     private String path;
     private String content;
     private String domainName;
-
     private static JdbcTemplate jdbcTemplate;
     private static PageRepository pageRepository;
     private static SiteRepository siteRepository;
@@ -57,6 +58,7 @@ public class Parser extends RecursiveAction {
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> inProcessLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> errorLinksHashMap = new ConcurrentHashMap<>();
     private static Integer batchSize = 100;
+
     private static Boolean checkPartOfSpeech = true;
     private static final boolean saveLinksInShortFormat = false;
     public static Long maxMemory;
@@ -82,8 +84,6 @@ public class Parser extends RecursiveAction {
         Parser.partOfSpeechRepository = partOfSpeechRepository;
         Parser.fieldRepository = fieldRepository;
         Parser.jdbcTemplate = jdbcTemplate;
-
-
     }
 
     public Parser(Site site, String path, String domainName) {
@@ -354,12 +354,12 @@ public class Parser extends RecursiveAction {
         activePools.put(siteId, new ForkJoinPool(parallelism,
                 ForkJoinPool.defaultForkJoinWorkerThreadFactory,
                 null, true));
-        inProcessLinksHashMap.put(siteId, new ConcurrentSkipListSet());
+        inProcessLinksHashMap.put(siteId, new ConcurrentSkipListSet<>());
         //readyLinksHashMap.put(siteId, new ConcurrentHashMap<>());
-        readyLinksHashMap.put(siteId, new ConcurrentSkipListSet());
+        readyLinksHashMap.put(siteId, new ConcurrentSkipListSet<>());
         //pageHashMap.put(siteId, new ArrayList<>());
         pageHashMap.put(siteId, new ArrayList<>());
-        errorLinksHashMap.put(siteId, new ConcurrentSkipListSet());
+        errorLinksHashMap.put(siteId, new ConcurrentSkipListSet<>());
 
         List<String> excludeList = null;
         if (checkPartOfSpeech)
@@ -369,7 +369,7 @@ public class Parser extends RecursiveAction {
                     .collect(Collectors.toList());
         Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
 
-        lemmatizatorHashMap.put(siteId,lemmatizator);
+        lemmatizatorHashMap.put(siteId, lemmatizator);
 
 
         //ConcurrentHashMap<String, Page> rLinksHashMap = new ConcurrentHashMap<>();
@@ -439,39 +439,34 @@ public class Parser extends RecursiveAction {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public static void writeToDatabase(List<Page> pages) {
-        System.out.println("Записываю: " + pages.size());
-        String sql = "Insert into Page (Site_Id, Code, Path, Content) values (?,?,?,?)";
+    public static void writeToKeepLink(Integer siteId, List<String> links) {
+        System.out.println("Записываю: " + links.size());
+        String sql = "Insert into Keep_Link (Site_Id, Path) values (?,?)";
 
         int[] result = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                Page page = pages.get(i);
-                if (page == null)
-                    System.out.println("page is null, pages.size = :" + pages.size());
-
-                Integer siteId = page.getSiteId();
+                String link = links.get(i);
                 ps.setInt(1, siteId);
-                Integer code = page.getCode();
-                ps.setInt(2, code);
-                ps.setString(3, page.getPath());
-                ps.setString(4, page.getContent());
-
+                ps.setString(2, link);
             }
 
             @Override
             public int getBatchSize() {
-                return pages.size();
+                return links.size();
             }
         });
 
-        pages.clear();
+        //links.clear();
         //for (int i = 0; i < result.length; i++) System.out.println(result[i]);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public static Integer writeTempTable(List<Page> pages, Lemmatization lemmatizator) {
+    public static Integer writeTempTable(Integer siteId) {
 
+        var readyPages = pageHashMap.get(siteId);
+        List<Page> pages = new ArrayList<>(readyPages);
+        readyPages.removeAll(pages);
 
         System.out.println("Записываю: " + pages.size());
         String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
@@ -490,7 +485,7 @@ public class Parser extends RecursiveAction {
                 ps.setString(3, page.getPath());
                 String content = page.getContent();
                 ps.setString(4, content);
-                ps.setString(5, getLemmaString(content, lemmatizator));
+                ps.setString(5, getLemmaString(content, lemmatizatorHashMap.get(siteId)));
             }
 
             @Override
@@ -499,41 +494,46 @@ public class Parser extends RecursiveAction {
             }
         });
 
-        //for (int j : result) System.out.println(j);
+        for (int j : result)
+            System.out.printf(j+" ");
 
         return result.length;
     }
 
     public static void stop(Site site) {
+
+        Integer siteId = site.getId();
+
         System.out.printf("!!!!!!!!!!!! Стоп сайта: %s\n", site.getUrl());
         String domainName = HtmlParsing.getDomainName(site.getUrl());
 
-        if (!activePools.containsKey(site.getId())) return;
+        if (!activePools.containsKey(siteId)) return;
         deleteFile("data/" + domainName + "/" + STOP_LINKS_FILENAME);
 
-        stopList.add(site.getId());
-        ConcurrentSkipListSet readyLinks = readyLinksHashMap.get(site.getId());
+        stopList.add(siteId);
+        //var readyLinks = readyLinksHashMap.get(siteId);
 
-        if (!(readyLinks == null))
-            saveLinksToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
-                    domainName,
-                    readyLinks,
-                    false,
-                    SaveFileMode.REWRITE);
+//        if (!(readyLinks == null)) {
+//            saveLinksToFile("data/" + domainName + "/" + READY_LINKS_FILENAME,
+//                    domainName,
+//                    readyLinks,
+//                    false,
+//                    SaveFileMode.REWRITE);
+//        }
 
-        var readyPages = pageHashMap.get(site.getId());
-        List<Page> pagesForSave = new ArrayList<>(readyPages);
-        for (Page p : pagesForSave)
-            readyPages.remove(p);
 
-        writeTempTable(pagesForSave, lemmatizatorHashMap.get(site.getId()));
+        //TimeMeasure.setStartTime();
 
-        TimeMeasure.setStartTime();
-        //writeToDatabase(getLinksSetEmptyPage(readyLinks, domainName, saveLinksInShortFormat));
-        writeTempTable(pageHashMap.get(site.getId()), lemmatizatorHashMap.get(site.getId()));
-        System.out.format("Запись в базу за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
+        //writeTempTable(siteId);
 
-        System.out.println("Страниц после записи: " + pageRepository.countBySiteId(site.getId()));
+        //System.out.format("Запись в базу за %s\n", TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
+
+        //System.out.println("Страниц после записи: " + pageRepository.countBySiteId(site.getId()));
+
+        //writeToKeepLink(siteId, inProcessLinksHashMap.get(siteId).stream().toList());
+        //System.out.println("error link write");
+        //writeToKeepLink(siteId, errorLinksHashMap.get(siteId).stream().toList());
+
     }
 
     private static List<Page> getLinksSetEmptyPage(ConcurrentHashMap<String, Page> pageHashMap,
@@ -571,11 +571,6 @@ public class Parser extends RecursiveAction {
 
         if (stopList.contains(siteId)) {
             pool.shutdown();
-            saveStopLinksToFile("data/" + domainName + "/" + STOP_LINKS_FILENAME,
-                    domainName,
-                    inProcessLinks,
-                    false,
-                    SaveFileMode.DO_NOT_REWRITE);
             return;
         }
         Document document = null;
@@ -613,13 +608,12 @@ public class Parser extends RecursiveAction {
                     System.out.println("Exception: Не удалено: " + path);
             }
             if (code == 200) {
-                //readyLinks.put(path, new Page(site.getId(), path, code, content));
+
                 readyLinks.add(path);
                 Page page = new Page(site.getId(), path, code, content);
                 readyPages.add(page);
 
-
-                System.out.printf("%s -> readyLinks: %d, inProcessLinks: %d\n", domainName, readyLinks.size(), inProcessLinks.size());
+                //System.out.printf("%s -> readyLinks: %d, inProcessLinks: %d\n", domainName, readyLinks.size(), inProcessLinks.size());
 
                 totalCountLinks.addAndGet(1L);
 
@@ -628,22 +622,7 @@ public class Parser extends RecursiveAction {
                     System.out.println("Запись в базу данных");
                     TimeMeasure.setStartTime();
 
-//                    List<String> excludeList = null;
-//                    if (checkPartOfSpeech)
-//                        excludeList = partOfSpeechRepository.findByInclude(false)
-//                                .stream()
-//                                .map(p -> p.getShortName())
-//                                .collect(Collectors.toList());
-//
-//                    Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
-
-
-                    List<Page> pagesForSave = new ArrayList<>(readyPages);
-                    for (Page p : pagesForSave)
-                        readyPages.remove(p);
-
-//                    writeTempTable(pagesForSave, lemmatizator);
-                    writeTempTable(pagesForSave, lemmatizatorHashMap.get(siteId));
+                    writeTempTable(siteId);
 
                     System.out.println(domainName + " -> время записи в базу данных: " + TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
@@ -660,6 +639,26 @@ public class Parser extends RecursiveAction {
         }
         inProcessLinks.remove(path);
 
+        //Условие остановки!
+        if (pool.isShutdown())  //Pool остановлен
+            if (pool.getActiveThreadCount() == 1) { //я - последний поток!
+                //Записать все readyPage
+                System.out.println("Запись readyPage");
+                writeTempTable(siteId);
+
+                //Записать inProcessLinks включая текущую - она последняя
+                System.out.println("Запись inProcessLink + 1");
+                inProcessLinks.add(path);
+                writeToKeepLink(siteId, inProcessLinks.stream().toList());
+
+                System.out.println("Запись errorLinks");
+                writeToKeepLink(siteId,errorLinksHashMap.get(siteId).stream().toList());
+
+                System.out.println("readyPage.size: " + readyPages.size());
+                System.out.println("inProccesLinks: " + inProcessLinks.size());
+                System.out.println("Удаление activePools.remove(siteId)");
+                activePools.remove(siteId);
+            }
 
         Set<String> hReference = HtmlParsing.getAllLinks(document, domainName);
         if (hReference != null)
