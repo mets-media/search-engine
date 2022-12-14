@@ -651,6 +651,7 @@ public class Parser extends RecursiveAction {
                 inProcessLinks.add(path);
                 writeToKeepLink(siteId, inProcessLinks.stream().toList());
 
+
                 System.out.println("Запись errorLinks");
                 writeToKeepLink(siteId,errorLinksHashMap.get(siteId).stream().toList());
 
