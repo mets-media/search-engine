@@ -15,17 +15,13 @@ import engine.repository.*;
 import engine.service.Parser;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Route
 @Getter
@@ -49,23 +45,26 @@ public class MainView extends AppLayout {
     @Autowired
     PathTableRepository pathTableRepository;
     @Autowired
+    PageContainerRepository pageContainerRepository;
+    @Autowired
+    StatusRepository statusRepository;
+    @Autowired
     YAMLConfig yamlConfig;
-
     @PersistenceContext
     EntityManager entityManager;
-
-    private SiteComponent siteComponent;
-    private HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
+    private final HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
 
     @PostConstruct
     private void getSites() {
         SiteComponent.setDataAccess(configRepository,
                 siteRepository,
-                pageRepository,
                 fieldRepository,
                 partOfSpeechRepository,
+                pageContainerRepository,
+                statusRepository,
                 jdbcTemplate,
-                entityManager);
+                entityManager,
+                pageRepository);
 
         var listSites = yamlConfig.getSites();
         listSites.forEach(site -> {
@@ -77,13 +76,21 @@ public class MainView extends AppLayout {
             }
         });
 
+        var siteComponent = new SiteComponent();
+        setContent(siteComponent.getMainLayout());
+        contentsHashMap.put("Сайты", siteComponent.getMainLayout());
+        siteComponent.getGrid().setItems(siteRepository.findAll());
 
         if (yamlConfig.getAutoScan()) {
-            Parser.setDataAccess(configRepository,
+            Parser.setDataAccess(
+                    siteComponent.getGrid(),
+                    configRepository,
                     siteRepository,
                     pageRepository,
                     partOfSpeechRepository,
                     fieldRepository,
+                    pageContainerRepository,
+                    statusRepository,
                     jdbcTemplate);
 
             listSites.forEach(site -> {
@@ -93,11 +100,6 @@ public class MainView extends AppLayout {
                 Parser.start(site);
             });
         }
-
-        siteComponent = new SiteComponent();
-        setContent(siteComponent.getMainLayout());
-        contentsHashMap.put("Сайты", siteComponent.getMainLayout());
-        siteComponent.getGrid().setItems(siteRepository.findAll());
     }
 
     public MainView() {
@@ -189,5 +191,6 @@ public class MainView extends AppLayout {
         addToDrawer(tabs);
         addToNavbar(toggle, title);
     }
+
 }
 

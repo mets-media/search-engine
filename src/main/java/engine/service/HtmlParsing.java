@@ -227,7 +227,7 @@ public class HtmlParsing {
 
     public static String[] getRussianWords(String text) {
         String[] words = text.toLowerCase()
-                .replaceAll("[^\\p{IsCyrillic}]", " ")
+                .replaceAll("[^ЁёА-я]", " ")
                 .trim()
                 .split("[\\s+]+");
         return words;

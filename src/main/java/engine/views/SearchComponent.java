@@ -309,7 +309,6 @@ public class SearchComponent {
 
         String lemma = sortedLemma.get(0).getLemma();
 
-
         List<Integer> result = new ArrayList<>(hashMap.get(lemma));
         for (int i = 1; i < sortedLemma.size(); i++) {
             lemma = sortedLemma.get(i).getLemma();

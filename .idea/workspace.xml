@@ -5,14 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Application.yaml">
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/entity/KeepLink.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/repository/KeepLinkRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/service/Scanner.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Status.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/engine/repository/StatusRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/Application.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/SiteStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/SiteStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/FieldRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/FieldRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageContainerRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageContainerRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/ConfigComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/views/ConfigComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/views/SearchComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -120,20 +129,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00002" summary="Итоговый проек.SearchEngine. Первый этап.">
-      <created>1660537980701</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1660537980701</updated>
-    </task>
-    <task id="LOCAL-00003" summary="Итоговый проект. SearchEngine. Первый этап.">
-      <created>1660677349105</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1660677349105</updated>
     </task>
     <task id="LOCAL-00004" summary="SearchEngine. Editing Grid.">
       <created>1660814859204</created>
@@ -464,7 +459,21 @@
       <option name="project" value="LOCAL" />
       <updated>1670943713967</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="Application.yaml">
+      <created>1671006557544</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1671006557545</updated>
+    </task>
+    <task id="LOCAL-00052" summary="Application.yaml">
+      <created>1671006653259</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1671006653260</updated>
+    </task>
+    <option name="localTasksCounter" value="53" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -514,9 +523,14 @@
           <option name="timeStamp" value="71" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>496</line>
-          <option name="timeStamp" value="82" />
+          <url>file://$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java</url>
+          <line>234</line>
+          <option name="timeStamp" value="90" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java</url>
+          <line>237</line>
+          <option name="timeStamp" value="91" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

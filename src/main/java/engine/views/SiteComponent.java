@@ -5,24 +5,21 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import engine.config.YAMLConfig;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
 import engine.repository.*;
 import engine.service.HtmlParsing;
 import engine.service.Parser;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -42,18 +39,42 @@ import static com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.ST
 import static engine.views.CreateUI.showMessage;
 
 @Getter
+@Setter
 public class SiteComponent {
-    private final VerticalLayout mainLayout;
-    private final Grid<Site> grid;
     private static ConfigRepository configRepository;
     private static SiteRepository siteRepository;
-    private static PageRepository pageRepository;
     private static FieldRepository fieldRepository;
     private static PartOfSpeechRepository partOfSpeechRepository;
+    private static PageContainerRepository pageContainerRepository;
+    private static StatusRepository statusRepository;
     private static JdbcTemplate jdbcTemplate;
     private static EntityManager entityManager;
+    private static PageRepository pageRepository;
+    private final VerticalLayout mainLayout;
+    private final Grid<Site> grid;
+
+    public static void setDataAccess(ConfigRepository configRepository,
+                                     SiteRepository siteRepository,
+                                     FieldRepository fieldRepository,
+                                     PartOfSpeechRepository partOfSpeechRepository,
+                                     PageContainerRepository pageContainerRepository,
+                                     StatusRepository statusRepository,
+                                     JdbcTemplate jdbcTemplate,
+                                     EntityManager entityManager,
+                                     PageRepository pageRepository) {
+        SiteComponent.configRepository = configRepository;
+        SiteComponent.siteRepository = siteRepository;
+        SiteComponent.fieldRepository = fieldRepository;
+        SiteComponent.partOfSpeechRepository = partOfSpeechRepository;
+        SiteComponent.pageContainerRepository = pageContainerRepository;
+        SiteComponent.statusRepository = statusRepository;
+        SiteComponent.jdbcTemplate = jdbcTemplate;
+        SiteComponent.entityManager = entityManager;
+        SiteComponent.pageRepository = pageRepository;
+    }
 
     public SiteComponent() {
+
         mainLayout = CreateUI.getMainLayout();
         mainLayout.add(CreateUI.getTopLayout("Сканирование сайтов", "xl", createButtons()));
         mainLayout.setMinHeight("100%");
@@ -87,7 +108,6 @@ public class SiteComponent {
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         mainLayout.add(grid);
-
 
 
     }
@@ -130,11 +150,15 @@ public class SiteComponent {
         parseButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         parseButton.addClickListener(buttonClickEvent -> {
-            Parser.setDataAccess(configRepository,
+            Parser.setDataAccess(
+                    grid,
+                    configRepository,
                     siteRepository,
                     pageRepository,
                     partOfSpeechRepository,
                     fieldRepository,
+                    pageContainerRepository,
+                    statusRepository,
                     jdbcTemplate);
 
             Set<Site> selectedSites = grid.getSelectedItems();
@@ -209,7 +233,7 @@ public class SiteComponent {
         confirm.addClickListener(clickEvent -> {
 
             sites.forEach(delSite -> {
-                new Thread(() -> pageRepository.deleteBySiteId(delSite.getId())).start();
+                //new Thread(() -> pageRepository.deleteBySiteId(delSite.getId())).start();
 
                 siteRepository.delete(delSite);
 
@@ -325,21 +349,6 @@ public class SiteComponent {
         });
     }
 
-    public static void setDataAccess(ConfigRepository configRepository,
-                                     SiteRepository siteRepository,
-                                     PageRepository pageRepository,
-                                     FieldRepository fieldRepository,
-                                     PartOfSpeechRepository partOfSpeechRepository,
-                                     JdbcTemplate jdbcTemplate,
-                                     EntityManager entityManager) {
-        SiteComponent.configRepository = configRepository;
-        SiteComponent.siteRepository = siteRepository;
-        SiteComponent.pageRepository = pageRepository;
-        SiteComponent.fieldRepository = fieldRepository;
-        SiteComponent.partOfSpeechRepository = partOfSpeechRepository;
-        SiteComponent.jdbcTemplate = jdbcTemplate;
-        SiteComponent.entityManager = entityManager;
-    }
 
     private static class SiteDetailFormLayout extends FormLayout {
         private final TextField pageCountTextField = new TextField("Страниц в базе данных");

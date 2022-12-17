@@ -12,9 +12,9 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
     @Modifying
     @Query(value = "Insert into Config (Id,Key,Name,Value) values " +
             "(-4,'isPoS','Учитывать части речи при индексации','true'), " +
-            "(-3,'batch','Размер блока для записи','100'), " +
+            "(-3,'batch','Размер блока для записи','50'), " +
             "(-2,'sLiSF','Короткая запись ссылок (boolean)','false'), " +
-            "(-1,'tps','Потоков на один сайт (Thread)','4')", nativeQuery = true)
+            "(-1,'tps','Потоков на один сайт (Thread)','8')", nativeQuery = true)
     void initData();
 
     Config findByKey(String key);

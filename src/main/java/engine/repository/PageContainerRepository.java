@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 public interface PageContainerRepository extends JpaRepository<PageContainer, Integer>{
     @Modifying
     @Transactional
-    @Query(value = "CREATE OR REPLACE FUNCTION public.parse_page_container(\n" +
+    @Query(value = "CREATE OR REPLACE FUNCTION parse_page_container(\n" +
             "\t)\n" +
             "    RETURNS void\n" +
             "    LANGUAGE 'plpgsql'\n" +
@@ -26,11 +26,13 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "declare new_rank real;\n" +
             "declare lemma_id integer;\n" +
             "declare page_id integer;\n" +
+            "declare page_count integer;" +
             "\n" +
             "begin\n" +
             "\n" +
             "for container in (Select * from page_container) \n" +
             "loop\n" +
+            "    page_count = page_count + 1;\n" +
             "    with page_insert as (\n" +
             "    insert into PAGE (Site_id, Path, Code, Content)\n" +
             "\tvalues (container.site_id, container.path, container.code, container.content)\n" +
@@ -59,7 +61,6 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\tend loop;\n" +
             "\tdelete from page_container where id = container.id;\n" +
             "end loop;\n" +
-            "\n" +
             "end; \n" +
             "$BODY$;",
             nativeQuery = true)
@@ -121,6 +122,12 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "    EXECUTE FUNCTION new_page_function();",
             nativeQuery = true)
     void createTrigger();
+
+
+    @Modifying
+    @Transactional
+    @Query(value="Select parse_page_container()",nativeQuery = true)
+    Integer parsePageContainer();
 
 
 }

@@ -21,7 +21,6 @@ public class Page implements Serializable {
     //@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqGenPage")
     //@SequenceGenerator(name = "seqGenPage", sequenceName = "seqPage", initialValue = 1)
     private Integer id;
-    //@Column(columnDefinition = "bigint not null default 0")
     @NotNull
     private Integer siteId;
     @NotNull
@@ -32,7 +31,7 @@ public class Page implements Serializable {
     @Column(columnDefinition = "Text")
     private String content;
 
-    public Page(int siteId, String path, Integer code, String content) {
+    public Page(Integer siteId, String path, Integer code, String content) {
         this.path = path;
         this.siteId = siteId;
         this.code = code;

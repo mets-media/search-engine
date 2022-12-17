@@ -8,6 +8,7 @@ import engine.repository.PageContainerRepository;
 import engine.repository.PartOfSpeechRepository;
 import engine.repository.SiteRepository;
 import engine.service.HtmlParsing;
+import org.apache.catalina.core.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -30,7 +31,9 @@ public class Application extends SpringBootServletInitializer {
     public CommandLineRunner dataGenerator(ConfigRepository configRepository,
                                            PartOfSpeechRepository partOfSpeechRepository,
                                            FieldRepository fieldRepository,
-                                           PageContainerRepository pageContainerRepository) {
+                                           PageContainerRepository pageContainerRepository,
+                                           SiteRepository siteRepository) {
+                                           //ApplicationContext context) {
         return args -> {
 
             //dataSource();
@@ -50,6 +53,8 @@ public class Application extends SpringBootServletInitializer {
                partOfSpeechRepository.initData();
 
              pageContainerRepository.createFunction();
+
+             //siteRepository.createTrigger();
 
              try {
                  pageContainerRepository.createTrigger();

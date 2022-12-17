@@ -15,7 +15,7 @@ public interface FieldRepository extends JpaRepository<Field,Integer> {
     @Query(value = "Insert into Field (Id, Name, Selector, Weight, active) values " +
             "(-1, 'title','title',1.0, true), " +
             "(-2, 'body','body',0.8, true), " +
-            "(-3, 'Заголовки h1, h2','h1, h2',1, false)",
+            "(-3, 'Заголовки h1, h2','h1, h2',0.9, false)",
             nativeQuery = true)
     void initData();
 
