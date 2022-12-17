@@ -370,7 +370,7 @@ public class Parser extends RecursiveAction {
         //for (int i = 0; i < result.length; i++) System.out.println(result[i]);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    //@Transactional(propagation = Propagation.REQUIRES_NEW)
     public static Integer writeTempTable(Integer siteId) {
 
         var readyPages = pageHashMap.get(siteId);
@@ -411,17 +411,16 @@ public class Parser extends RecursiveAction {
             }
         });
 
-        for (int j : result)
-            System.out.printf(j + " ");
+        //for (int j : result)
+        //    System.out.printf(j + " ");
 
         readyPages.removeAll(pages);
 
         return result.length;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public static Integer parsePageContainer() {
-        return pageContainerRepository.parsePageContainer();
+    //@Transactional(propagation = Propagation.REQUIRES_NEW)
+    public static void parsePageContainer() {pageContainerRepository.parsePageContainer();
     }
 
 

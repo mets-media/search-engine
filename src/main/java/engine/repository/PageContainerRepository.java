@@ -127,7 +127,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
     @Modifying
     @Transactional
     @Query(value="Select parse_page_container()",nativeQuery = true)
-    Integer parsePageContainer();
+    void parsePageContainer();
 
 
 }
