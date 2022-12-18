@@ -425,8 +425,8 @@ public class Parser extends RecursiveAction {
                 String content = page.getContent();
                 ps.setString(4, content);
 
-                //String lemmaString = getLemmaString(content, lemmatizatorHashMap.get(siteId));
-                String lemmaString = lemmaStrings.get(i);
+                String lemmaString = getLemmaString(content, lemmatizatorHashMap.get(siteId));
+                //String lemmaString = lemmaStrings.get(i);
 
                 if (lemmaString.isEmpty())
                     System.out.println("lemmaString is empty " + page.getPath());
