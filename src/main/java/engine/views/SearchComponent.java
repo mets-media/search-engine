@@ -22,6 +22,7 @@ import engine.entity.Lemma;
 import engine.entity.PathTable;
 import engine.entity.Site;
 import engine.repository.*;
+import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Lemmatization;
 import org.springframework.data.domain.PageRequest;
@@ -34,15 +35,18 @@ import java.util.stream.Collectors;
 
 public class SearchComponent {
 
-
+    private static BeanAccess beanAccess;
     private ComboBox<Site> siteComboBox = null;
     private static final HashMap<String, List<String>> pagesHashMap = new HashMap<>();
     private static final HashMap<String, List<Integer>> pageIdHashMap = new HashMap<>();
-    private static SiteRepository siteRepository;
-    private static PageRepository pageRepository;
-    private static LemmaRepository lemmaRepository;
-    private static PathTableRepository pathTableRepository;
-    private static PartOfSpeechRepository partOfSpeechRepository;
+
+//    private static SiteRepository siteRepository;
+//    private static PageRepository pageRepository;
+//    private static LemmaRepository lemmaRepository;
+//    private static PathTableRepository pathTableRepository;
+//    private static PartOfSpeechRepository partOfSpeechRepository;
+
+
     private final VerticalLayout mainLayout;
     private final HorizontalLayout requestLayout = new HorizontalLayout();
     private final HorizontalLayout gridsLayout = new HorizontalLayout();
@@ -76,17 +80,21 @@ public class SearchComponent {
         return mainLayout;
     }
 
-    public static void setDataAccess(PageRepository pRepository,
-                                     SiteRepository sRepository,
-                                     LemmaRepository lRepository,
-                                     PartOfSpeechRepository posRepository,
-                                     PathTableRepository ptRepository) {
-        pageRepository = pRepository;
-        siteRepository = sRepository;
-        lemmaRepository = lRepository;
-        partOfSpeechRepository = posRepository;
-        pathTableRepository = ptRepository;
+    public static void setDataAccess(BeanAccess beanAccess) {
+        SearchComponent.beanAccess = beanAccess;
     }
+
+//            PageRepository pRepository,
+//                                     SiteRepository sRepository,
+//                                     LemmaRepository lRepository,
+//                                     PartOfSpeechRepository posRepository,
+//                                     PathTableRepository ptRepository) {
+//        pageRepository = pRepository;
+//        siteRepository = sRepository;
+//        lemmaRepository = lRepository;
+//        partOfSpeechRepository = posRepository;
+//        pathTableRepository = ptRepository;
+//    }
 
     private VerticalLayout createSearchComponent() {
 
@@ -128,7 +136,7 @@ public class SearchComponent {
         siteComboBox.setItemLabelGenerator(Site::getUrl);
 
         siteComboBox.setItems(query -> {
-            return siteRepository.getSitesFromPageTable(
+            return beanAccess.getSiteRepository().getSitesFromPageTable(
                     PageRequest.of(query.getPage(), query.getPageSize())
             ).stream();
         });
@@ -136,8 +144,8 @@ public class SearchComponent {
         siteComboBox.addValueChangeListener(event -> {
             requestLayout.setEnabled(true);
             int siteId = event.getValue().getId();
-            Integer pageCount = pageRepository.countBySiteId(siteId);
-            Integer lemmaCount = lemmaRepository.countBySiteId(siteId);
+            Integer pageCount = beanAccess.getPageRepository().countBySiteId(siteId);
+            Integer lemmaCount = beanAccess.getLemmaRepository().countBySiteId(siteId);
             pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
             lemmaCountTextField.setValue(new DecimalFormat("#,###").format(lemmaCount));
         });
@@ -192,9 +200,9 @@ public class SearchComponent {
             selectionEvent.getFirstSelectedItem().ifPresent(t -> {
                 Integer pageId = t.getPageId();
 
-                List<Lemma> lemmaList = lemmaRepository.findByPageId(pageId);
+                List<Lemma> lemmaList = beanAccess.getLemmaRepository().findByPageId(pageId);
 
-                pageRepository.findById(t.getPageId()).ifPresent(page -> {
+                beanAccess.getPageRepository().findById(t.getPageId()).ifPresent(page -> {
                     htmlTextArea.setValue(HtmlParsing.getBoldRussianText(page.getContent()));
                 });
 
@@ -234,7 +242,7 @@ public class SearchComponent {
             selectionEvent.getAllSelectedItems().forEach(lemma -> {
                 String selectedLemma = lemma.getLemma();
 
-                List<Integer> pageIdList = pageRepository.getPageIdBySiteIdLemmaIn(selectedLemma, siteId);
+                List<Integer> pageIdList = beanAccess.getPageRepository().getPageIdBySiteIdLemmaIn(selectedLemma, siteId);
                 if (!pageIdHashMap.containsKey(selectedLemma))
                     pageIdHashMap.put(selectedLemma, pageIdList);
             });
@@ -262,7 +270,7 @@ public class SearchComponent {
             if (!(includePageId.isBlank())) {
                 includePageId = includePageId.substring(0, includePageId.length() - 1);
 
-                List<PathTable> pathTableList = pathTableRepository
+                List<PathTable> pathTableList = beanAccess.getPathTableRepository()
                         .getResultTable(siteId, includeLemma, includePageId);
 
                 //Результаты
@@ -324,7 +332,7 @@ public class SearchComponent {
 
         searchButton.addClickListener(buttonClickEvent -> {
 
-            List<String> excludeList = partOfSpeechRepository.findByInclude(false)
+            List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
                     .stream()
                     .map(p -> p.getShortName())
                     .collect(Collectors.toList());
@@ -336,7 +344,7 @@ public class SearchComponent {
             Integer siteId = siteComboBox.getValue().getId();
             List<String> lemmaList = requestLemmas.keySet().stream().toList();
 
-            lemmaGrid.setItems(query -> lemmaRepository
+            lemmaGrid.setItems(query -> beanAccess.getLemmaRepository()
                     .findBySiteIdAndLemmaIn(
                             siteId,
                             lemmaList,

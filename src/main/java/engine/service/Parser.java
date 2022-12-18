@@ -6,6 +6,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.theme.Theme;
 import engine.entity.*;
 import engine.repository.*;
 import engine.views.CreateUI;
@@ -14,10 +15,14 @@ import org.apache.commons.io.FilenameUtils;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.InterruptibleBatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -43,20 +48,11 @@ public class Parser extends RecursiveAction {
     private Integer code;
     private String domainName;
     private static Grid<Site> siteGrid;
-    private static JdbcTemplate jdbcTemplate;
-    private static PageRepository pageRepository;
-    private static SiteRepository siteRepository;
-    private static ConfigRepository configRepository;
-    private static PartOfSpeechRepository partOfSpeechRepository;
-    private static FieldRepository fieldRepository;
-    private static PageContainerRepository pageContainerRepository;
-    private static StatusRepository statusRepository;
-
+    private static BeanAccess beanAccess;
     public final static String READY_LINKS_FILENAME = "links.txt";
     public final static String STOP_LINKS_FILENAME = "Stoplinks.txt";
     public final static String ERROR_LINKS_FILENAME = "Error_Links.txt";
     private static final HashMap<Integer, ForkJoinPool> activePools = new HashMap<>();
-    //private static final ConcurrentHashMap<Integer, ConcurrentHashMap<String, Page>> readyLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> readyLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, List<Page>> pageHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, Lemmatization> lemmatizatorHashMap = new ConcurrentHashMap<>();
@@ -68,33 +64,16 @@ public class Parser extends RecursiveAction {
 
     private static final boolean saveLinksInShortFormat = false;
 
-    private static ConcurrentHashMap<String, Page> cache = new ConcurrentHashMap<>();
     private static final HashSet<Integer> stopList = new HashSet<>();
     private static final AtomicLong totalCountLinks = new AtomicLong();
-
-
+    private static AtomicBoolean writeInProgress = new AtomicBoolean();
     public static Set<Integer> getStopList() {
         return stopList;
     }
-
     public static void setDataAccess(Grid<Site> siteGrid,
-                                     ConfigRepository configRepository,
-                                     SiteRepository siteRepository,
-                                     PageRepository pageRepository,
-                                     PartOfSpeechRepository partOfSpeechRepository,
-                                     FieldRepository fieldRepository,
-                                     PageContainerRepository pageContainerRepository,
-                                     StatusRepository statusRepository,
-                                     JdbcTemplate jdbcTemplate) {
+                                     BeanAccess beanAccess) {
         Parser.siteGrid = siteGrid;
-        Parser.configRepository = configRepository;
-        Parser.siteRepository = siteRepository;
-        Parser.pageRepository = pageRepository;
-        Parser.partOfSpeechRepository = partOfSpeechRepository;
-        Parser.fieldRepository = fieldRepository;
-        Parser.pageContainerRepository = pageContainerRepository;
-        Parser.statusRepository = statusRepository;
-        Parser.jdbcTemplate = jdbcTemplate;
+        Parser.beanAccess = beanAccess;
     }
 
     public Parser(Site site, String path, String domainName) {
@@ -236,7 +215,7 @@ public class Parser extends RecursiveAction {
         int siteId = site.getId();
 
         int parallelism = Runtime.getRuntime().availableProcessors();
-        Config config = configRepository.findByKey("tps");
+        Config config = beanAccess.getConfigRepository().findByKey("tps");
         try {
             if (!(config == null))
                 parallelism = Integer.parseInt(config.getValue());
@@ -245,7 +224,7 @@ public class Parser extends RecursiveAction {
                     2000, Notification.Position.MIDDLE);
         }
 
-        config = configRepository.findByKey("batch");
+        config = beanAccess.getConfigRepository().findByKey("batch");
         try {
             if (!(config == null))
                 batchSize = Integer.parseInt(config.getValue());
@@ -254,7 +233,7 @@ public class Parser extends RecursiveAction {
                     2000, Notification.Position.MIDDLE);
         }
 
-        config = configRepository.findByKey("isPoS");
+        config = beanAccess.getConfigRepository().findByKey("isPoS");
         try {
             if (!(config == null))
                 checkPartOfSpeech = Boolean.parseBoolean(config.getValue());
@@ -275,18 +254,17 @@ public class Parser extends RecursiveAction {
 
         List<String> excludeList = null;
         if (checkPartOfSpeech)
-            excludeList = partOfSpeechRepository.findByInclude(false)
+            excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
                     .stream()
-                    .map(p -> p.getShortName())
+                    .map(PartsOfSpeech::getShortName)
                     .collect(Collectors.toList());
-        Lemmatization lemmatizator = new Lemmatization(excludeList, fieldRepository.findByActive(true));
+        Lemmatization lemmatizator = new Lemmatization(excludeList, beanAccess.getFieldRepository().findByActive(true));
 
         lemmatizatorHashMap.put(siteId, lemmatizator);
 
 
-        ConcurrentSkipListSet rLinks = new ConcurrentSkipListSet();
         if (Files.exists(Paths.get(readyLinksFilename))) {
-            loadLinksFromFile(readyLinksFilename).forEach(l -> rLinks.add(l));
+            var rLinks = new ConcurrentSkipListSet<String>(loadLinksFromFile(readyLinksFilename));
             readyLinksHashMap.get(site.getId()).addAll(rLinks);
         }
 
@@ -314,7 +292,7 @@ public class Parser extends RecursiveAction {
         //ConcurrentHashMap<String, Page> readyLinks = readyLinksHashMap.get(site.getId());
         var readyLinks = readyLinksHashMap.get(site.getId());
 
-        int pageCount = pageRepository.countBySiteId(site.getId());
+        int pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
 
         if (pageCount > 0) // Если существуют страницы в базе данных
             showPrevDataDialog(site, pageCount);
@@ -327,6 +305,7 @@ public class Parser extends RecursiveAction {
 
         TimeMeasure.setStartTime();
         stopList.remove(site.getId());
+        writeInProgress.set(false);
 
         Parser parser;
         if (readyLinks.size() == 0) {
@@ -352,7 +331,7 @@ public class Parser extends RecursiveAction {
         System.out.println("Записываю: " + links.size());
         String sql = "Insert into Keep_Link (Site_Id, Path) values (?,?)";
 
-        int[] result = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+        int[] result = beanAccess.getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 String link = links.get(i);
@@ -370,39 +349,96 @@ public class Parser extends RecursiveAction {
         //for (int i = 0; i < result.length; i++) System.out.println(result[i]);
     }
 
-    //@Transactional(propagation = Propagation.REQUIRES_NEW)
-    public static Integer writeTempTable(Integer siteId) {
+    private static void insertIntoPageContainer(Integer siteId) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values ");
+        //stringBuilder.append("Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (-1,-1,'path','content','Lemmatization')");
 
         var readyPages = pageHashMap.get(siteId);
         List<Page> pages = new ArrayList<>(readyPages);
-        //readyPages.removeAll(pages);
+        for (Page page : pages) {
+            String content = page.getContent();
+            String lemmaString = "'" + getLemmaString(content, lemmatizatorHashMap.get(siteId)) + "'";
+            lemmaString = "___";
+
+            stringBuilder.append("(".concat(page.getSiteId().toString()).concat(", ")
+                    .concat(page.getCode().toString()).concat(", ")
+                    .concat("'" + page.getPath()).concat("', ")
+                    .concat("'" + content).concat("', ")
+                    .concat("'" + lemmaString).concat("'),"));
+        }
+
+        TransactionTemplate transactionTemplate = beanAccess.getTransactionTemplate();
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                beanAccess.getJdbcTemplate().execute(stringBuilder.toString());
+            }
+        });
+
+
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public static Integer writeTempTable(Integer siteId) {
+
+        if (writeInProgress.get()) {
+            System.out.println("WriteInProgress");
+            return 0;
+        }
+
+        System.out.println(Thread.currentThread().getName());
+
+        writeInProgress.set(true);
+
+        var readyPages = pageHashMap.get(siteId);
+        List<Page> pages = new ArrayList<>(readyPages);
+
+        List<String> lemmaStrings = new ArrayList<>();
+        for (Page page: pages) {
+            lemmaStrings.add(getLemmaString(page.getContent(), lemmatizatorHashMap.get(siteId)));
+        }
 
         //int pageCountBefore = pageRepository.countBySiteId(siteId);
 
         System.out.println("Записываю: " + pages.size());
         String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
 
-        int[] result = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+        //int[] result = beanAccess.getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
+        int[] result = beanAccess.getJdbcTemplate().batchUpdate(sql, new InterruptibleBatchPreparedStatementSetter() {
             @Override
-            //public void setValues(PreparedStatement ps, int i) throws SQLException {
-            public void setValues(PreparedStatement ps, int i)  {
+            public boolean isBatchExhausted(int i) {
+                if (i<batchSize) return true;
+                else return false;
+            }
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+//            public void setValues(PreparedStatement ps, int i)  {
                 Page page = pages.get(i);
-                try {
-                    Integer siteId = page.getSiteId();
-                    ps.setInt(1, siteId);
-                    Integer code = page.getCode();
-                    ps.setInt(2, code);
-                    ps.setString(3, page.getPath());
-                    String content = page.getContent();
-                    ps.setString(4, content);
-                    ps.setString(5, getLemmaString(content, lemmatizatorHashMap.get(siteId)));
-                    System.out.printf("i: %d  path: %s\n", i, page.getPath());
+//                try {
+                Integer siteId = page.getSiteId();
+                ps.setInt(1, siteId);
+                Integer code = page.getCode();
+                ps.setInt(2, code);
+                ps.setString(3, page.getPath());
+                String content = page.getContent();
+                ps.setString(4, content);
 
-                } catch (Exception e) {
-                    System.out.println("Ошибка при операции записи " + i);
+                //String lemmaString = getLemmaString(content, lemmatizatorHashMap.get(siteId));
+                String lemmaString = lemmaStrings.get(i);
 
-                    e.printStackTrace();
-                }
+                if (lemmaString.isEmpty())
+                    System.out.println("lemmaString is empty " + page.getPath());
+                if (lemmaString == null)
+                    System.out.println("lemmaString is null " + page.getPath());
+
+                ps.setString(5, lemmaString);
+
+//                } catch (Exception e) {
+//                    System.out.println("Ошибка при операции записи " + i);
+//                    e.printStackTrace();
+//                }
             }
 
             @Override
@@ -411,16 +447,22 @@ public class Parser extends RecursiveAction {
             }
         });
 
-        //for (int j : result)
-        //    System.out.printf(j + " ");
+        String resultBatchSave = "Success!";
+        for (int j : result)
+            if (!(j == 1)) resultBatchSave = "Errors!";
+
+        System.out.printf("totalCountLinks: %d, Save - %s", totalCountLinks.get(), resultBatchSave);
 
         readyPages.removeAll(pages);
+
+        writeInProgress.set(false);
 
         return result.length;
     }
 
     //@Transactional(propagation = Propagation.REQUIRES_NEW)
-    public static void parsePageContainer() {pageContainerRepository.parsePageContainer();
+    public static Integer parsePageContainer() {
+        return beanAccess.getPageContainerRepository().parsePageContainer();
     }
 
 
@@ -479,22 +521,26 @@ public class Parser extends RecursiveAction {
 
                 //Запись в базу данных
                 if (readyLinks.size() % batchSize == 0) {
+                    //if ((readyLinks.size() >= batchSize) && (!writeInProgress.get())) {
                     TimeMeasure.setStartTime();
 
                     //statusRepository.save(new Status(siteId, SiteStatus.BATCH_SAVE,"Start (Batch save) "));
                     writeTempTable(siteId);
-                    statusRepository.save(new Status(siteId, SiteStatus.BATCH_SAVE,"Success (Batch save) totalCountLinks: " + totalCountLinks));
+                    beanAccess.getStatusRepository().save(new Status(siteId, SiteStatus.BATCH_SAVE, "Success (Batch save) totalCountLinks: " + totalCountLinks));
 
+                    //beanAccess.getStatusRepository().save(new Status(siteId, SiteStatus.SAVE_MANUAL_TRASACTION, "Старт транзакции в ручную"));
+                    //insertIntoPageContainer(siteId);
 
-                    parsePageContainer();
+//                    int pageParsing = parsePageContainer();
+//                    System.out.println("Обработано страниц: " + pageParsing);
 
                     System.out.println(domainName + " -> время записи в базу данных: " + TimeMeasure.getNormalizedTime(TimeMeasure.getExperienceTime()));
 
-                    int pageInBase = pageRepository.countBySiteId(siteId);
+                    int pageInBase = beanAccess.getPageRepository().countBySiteId(siteId);
                     System.out.println("Страниц после записи: " + pageInBase);
 
                     site.setPageCount(pageInBase);
-                    siteRepository.save(site);
+                    beanAccess.getSiteRepository().save(site);
                 }
             }
         }
@@ -546,15 +592,15 @@ public class Parser extends RecursiveAction {
                 site.setStatusTime(LocalDateTime.now());
                 site.setStatus(SiteStatus.FAILED);
                 site.setLastError("Не удалось загрузить стартовую страницу");
-                siteRepository.save(site);
+                beanAccess.getSiteRepository().save(site);
                 System.out.println("Не удалось загрузить стартовую страницу");
             } else {
                 site.setStatus(SiteStatus.LOADED);
-                siteRepository.save(site);
+                beanAccess.getSiteRepository().save(site);
                 stop(site);
                 System.out.println(site.getUrl() + " -> Загрузка завершена.");
             }
-            siteGrid.setItems(siteRepository.findAll());
+            siteGrid.setItems(beanAccess.getSiteRepository().findAll());
         }
     }
 
@@ -581,7 +627,7 @@ public class Parser extends RecursiveAction {
             notification.open();
             new Thread() {
                 public void run() {
-                    pageRepository.deleteBySiteId(site.getId());
+                    beanAccess.getPageRepository().deleteBySiteId(site.getId());
                 }
             }.start();
 
@@ -591,7 +637,7 @@ public class Parser extends RecursiveAction {
             dialog.close();
             CreateUI.showMessage("Результаты сохранены", 500, Notification.Position.MIDDLE);
 
-            List<String> links = pageRepository.getLinksBySiteId(site.getId());
+            List<String> links = beanAccess.getPageRepository().getLinksBySiteId(site.getId());
 
             String path = site.getUrl();
 

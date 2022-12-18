@@ -4,6 +4,7 @@ import engine.Application;
 import engine.config.YAMLConfig;
 import engine.entity.Lemma;
 import lombok.Setter;
+import lombok.experimental.UtilityClass;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -22,14 +23,12 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
+@UtilityClass
 public class HtmlParsing {
 
     private static String userAgent;
     private static String referrer;
-
     private static Integer timeout;
-
 
     private static int saveFilesCount = 0;
 

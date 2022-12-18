@@ -14,7 +14,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
     @Transactional
     @Query(value = "CREATE OR REPLACE FUNCTION parse_page_container(\n" +
             "\t)\n" +
-            "    RETURNS void\n" +
+            "    RETURNS INTEGER\n" +
             "    LANGUAGE 'plpgsql'\n" +
             "    COST 100\n" +
             "    VOLATILE PARALLEL UNSAFE\n" +
@@ -61,6 +61,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\tend loop;\n" +
             "\tdelete from page_container where id = container.id;\n" +
             "end loop;\n" +
+            "return page_count;" +
             "end; \n" +
             "$BODY$;",
             nativeQuery = true)
@@ -85,7 +86,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\twith page_insert as (\n" +
             "    insert into PAGE (Site_id, Path, Code, Content)\n" +
             "\tvalues (new.site_id, new.path, new.code, new.content)\n" +
-            "\t--on conflict on constraint siteId_path_unique do nothing\n" +
+            "\ton conflict on constraint siteId_path_unique do nothing\n" +
             "\treturning id)\n" +
             "    select id from page_insert into page_id; \n" +
             "\tfor lemmainfo in select unnest(string_to_array(new.lemmatization,';'))\n" +
@@ -127,7 +128,8 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
     @Modifying
     @Transactional
     @Query(value="Select parse_page_container()",nativeQuery = true)
-    void parsePageContainer();
+    Integer parsePageContainer();
+
 
 
 }

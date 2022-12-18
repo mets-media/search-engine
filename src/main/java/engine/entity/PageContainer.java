@@ -15,11 +15,11 @@ public class PageContainer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private Integer siteId;
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private String path;
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private Integer code;
     @Column(columnDefinition = "Text")
     private String content;

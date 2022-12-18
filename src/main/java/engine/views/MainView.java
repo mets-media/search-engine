@@ -12,10 +12,12 @@ import com.vaadin.flow.router.Route;
 import engine.config.YAMLConfig;
 import engine.entity.SiteStatus;
 import engine.repository.*;
+import engine.service.BeanAccess;
 import engine.service.Parser;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
@@ -29,13 +31,13 @@ public class MainView extends AppLayout {
     @Autowired
     JdbcTemplate jdbcTemplate;
     @Autowired
+    PlatformTransactionManager transactionManager;
+    @Autowired
     SiteRepository siteRepository;
     @Autowired
     PageRepository pageRepository;
     @Autowired
     LemmaRepository lemmaRepository;
-    @Autowired
-    IndexRepository indexRepository;
     @Autowired
     ConfigRepository configRepository;
     @Autowired
@@ -52,19 +54,14 @@ public class MainView extends AppLayout {
     YAMLConfig yamlConfig;
     @PersistenceContext
     EntityManager entityManager;
+    @Autowired
+    BeanAccess beanAccess;
+
     private final HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
 
     @PostConstruct
     private void getSites() {
-        SiteComponent.setDataAccess(configRepository,
-                siteRepository,
-                fieldRepository,
-                partOfSpeechRepository,
-                pageContainerRepository,
-                statusRepository,
-                jdbcTemplate,
-                entityManager,
-                pageRepository);
+        SiteComponent.setDataAccess(beanAccess);
 
         var listSites = yamlConfig.getSites();
         listSites.forEach(site -> {
@@ -84,14 +81,7 @@ public class MainView extends AppLayout {
         if (yamlConfig.getAutoScan()) {
             Parser.setDataAccess(
                     siteComponent.getGrid(),
-                    configRepository,
-                    siteRepository,
-                    pageRepository,
-                    partOfSpeechRepository,
-                    fieldRepository,
-                    pageContainerRepository,
-                    statusRepository,
-                    jdbcTemplate);
+                    beanAccess);
 
             listSites.forEach(site -> {
                 Parser.getStopList().remove(site);
@@ -121,21 +111,10 @@ public class MainView extends AppLayout {
             String label = tabs.getSelectedTab().getLabel();
 
             switch (label) {
-                case "Сайты" -> {
-                    if (!contentsHashMap.containsKey(label)) {
-//                        SiteComponent.setDataAccess(configRepository,
-//                                siteRepository,
-//                                pageRepository,
-//                                fieldRepository,
-//                                partOfSpeechRepository,
-//                                jdbcTemplate,
-//                                entityManager);
-//                        siteComponent = new SiteComponent();
-//                        setContent(siteComponent.getMainLayout());
-//                        contentsHashMap.put(label, siteComponent.getMainLayout());
-                    }
-
-                }
+//                case "Сайты" -> {
+//                    if (!contentsHashMap.containsKey(label)) {
+//                    }
+//                }
                 case "Настройки" -> {
                     if (!contentsHashMap.containsKey(label)) {
                         ConfigComponent.setConfigRepository(configRepository);
@@ -143,10 +122,6 @@ public class MainView extends AppLayout {
                         setContent(configComponent.getMainLayout());
                         configComponent.getGrid().setItems(configRepository.findAll());
                         contentsHashMap.put(label, configComponent.getMainLayout());
-
-//                        Arrays.stream(context.getBeanDefinitionNames()).sorted()
-//                                .collect(Collectors.toList())
-//                                .forEach(System.out::println);
                     }
                 }
                 case "Лемматизатор" -> {
@@ -159,11 +134,7 @@ public class MainView extends AppLayout {
                 }
                 case "Индексация" -> {
                     if (!contentsHashMap.containsKey(label)) {
-                        IndexingComponent.dataAccess(fieldRepository,
-                                pageRepository,
-                                siteRepository,
-                                partOfSpeechRepository,
-                                entityManager);
+                        IndexingComponent.setDataAccess(beanAccess);
                         IndexingComponent indexingComponent = new IndexingComponent();
                         setContent(indexingComponent.getMainLayout());
                         contentsHashMap.put(label, indexingComponent.getMainLayout());
@@ -172,11 +143,7 @@ public class MainView extends AppLayout {
                 }
                 case "Поиск" -> {
                     if (!contentsHashMap.containsKey(label)) {
-                        SearchComponent.setDataAccess(pageRepository,
-                                siteRepository,
-                                lemmaRepository,
-                                partOfSpeechRepository,
-                                pathTableRepository);
+                        SearchComponent.setDataAccess(beanAccess);
                         SearchComponent searchComponent = new SearchComponent();
                         setContent(searchComponent.getMainLayout());
                         contentsHashMap.put(label, searchComponent.getMainLayout());

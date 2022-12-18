@@ -1,6 +1,7 @@
 package engine.entity;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
+@RequiredArgsConstructor
 public class Status {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

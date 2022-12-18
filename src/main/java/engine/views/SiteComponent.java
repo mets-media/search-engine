@@ -15,6 +15,7 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
 import engine.repository.*;
+import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Parser;
 import lombok.Getter;
@@ -22,6 +23,7 @@ import lombok.Setter;
 import org.apache.commons.io.FileUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.persistence.EntityManager;
 import java.io.File;
@@ -41,38 +43,12 @@ import static engine.views.CreateUI.showMessage;
 @Getter
 @Setter
 public class SiteComponent {
-    private static ConfigRepository configRepository;
-    private static SiteRepository siteRepository;
-    private static FieldRepository fieldRepository;
-    private static PartOfSpeechRepository partOfSpeechRepository;
-    private static PageContainerRepository pageContainerRepository;
-    private static StatusRepository statusRepository;
-    private static JdbcTemplate jdbcTemplate;
-    private static EntityManager entityManager;
-    private static PageRepository pageRepository;
+    private static BeanAccess beanAccess;
     private final VerticalLayout mainLayout;
     private final Grid<Site> grid;
-
-    public static void setDataAccess(ConfigRepository configRepository,
-                                     SiteRepository siteRepository,
-                                     FieldRepository fieldRepository,
-                                     PartOfSpeechRepository partOfSpeechRepository,
-                                     PageContainerRepository pageContainerRepository,
-                                     StatusRepository statusRepository,
-                                     JdbcTemplate jdbcTemplate,
-                                     EntityManager entityManager,
-                                     PageRepository pageRepository) {
-        SiteComponent.configRepository = configRepository;
-        SiteComponent.siteRepository = siteRepository;
-        SiteComponent.fieldRepository = fieldRepository;
-        SiteComponent.partOfSpeechRepository = partOfSpeechRepository;
-        SiteComponent.pageContainerRepository = pageContainerRepository;
-        SiteComponent.statusRepository = statusRepository;
-        SiteComponent.jdbcTemplate = jdbcTemplate;
-        SiteComponent.entityManager = entityManager;
-        SiteComponent.pageRepository = pageRepository;
+    public static void setDataAccess(BeanAccess beanAccess) {
+        SiteComponent.beanAccess = beanAccess;
     }
-
     public SiteComponent() {
 
         mainLayout = CreateUI.getMainLayout();
@@ -150,16 +126,7 @@ public class SiteComponent {
         parseButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         parseButton.addClickListener(buttonClickEvent -> {
-            Parser.setDataAccess(
-                    grid,
-                    configRepository,
-                    siteRepository,
-                    pageRepository,
-                    partOfSpeechRepository,
-                    fieldRepository,
-                    pageContainerRepository,
-                    statusRepository,
-                    jdbcTemplate);
+            Parser.setDataAccess(grid, beanAccess);
 
             Set<Site> selectedSites = grid.getSelectedItems();
             selectedSites.forEach(site -> {
@@ -167,10 +134,10 @@ public class SiteComponent {
                 Parser.getStopList().remove(site);
 
                 site.setStatus(SiteStatus.DOWNLOADING);
-                siteRepository.save(site);
+                beanAccess.getSiteRepository().save(site);
                 Parser.start(site);
             });
-            grid.setItems(siteRepository.findAll());
+            grid.setItems(beanAccess.getSiteRepository().findAll());
         });
 
         //========================= СТОП СКАНИРОВАНИЕ ==========================================
@@ -183,13 +150,13 @@ public class SiteComponent {
                 Parser.stop(site);
                 grid.deselect(site);
                 site.setStatus(SiteStatus.STOPPED);
-                siteRepository.save(site);
-                site.setPageCount(pageRepository.countBySiteId(site.getId()));
-                siteRepository.save(site);
+                beanAccess.getSiteRepository().save(site);
+                site.setPageCount(beanAccess.getPageRepository().countBySiteId(site.getId()));
+                beanAccess.getSiteRepository().save(site);
 
             });
             //grid.getDataProvider().refreshAll();
-            grid.setItems(siteRepository.findAll());
+            grid.setItems(beanAccess.getSiteRepository().findAll());
         });
         return buttons;
     }
@@ -235,7 +202,7 @@ public class SiteComponent {
             sites.forEach(delSite -> {
                 //new Thread(() -> pageRepository.deleteBySiteId(delSite.getId())).start();
 
-                siteRepository.delete(delSite);
+                beanAccess.getSiteRepository().delete(delSite);
 
                 try {
                     FileUtils.deleteDirectory(new File("data/" + HtmlParsing.getDomainName(delSite.getUrl())));
@@ -249,7 +216,7 @@ public class SiteComponent {
             Notification notification = new Notification("Удалени выполнено!", 1000);
             notification.setPosition(Notification.Position.MIDDLE);
             notification.open();
-            grid.setItems(siteRepository.findAll());
+            grid.setItems(beanAccess.getSiteRepository().findAll());
         });
         cancel.addClickListener(clickEvent -> {
             dialog.close();
@@ -327,9 +294,9 @@ public class SiteComponent {
                 site.setStatus(SiteStatus.NEW_SITE);
                 site.setStatusTime(LocalDateTime.now());
                 site.setPageCount(0);
-                siteRepository.save(site);
+                beanAccess.getSiteRepository().save(site);
 
-                grid.setItems(siteRepository.findAll());
+                grid.setItems(beanAccess.getSiteRepository().findAll());
                 dialog.close();
             }
         });
@@ -342,10 +309,10 @@ public class SiteComponent {
     private void updateSiteInfo() {
 
         grid.getSelectedItems().forEach(site -> {
-            int pageCount = pageRepository.countBySiteId(site.getId());
+            int pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
             site.setPageCount(pageCount);
-            siteRepository.save(site);
-            grid.setItems(siteRepository.findAll());
+            beanAccess.getSiteRepository().save(site);
+            grid.setItems(beanAccess.getSiteRepository().findAll());
         });
     }
 
@@ -374,7 +341,7 @@ public class SiteComponent {
         }
 
         public void setSite(Site site) {
-            Integer pageCount = pageRepository.countBySiteId(site.getId());
+            Integer pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
             site.setPageCount(pageCount);
             pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
             siteStatusTextField.setValue(site.getStatus().toString());

@@ -22,6 +22,7 @@ import engine.repository.FieldRepository;
 import engine.repository.PageRepository;
 import engine.repository.PartOfSpeechRepository;
 import engine.repository.SiteRepository;
+import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Lemmatization;
 import org.jsoup.Jsoup;
@@ -31,6 +32,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,11 +44,14 @@ import static engine.views.CreateUI.showMessage;
 
 
 public class IndexingComponent {
-    private static PartOfSpeechRepository partOfSpeechRepository;
-    private static SiteRepository siteRepository;
-    private static PageRepository pageRepository;
-    private static FieldRepository fieldRepository;
-    private static EntityManager entityManager;
+
+    private static BeanAccess beanAccess;
+
+//    private static PartOfSpeechRepository partOfSpeechRepository;
+//    private static SiteRepository siteRepository;
+//    private static PageRepository pageRepository;
+//    private static FieldRepository fieldRepository;
+//    private static EntityManager entityManager;
     private final VerticalLayout mainLayout;
     private final Grid<Field> fieldGrid = new Grid<>(Field.class, false);
     private Grid<Page> grid = null;
@@ -87,7 +92,7 @@ public class IndexingComponent {
                         contentsHashMap.put(label, content);
                         mainLayout.add(content);
                     }
-                    fieldGrid.setItems(fieldRepository.findAll());
+                    fieldGrid.setItems(beanAccess.getFieldRepository().findAll());
                 }
                 case "Страницы сайта" -> {
                     if (!contentsHashMap.containsKey(label)) {
@@ -133,9 +138,9 @@ public class IndexingComponent {
                                 showMessage(f.getName() + " нельзя удалять!",
                                         2000, Notification.Position.MIDDLE);
                             else
-                                fieldRepository.delete(f);
+                                beanAccess.getFieldRepository().delete(f);
                         });
-                        fieldGrid.setItems(fieldRepository.findAll());
+                        fieldGrid.setItems(beanAccess.getFieldRepository().findAll());
                     });
                 }
             }
@@ -174,14 +179,14 @@ public class IndexingComponent {
                     option.setName(textFieldName.getValue());
                     option.setWeight(Float.parseFloat(textFieldValue.getValue()));
                     try {
-                        fieldRepository.save(option);
+                        beanAccess.getFieldRepository().save(option);
                     } catch (Exception exception) {
                         showMessage("Ошибка записи", 2000, Notification.Position.MIDDLE);
                         return;
                     }
                 } else
                     try {
-                        fieldRepository.save(new Field(
+                        beanAccess.getFieldRepository().save(new Field(
                                 textFieldName.getValue(),
                                 textFieldKey.getValue(),
                                 Float.parseFloat(textFieldValue.getValue())));
@@ -189,7 +194,7 @@ public class IndexingComponent {
                         showMessage("Ошибка записи!", 2000, Notification.Position.MIDDLE);
                         return;
                     }
-                fieldGrid.setItems(fieldRepository.findAll());
+                fieldGrid.setItems(beanAccess.getFieldRepository().findAll());
                 dialog.close();
             }
         });
@@ -211,7 +216,7 @@ public class IndexingComponent {
             checkbox.setValue(item.isActive());
             checkbox.addValueChangeListener(event -> {
                 item.setActive(event.getValue());
-                fieldRepository.save(item);
+                beanAccess.getFieldRepository().save(item);
             });
             return checkbox;
         }).setHeader("Вкл.").setTextAlign(ColumnTextAlign.CENTER);
@@ -220,20 +225,12 @@ public class IndexingComponent {
         fieldGrid.addColumn(Field::getSelector).setHeader("CSS-селектор").setTextAlign(ColumnTextAlign.CENTER).setSortable(true);
         fieldGrid.addColumn(Field::getWeight).setHeader("Коэффициент").setTextAlign(ColumnTextAlign.CENTER).setSortable(true);
 
-        fieldGrid.setItems(fieldRepository.findAll());
+        fieldGrid.setItems(beanAccess.getFieldRepository().findAll());
         return verticalLayout;
     }
 
-    public static void dataAccess(FieldRepository fRepository,
-                           PageRepository pRepository,
-                           SiteRepository sRepository,
-                           PartOfSpeechRepository posRepository,
-                           EntityManager entityManager) {
-        fieldRepository = fRepository;
-        pageRepository = pRepository;
-        siteRepository = sRepository;
-        partOfSpeechRepository = posRepository;
-        entityManager = entityManager;
+    public static void setDataAccess(BeanAccess beanAccess) {
+        IndexingComponent.beanAccess = beanAccess;
     }
    private ComboBox<Site> createSiteComboBox() {
 
@@ -241,7 +238,7 @@ public class IndexingComponent {
        siteComboBox.setItemLabelGenerator(Site::getUrl);
 
        siteComboBox.setItems(query -> {
-           return siteRepository.getSitesFromPageTable(
+           return beanAccess.getSiteRepository().getSitesFromPageTable(
                    PageRequest.of(query.getPage(), query.getPageSize())
            ).stream();
        });
@@ -253,11 +250,11 @@ public class IndexingComponent {
            cssSelectorTextArea.setReadOnly(true);
 
            Site site = event.getValue();
-           Integer pageCount = pageRepository.countBySiteId(site.getId());
+           Integer pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
            site.setPageCount(pageCount);
            pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
 
-           grid.setItems(query -> pageRepository
+           grid.setItems(query -> beanAccess.getPageRepository()
                    .findBySiteId(
                            site.getId(),
                            PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path")))
@@ -310,7 +307,7 @@ public class IndexingComponent {
         cssVerticalLayout.setWidth("100%");
 
         cssSelectorComboBox.setItems(query -> {
-            return fieldRepository.getAllNames(
+            return beanAccess.getFieldRepository().getAllNames(
                     PageRequest.of(query.getPage(), query.getPageSize())
             ).stream();
         });
@@ -324,7 +321,7 @@ public class IndexingComponent {
             String content = grid.getSelectedItems().stream().findFirst().get().getContent();
             Document document = Jsoup.parseBodyFragment(content);
 
-            Field field = fieldRepository.findByName(cssName);
+            Field field = beanAccess.getFieldRepository().findByName(cssName);
             switch (field.getSelector()) {
                 case "title" -> {
                     cssSelectorTextArea.setValue(document.title());
@@ -348,7 +345,7 @@ public class IndexingComponent {
         Button lemmaButton = new Button("Лемматизатор");
         lemmaButton.addClickListener(buttonClickEvent -> {
 
-            List<String> excludeList = partOfSpeechRepository.findByInclude(false)
+            List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
                     .stream()
                     .map(p -> p.getShortName())
                     .collect(Collectors.toList());
@@ -367,12 +364,13 @@ public class IndexingComponent {
         Button indexingButton = new Button("Индексация");
         indexingButton.addClickListener(buttonClickEvent ->  {
             cssSelectorComboBox.setValue("");
-            List<String> excludeList = partOfSpeechRepository.findByInclude(false)
+            List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
                     .stream()
                     .map(p -> p.getShortName())
                     .collect(Collectors.toList());
 
-            Lemmatization lemmatization = new Lemmatization(excludeList, fieldRepository.findByActive(true));
+            Lemmatization lemmatization = new Lemmatization(excludeList,
+                    beanAccess.getFieldRepository().findByActive(true));
 
             grid.getSelectedItems().stream().findFirst().ifPresent(page -> {
                 List<HashMap<String, Lemmatization.LemmaInfo>> list =

@@ -24,7 +24,6 @@ import static engine.service.HtmlParsing.getRussianWords;
 
 @Getter
 public class LemmaComponent {
-
     private static PartOfSpeechRepository partOfSpeechRepository;
     private VerticalLayout mainLayout;
     private final Grid<PartsOfSpeech> gridPartsOfSpeech = new Grid<>();
