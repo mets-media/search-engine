@@ -6,37 +6,21 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.theme.Theme;
 import engine.entity.*;
-import engine.repository.*;
 import engine.views.CreateUI;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.FilenameUtils;
 import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.InterruptibleBatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionTemplate;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -59,7 +43,8 @@ public class Parser extends RecursiveAction {
     private static final ConcurrentHashMap<Integer, ConcurrentLinkedQueue<Page>> pageHashMap = new ConcurrentHashMap<>();
     //private static final ConcurrentHashMap<Integer, Lemmatization> lemmatizatorHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> inProcessLinksHashMap = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> errorLinksHashMap = new ConcurrentHashMap<>();
+    //private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> errorLinksHashMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, ConcurrentHashMap<String, Integer>> errorLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, DBWriter> dbWriterHashMap = new ConcurrentHashMap<>();
     private static Integer batchSize = 100;
     private static Boolean checkPartOfSpeech = true;
@@ -126,9 +111,10 @@ public class Parser extends RecursiveAction {
 
         pageHashMap.put(siteId, new ConcurrentLinkedQueue<>());
 
-        errorLinksHashMap.put(siteId, new ConcurrentSkipListSet<>());
+        //errorLinksHashMap.put(siteId, new ConcurrentSkipListSet<>());
+        errorLinksHashMap.put(siteId, new ConcurrentHashMap<>());
 
-        dbWriterHashMap.put(siteId, new DBWriter("DBWriter_" + siteId, beanAccess, pageHashMap.get(siteId), batchSize, checkPartOfSpeech));
+        dbWriterHashMap.put(siteId, new DBWriter("DBWriter[" + HtmlParsing.getDomainName(site.getUrl())  + "]", beanAccess, pageHashMap.get(siteId), batchSize, checkPartOfSpeech));
 
     }
 
@@ -145,6 +131,9 @@ public class Parser extends RecursiveAction {
         var readyLinks = readyLinksHashMap.get(site.getId());
 
         int pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
+
+        //Все готовые страницы из базы данных
+        readyLinks.addAll(beanAccess.getPageRepository().getLinksBySiteId(site.getId()));
 
         //if (pageCount > 0) // Если существуют страницы в базе данных
         //    showPrevDataDialog(site, pageCount);
@@ -165,14 +154,20 @@ public class Parser extends RecursiveAction {
 
         ConcurrentSkipListSet<String> stopLinks = inProcessLinksHashMap.get(site.getId());
 
-        List<String> paths = beanAccess.getKeepLinkRepository().getPathBySiteId(site.getId());
-        stopLinks.addAll(paths);
-        if (!(stopLinks.size() == 0))
+        stopLinks.addAll(beanAccess.getKeepLinkRepository().getPathsBySiteId(site.getId()));
+
+        stopLinks.addAll(beanAccess.getKeepLinkRepository().getPathsBySiteId(site.getId()));
+
+        if (!(stopLinks.size() == 0)) {
             stopLinks.forEach(p -> {
                 System.out.println("Перезапуск: " + p);
                 activePools.get(site.getId()).execute(new Parser(site, p, domainName));
-                stopLinks.remove(p);
             });
+            beanAccess.getKeepLinkRepository().deleteBySiteId(site.getId());
+            stopLinks.clear();
+            DBWriter dbWriter = dbWriterHashMap.get(site.getId());
+            dbWriter.start();
+        }
 
         System.out.printf("Потоки запущены для сайта: %s\n", site.getUrl());
     }
@@ -200,6 +195,29 @@ public class Parser extends RecursiveAction {
         //for (int i = 0; i < result.length; i++) System.out.println(result[i]);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public static void writeToKeepLinkHM(Integer siteId, List<String> links, List<Integer> codes) {
+        System.out.println("Записываю: " + links.size());
+        String sql = "Insert into Keep_Link (Site_Id, Path, Code) values (?,?,?)";
+
+        int[] result = beanAccess.getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setInt(1, siteId);
+                ps.setString(2, links.get(i));
+                ps.setInt(3, codes.get(i));
+            }
+
+            @Override
+            public int getBatchSize() {
+                return links.size();
+            }
+        });
+
+        //links.clear();
+        //for (int i = 0; i < result.length; i++) System.out.println(result[i]);
+    }
+
     //@Transactional(propagation = Propagation.REQUIRES_NEW)
     public static Integer parsePageContainer() {
         return beanAccess.getPageContainerRepository().parsePageContainer();
@@ -213,13 +231,14 @@ public class Parser extends RecursiveAction {
         if (!activePools.containsKey(siteId))
             return;
         stopList.add(siteId);
+        dbWriterHashMap.get(siteId).stopWriter();
     }
 
 
     @Override
     protected void compute() {
         int siteId = site.getId();
-        ConcurrentSkipListSet<String> errorLinks = errorLinksHashMap.get(siteId);
+        var errorLinks = errorLinksHashMap.get(siteId);
 
         ForkJoinPool pool = activePools.get(siteId);
         var inProcessLinks = inProcessLinksHashMap.get(siteId);
@@ -243,12 +262,7 @@ public class Parser extends RecursiveAction {
                 //throw new RuntimeException(e);
                 //e.printStackTrace();
                 code = HtmlParsing.getStatusFromExceptionString(e.toString());
-                String errorLinkString;
-                if (code == -2) {
-                    errorLinkString = "-02".concat(": ").concat(path);
-                } else
-                    errorLinkString = code.toString().concat(": ").concat(path);
-                errorLinks.add(errorLinkString);
+                errorLinks.put(path, code);
             }
             if (code == 200) {
                 readyLinks.add(path);
@@ -275,9 +289,18 @@ public class Parser extends RecursiveAction {
                 inProcessLinks.add(path);
                 writeToKeepLink(siteId, inProcessLinks.stream().toList());
 
-
                 System.out.println("Запись errorLinks");
-                writeToKeepLink(siteId, errorLinksHashMap.get(siteId).stream().toList());
+                //writeToKeepLink(siteId, errorLinksHashMap.get(siteId).stream().toList());
+
+                List<String> links = new ArrayList<>();
+                List<Integer> codes = new ArrayList<>();
+
+                errorLinks.entrySet().forEach(eLink -> {
+                    links.add(eLink.getKey());
+                    codes.add(eLink.getValue());
+                });
+
+                writeToKeepLinkHM(siteId, links, codes);
 
                 System.out.println("readyPage.size: " + readyPages.size());
                 System.out.println("inProccesLinks: " + inProcessLinks.size());
@@ -302,8 +325,8 @@ public class Parser extends RecursiveAction {
         if (inProcessLinks.size() == 0) {
             if ((!(code == 200)) &&
                     (readyPages.size() == 0) &&
-                    (errorLinks.size() == 1) &&
-                    (errorLinks.first().substring(4).equals(path))) {
+                    (errorLinks.size() == 1)) { //&&
+                //(errorLinks.first().substring(4).equals(path))) {
                 site.setStatusTime(LocalDateTime.now());
                 site.setStatus(SiteStatus.FAILED);
                 site.setLastError("Не удалось загрузить стартовую страницу");
@@ -360,7 +383,6 @@ public class Parser extends RecursiveAction {
         });
         dialog.open();
     }
-
 
 
 }

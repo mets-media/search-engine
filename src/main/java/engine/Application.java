@@ -57,7 +57,7 @@ public class Application extends SpringBootServletInitializer {
              //siteRepository.createTrigger();
 
 
-            //pageContainerRepository.createTrigger();
+            pageContainerRepository.createTrigger();
 
 
         };

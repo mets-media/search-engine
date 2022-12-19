@@ -4,10 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Отладка загрузки в контейнер.">
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/service/DBWriter.java" afterDir="false" />
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Application.yaml">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/generated/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/generated/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/Application.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/KeepLink.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/KeepLink.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/KeepLinkRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/KeepLinkRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/DBWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/DBWriter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,7 +32,20 @@
     <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="JpbToolWindowState">
-    <option name="isToolWindowVisible" value="false" />
+    <option name="myId2FirstActivated">
+      <map>
+        <entry key="com.haulmont.jpb.jpaInspector" value="true" />
+        <entry key="com.haulmont.jpb.jpaPalette" value="true" />
+        <entry key="com.haulmont.jpb.jpaStructure" value="true" />
+      </map>
+    </option>
+    <option name="myId2Visible">
+      <map>
+        <entry key="com.haulmont.jpb.jpaInspector" value="false" />
+        <entry key="com.haulmont.jpb.jpaPalette" value="false" />
+        <entry key="com.haulmont.jpb.jpaStructure" value="false" />
+      </map>
+    </option>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -54,7 +70,7 @@
     &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/mets.java/mets/lib/ russianmorphology&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/alexandr/IdeaProjects/mets&quot;,
     &quot;project.structure.last.edited&quot;: &quot;Libraries&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
@@ -102,6 +118,13 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
+    </task>
+    <task id="LOCAL-00005" summary="SearchEngine. Editing Grid.">
+      <created>1660879502956</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1660879502956</updated>
     </task>
     <task id="LOCAL-00006" summary="adds morph dependencies">
       <created>1660934758603</created>
@@ -439,14 +462,7 @@
       <option name="project" value="LOCAL" />
       <updated>1671251768328</updated>
     </task>
-    <task id="LOCAL-00054" summary="Отладка загрузки в контейнер.">
-      <created>1671353479444</created>
-      <option name="number" value="00054" />
-      <option name="presentableId" value="LOCAL-00054" />
-      <option name="project" value="LOCAL" />
-      <updated>1671353479444</updated>
-    </task>
-    <option name="localTasksCounter" value="55" />
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -480,8 +496,7 @@
     <MESSAGE value="Система поиска" />
     <MESSAGE value="Система поиска. Snipped &lt;b&gt;" />
     <MESSAGE value="Application.yaml" />
-    <MESSAGE value="Отладка загрузки в контейнер." />
-    <option name="LAST_COMMIT_MESSAGE" value="Отладка загрузки в контейнер." />
+    <option name="LAST_COMMIT_MESSAGE" value="Application.yaml" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -493,37 +508,31 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/views/IndexingComponent.java</url>
-          <line>131</line>
+          <line>136</line>
           <option name="timeStamp" value="71" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java</url>
-          <line>234</line>
+          <line>196</line>
           <option name="timeStamp" value="90" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java</url>
-          <line>237</line>
+          <line>199</line>
           <option name="timeStamp" value="91" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>400</line>
-          <option name="timeStamp" value="98" />
+          <line>160</line>
+          <option name="timeStamp" value="99" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>371</line>
-          <option name="timeStamp" value="102" />
+          <line>162</line>
+          <option name="timeStamp" value="100" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="Application">
-        <watch expression="readyLinksHashMap" language="JAVA" />
-        <watch expression="ps" language="JAVA" />
-      </configuration>
-    </watches-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

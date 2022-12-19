@@ -15,6 +15,7 @@ public class KeepLink {
     private Integer id;
     @NotNull
     private Integer siteId;
+    private Integer code;
     @NotNull
     @Column(columnDefinition = "Text")
     private String path;

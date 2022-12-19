@@ -47,7 +47,7 @@ public class DBWriter extends Thread {
         run = true;
         System.out.println("Запуск dbWriter " + getName());
 
-        while (true) {
+        while (run) {
 
             while (readyPage.size() == 0)
                 try {
@@ -66,14 +66,27 @@ public class DBWriter extends Thread {
                     if (readyPage.removeAll(savePage))
                         System.out.println("readyPage.removeAll(savePage) - Ok");
 
-                    //System.out.println("Page_container: " + beanAccess.getPageContainerRepository().count());
                     System.out.println("Page: " + beanAccess.getPageRepository().count());
                 } else
                     break;
-
             }
         }
+
+        List<Page> savePage = readyPage.stream().toList();
+        boolean r = batchUpdate(savePage);
+
+        System.out.println("Запись всех загруженных страниц: " + beanAccess.getPageRepository().count());
+
+        readyPage.removeAll(savePage);
+
+        this.interrupt();
+        System.out.println(getName() + " остановлен!");
     }
+
+    public void stopWriter() {
+        run = false;
+    }
+
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private boolean batchUpdate(List<Page> savePages) {
@@ -118,7 +131,7 @@ public class DBWriter extends Thread {
         });
 
         for (int i : results) {
-            System.out.print(i);
+            //System.out.print(i);
             if (i == 0) return false;
         }
 
