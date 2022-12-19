@@ -12,7 +12,7 @@ import java.util.List;
 public class PathTableRepository {
 
     private static final String SQL_REQUEST_RESULT_TABLE =
-            "with lemma_query as (select unnest(string_to_array(:includeLemma,';')) lemma), " +
+            "with lemma_query as (select unnest(string_to_array(:includeLemma,',')) lemma), " +
 
             "lemma_id_query as (select id lemma_id	from lemma " +
             "join lemma_query on (lemma.lemma = lemma_query.lemma) " +
@@ -37,9 +37,12 @@ public class PathTableRepository {
     private PathTableMapper pathTableMapper;
 
     public List<PathTable> getResultTable(Integer siteId, String includeLemma, String includePageId) {
-        return jdbcTemplate.query(SQL_REQUEST_RESULT_TABLE
+        String sql = SQL_REQUEST_RESULT_TABLE
                 .replace(":includeLemma", includeLemma)
                 .replace(":siteId", siteId.toString())
-                .replace(":includePageId", includePageId),pathTableMapper);
+                .replace(":includePageId", includePageId);
+
+        System.out.println(sql);
+        return jdbcTemplate.query(sql,pathTableMapper);
     }
 }

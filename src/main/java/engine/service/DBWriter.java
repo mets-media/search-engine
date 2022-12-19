@@ -21,12 +21,8 @@ public class DBWriter extends Thread {
     private final ConcurrentLinkedQueue<Page> readyPage;
     private final Integer batchSize;
     private final boolean checkPartOfSpeech;
-    private  List<String> listLemmaString = new ArrayList<>();
+    private final List<String> listLemmaString = new ArrayList<>();
     private final Lemmatization lemmatizator;
-
-    public boolean isRun() {
-        return run;
-    }
 
     private boolean run;
 
@@ -60,20 +56,20 @@ public class DBWriter extends Thread {
 
                 List<Page> savePage = readyPage.stream().limit(batchSize).toList();
 
-                boolean r = batchUpdate(savePage);
+                try {
+                    batchUpdate(savePage);
+                } catch (Exception e) {
+                    //e.printStackTrace();
+                }
 
-                if (r) {
-                    if (readyPage.removeAll(savePage))
-                        System.out.println("readyPage.removeAll(savePage) - Ok");
+                readyPage.removeAll(savePage);
+                System.out.printf("Page содержит %d страниц\n", beanAccess.getPageRepository().count());
 
-                    System.out.println("Page: " + beanAccess.getPageRepository().count());
-                } else
-                    break;
             }
         }
 
         List<Page> savePage = readyPage.stream().toList();
-        boolean r = batchUpdate(savePage);
+        batchUpdate(savePage);
 
         System.out.println("Запись всех загруженных страниц: " + beanAccess.getPageRepository().count());
 
@@ -91,7 +87,7 @@ public class DBWriter extends Thread {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private boolean batchUpdate(List<Page> savePages) {
 
-        System.out.println("siteId " + savePages.get(0).getSiteId() + ", name = "+ getName());
+        System.out.println("siteId " + savePages.get(0).getSiteId() + ", name = " + getName());
 
         String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
         //int[] results = beanAccess.getJdbcTemplate().batchUpdate(sql, new InterruptibleBatchPreparedStatementSetter() {
@@ -105,7 +101,14 @@ public class DBWriter extends Thread {
                 ps.setInt(1, siteId);
                 Integer code = page.getCode();
                 ps.setInt(2, code);
-                ps.setString(3, page.getPath());
+
+                String path = page.getPath();
+                if (path.length() > 255) {
+                    System.out.println(path);
+                    System.out.printf("длина более 255 символов: %d ссылка будет сокращена до 255 ", path.length());
+                    path = path.substring(0,255);
+                }
+                ps.setString(3, path);
                 String content = page.getContent();
                 ps.setString(4, content);
 
