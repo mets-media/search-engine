@@ -41,6 +41,8 @@ public class BeanAccess {
     @Autowired
     StatusRepository statusRepository;
     @Autowired
+    KeepLinkRepository keepLinkRepository;
+    @Autowired
     YAMLConfig yamlConfig;
     @PersistenceContext
     EntityManager entityManager;

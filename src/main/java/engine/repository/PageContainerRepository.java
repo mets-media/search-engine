@@ -86,7 +86,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\twith page_insert as (\n" +
             "    insert into PAGE (Site_id, Path, Code, Content)\n" +
             "\tvalues (new.site_id, new.path, new.code, new.content)\n" +
-            "\ton conflict on constraint siteId_path_unique do nothing\n" +
+            "\t--on conflict on constraint siteId_path_unique do nothing\n" +
             "\treturning id)\n" +
             "    select id from page_insert into page_id; \n" +
             "\tfor lemmainfo in select unnest(string_to_array(new.lemmatization,';'))\n" +
@@ -116,7 +116,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "END;    \n" +
             "$BODY$;\n" +
             "\n" +
-            "CREATE TRIGGER page_trigger\n" +
+            "CREATE or replace TRIGGER page_trigger\n" +
             "    AFTER INSERT\n" +
             "    ON public.page_container\n" +
             "    FOR EACH ROW\n" +
@@ -131,5 +131,6 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
     Integer parsePageContainer();
 
 
+    Integer countBySiteId(Integer siteId);
 
 }

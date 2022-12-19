@@ -14,18 +14,13 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
-import engine.repository.*;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Parser;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.io.FileUtils;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
