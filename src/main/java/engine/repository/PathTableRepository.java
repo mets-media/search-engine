@@ -37,12 +37,9 @@ public class PathTableRepository {
     private PathTableMapper pathTableMapper;
 
     public List<PathTable> getResultTable(Integer siteId, String includeLemma, String includePageId) {
-        String sql = SQL_REQUEST_RESULT_TABLE
+        return jdbcTemplate.query(SQL_REQUEST_RESULT_TABLE
                 .replace(":includeLemma", includeLemma)
                 .replace(":siteId", siteId.toString())
-                .replace(":includePageId", includePageId);
-
-        System.out.println(sql);
-        return jdbcTemplate.query(sql,pathTableMapper);
+                .replace(":includePageId", includePageId),pathTableMapper);
     }
 }

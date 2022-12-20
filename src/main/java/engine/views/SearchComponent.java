@@ -252,6 +252,7 @@ public class SearchComponent {
             String includeLemma = stringBuilder.toString();
 
 
+
             if (includeLemma.isEmpty()) {
                 relevanceGrid.setItems(new ArrayList<>());
                 relevanceGrid.getColumns().get(2).setHeader("Страницы");

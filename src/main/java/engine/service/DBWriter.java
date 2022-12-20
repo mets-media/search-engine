@@ -3,7 +3,6 @@ package engine.service;
 import engine.entity.Page;
 import engine.entity.PartsOfSpeech;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.InterruptibleBatchPreparedStatementSetter;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +22,8 @@ public class DBWriter extends Thread {
     private final boolean checkPartOfSpeech;
     private final List<String> listLemmaString = new ArrayList<>();
     private final Lemmatization lemmatizator;
+    private final List<Page> preparePages = new ArrayList<>();
+    private final List<String> lemmaStrings = new ArrayList<>();
 
     private boolean run;
 
@@ -43,8 +44,7 @@ public class DBWriter extends Thread {
         run = true;
         System.out.println("Запуск dbWriter " + getName());
 
-        while (run) {
-
+        while (run) {//===========================================================================================
             while (readyPage.size() == 0)
                 try {
                     Thread.sleep(1000);
@@ -52,8 +52,21 @@ public class DBWriter extends Thread {
                     throw new RuntimeException(e);
                 }
 
-            if (readyPage.size() > batchSize) {
+//          Новый вариант - с заранее подготовленными строками лемматизации
+//
+//            readyPage.stream().findFirst().ifPresent(page -> {
+//                preparePages.add(page);
+//                lemmaStrings.add(getLemmaString(page.getContent(), lemmatizator));
+//                //Удаление обработанной страницы
+//                readyPage.remove(page);
+//            });
+//
+//            if (preparePages.size() >= batchSize) {
+//                batchUpdate(preparePages, lemmaStrings);
+//            }
 
+
+            if (readyPage.size() > batchSize) {
                 List<Page> savePage = readyPage.stream().limit(batchSize).toList();
 
                 try {
@@ -63,11 +76,11 @@ public class DBWriter extends Thread {
                 }
 
                 readyPage.removeAll(savePage);
-                System.out.printf("Page содержит %d страниц\n", beanAccess.getPageRepository().count());
-
+                System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
             }
-        }
+        }//========================================================================================================
 
+        //Прерывание бесконечного цикла по run = false
         List<Page> savePage = readyPage.stream().toList();
         batchUpdate(savePage);
 
@@ -87,7 +100,7 @@ public class DBWriter extends Thread {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private boolean batchUpdate(List<Page> savePages) {
 
-        System.out.println("siteId " + savePages.get(0).getSiteId() + ", name = " + getName());
+        System.out.println("Запись данных; name = " + getName());
 
         String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
         //int[] results = beanAccess.getJdbcTemplate().batchUpdate(sql, new InterruptibleBatchPreparedStatementSetter() {
@@ -106,7 +119,7 @@ public class DBWriter extends Thread {
                 if (path.length() > 255) {
                     System.out.println(path);
                     System.out.printf("длина более 255 символов: %d ссылка будет сокращена до 255 ", path.length());
-                    path = path.substring(0,255);
+                    path = path.substring(0, 255);
                 }
                 ps.setString(3, path);
                 String content = page.getContent();
@@ -140,6 +153,58 @@ public class DBWriter extends Thread {
 
         return true;
     }
+
+    private boolean batchUpdate(List<Page> preparePages, List<String> lemmaStrings) {
+
+        System.out.println("Запись данных; name = " + getName());
+
+        String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
+        //int[] results = beanAccess.getJdbcTemplate().batchUpdate(sql, new InterruptibleBatchPreparedStatementSetter() {
+        int[] results = beanAccess.getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Page page = preparePages.get(i);
+
+                Integer siteId = page.getSiteId();
+                ps.setInt(1, siteId);
+                Integer code = page.getCode();
+                ps.setInt(2, code);
+
+                String path = page.getPath();
+                if (path.length() > 255) {
+                    System.out.println(path);
+                    System.out.printf("длина более 255 символов: %d ссылка будет сокращена до 255 ", path.length());
+                    path = path.substring(0, 255);
+                }
+                ps.setString(3, path);
+                String content = page.getContent();
+                ps.setString(4, content);
+
+                ps.setString(5, lemmaStrings.get(i));
+            }
+
+            @Override
+            public int getBatchSize() {
+                return preparePages.size();
+            }
+
+//            @Override
+//            public boolean isBatchExhausted(int i) {
+//                if (i < batchSize) return true;
+//                else return false;
+//            }
+
+        });
+
+        for (int i : results) {
+            //System.out.print(i);
+            if (i == 0) return false;
+        }
+
+        return true;
+    }
+
 
     private Lemmatization getNewLemmatizator() {
         List<String> excludeList = null;
