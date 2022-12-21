@@ -1,4 +1,4 @@
-package engine.views;
+package engine.view;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -14,7 +14,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import engine.entity.Config;
 import engine.repository.ConfigRepository;
 import lombok.Getter;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static engine.views.CreateUI.showMessage;
+import static engine.view.CreateUI.showMessage;
 
 @Getter
 public class ConfigComponent {

@@ -7,7 +7,7 @@ import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import engine.entity.*;
-import engine.views.CreateUI;
+import engine.view.CreateUI;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.nodes.Document;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;

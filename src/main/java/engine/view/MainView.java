@@ -1,4 +1,4 @@
-package engine.views;
+package engine.view;
 
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;

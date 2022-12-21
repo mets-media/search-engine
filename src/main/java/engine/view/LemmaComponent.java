@@ -1,4 +1,4 @@
-package engine.views;
+package engine.view;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;

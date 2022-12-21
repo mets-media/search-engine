@@ -4,11 +4,89 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Оптимизация">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="DBWriter +">
+      <change afterPath="$PROJECT_DIR$/src/main/java/engine/controller/DefaultController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/css/basic.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/css/extra.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/css/fonts.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Black.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Black.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Black.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Black.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Black.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Black.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Bold.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Bold.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Bold.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Bold.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Bold.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Bold.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraBold.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraBold.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraBold.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraBold.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraBold.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraBold.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraLight.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraLight.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraLight.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraLight.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraLight.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-ExtraLight.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Light.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Light.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Light.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Light.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Light.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Light.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Medium.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Medium.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Medium.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Medium.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Medium.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Medium.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Regular.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Regular.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Regular.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Regular.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Regular.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Regular.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-SemiBold.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-SemiBold.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-SemiBold.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-SemiBold.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-SemiBold.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-SemiBold.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Thin.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Thin.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Thin.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Thin.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Thin.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/fonts/Montserrat/Montserrat-Thin.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/img/icons/arrow_hide.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/img/icons/cancel.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/img/icons/checked.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/img/icons/dashboard.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/img/icons/management.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/img/icons/pause.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/img/icons/search.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/js/scripts.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/plg/form/jquery.form.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/plg/form/jquery.maskedinput.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/plg/jQuery/jquery-3.5.0.slim.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/assets/plg/jQuery/jquery-3.5.1.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PathTableRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PathTableRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/DBWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/DBWriter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/views/SearchComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/ConfigComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/ConfigComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/CreateUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/CreateUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/IndexingComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/IndexingComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/LemmaComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/MainView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/StartBrowser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/StartBrowser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/views/TabContainer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/TabContainer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,13 +194,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00007" summary="adds morph dependencies">
-      <created>1665897440917</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1665897440917</updated>
     </task>
     <task id="LOCAL-00008" summary="Morph dependencies. Version with HashMap-cash.">
       <created>1666143637480</created>
@@ -460,7 +531,14 @@
       <option name="project" value="LOCAL" />
       <updated>1671479864169</updated>
     </task>
-    <option name="localTasksCounter" value="56" />
+    <task id="LOCAL-00056" summary="DBWriter +">
+      <created>1671504833637</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1671504833641</updated>
+    </task>
+    <option name="localTasksCounter" value="57" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -496,28 +574,29 @@
     <MESSAGE value="Application.yaml" />
     <MESSAGE value="dbWriter - отдельным потоком" />
     <MESSAGE value="Оптимизация" />
-    <option name="LAST_COMMIT_MESSAGE" value="Оптимизация" />
+    <MESSAGE value="DBWriter +" />
+    <option name="LAST_COMMIT_MESSAGE" value="DBWriter +" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/views/confirmDialog.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/engine/view/confirmDialog.java</url>
           <line>18</line>
           <option name="timeStamp" value="55" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/views/IndexingComponent.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/engine/view/IndexingComponent.java</url>
           <line>136</line>
           <option name="timeStamp" value="71" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java</url>
           <line>196</line>
           <option name="timeStamp" value="90" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java</url>
           <line>199</line>
           <option name="timeStamp" value="91" />
         </line-breakpoint>

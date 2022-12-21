@@ -1,4 +1,4 @@
-package engine.views;
+package engine.view;
 
 import java.awt.*;
 import java.io.IOException;

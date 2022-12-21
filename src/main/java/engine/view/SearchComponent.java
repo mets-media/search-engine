@@ -1,4 +1,4 @@
-package engine.views;
+package engine.view;
 
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -21,7 +21,6 @@ import com.vaadin.flow.data.renderer.NumberRenderer;
 import engine.entity.Lemma;
 import engine.entity.PathTable;
 import engine.entity.Site;
-import engine.repository.*;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Lemmatization;

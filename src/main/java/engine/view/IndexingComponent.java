@@ -1,4 +1,4 @@
-package engine.views;
+package engine.view;
 
 
 import com.vaadin.flow.component.button.Button;
@@ -18,10 +18,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import engine.entity.Field;
 import engine.entity.Page;
 import engine.entity.Site;
-import engine.repository.FieldRepository;
-import engine.repository.PageRepository;
-import engine.repository.PartOfSpeechRepository;
-import engine.repository.SiteRepository;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Lemmatization;
@@ -31,8 +27,6 @@ import org.jsoup.select.Elements;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static engine.views.CreateUI.showMessage;
+import static engine.view.CreateUI.showMessage;
 
 
 public class IndexingComponent {

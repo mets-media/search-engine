@@ -1,4 +1,4 @@
-package engine.views;
+package engine.view;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasComponents;

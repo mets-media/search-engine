@@ -1,4 +1,4 @@
-package engine.views;
+package engine.view;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.START;
-import static engine.views.CreateUI.showMessage;
+import static engine.view.CreateUI.showMessage;
 
 @Getter
 @Setter
