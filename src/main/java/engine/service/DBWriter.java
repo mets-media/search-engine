@@ -58,6 +58,8 @@ public class DBWriter extends Thread {
                     //Записать длинную ссылку
                     //longLinkRepository
                 }
+                //Исключение ошибки 0x00 UTF-8
+                page.setContent(page.getContent().replaceAll("\u0000", ""));
 
                 preparePages.add(page);
                 lemmaStrings.add(getLemmaString(page.getContent(), lemmatizator));
@@ -198,10 +200,9 @@ public class DBWriter extends Thread {
                 }
 
                 ps.setString(3, path);
+
                 String content = page.getContent();
-                if (content == null) {
-                    System.out.println("Content is null !!!");
-                }
+
                 ps.setString(4, content);
 
                 ps.setString(5, lemmaStrings.get(i));

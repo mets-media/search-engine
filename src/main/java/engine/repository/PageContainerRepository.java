@@ -86,7 +86,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\twith page_insert as (\n" +
             "    insert into PAGE (Site_id, Path, Code, Content)\n" +
             "\tvalues (new.site_id, new.path, new.code, new.content)\n" +
-            "\t--on conflict on constraint siteId_path_unique do nothing\n" +
+            "\ton conflict on constraint siteId_path_unique do nothing\n" +
             "\treturning id)\n" +
             "    select id from page_insert into page_id; \n" +
             "\tfor lemmainfo in select unnest(string_to_array(new.lemmatization,';'))\n" +
