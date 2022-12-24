@@ -9,10 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 public class DBWriter extends Thread {
@@ -24,6 +26,10 @@ public class DBWriter extends Thread {
     private final Lemmatization lemmatizator;
     private final List<Page> preparePages = new ArrayList<>();
     private final List<String> lemmaStrings = new ArrayList<>();
+
+    private final List<Page> errorInsertPage = new ArrayList<>();
+    private final List<String> errorLemmaString = new ArrayList<>();
+
 
     private boolean run;
 
@@ -67,14 +73,28 @@ public class DBWriter extends Thread {
             });
 
             if (preparePages.size() >= batchSize) {
-
-
+                int[] results = new int[0];
                 try {
-                    batchUpdate(preparePages, lemmaStrings);
+                    results = batchUpdate(preparePages, lemmaStrings);
                 } catch (Exception e) {// Возникновении ошибки - транзакция откатывается => записываем по одной...
                     //throw new RuntimeException(e);
                     System.out.println(getName() + " Ошибка записи данных! => записываеи без общей транзакции");
-                    batchUpdateWithoutTransaction(preparePages, lemmaStrings);
+                    //Определяем в каком Insert ошибка
+
+
+
+                    Arrays.stream(results).dropWhile(i -> (i == 1)).forEach(i -> {
+                        errorInsertPage.add(preparePages.get(i));
+                        errorLemmaString.add(lemmaStrings.get(i));
+
+                        System.out.println("Страниц с ошибками: " + errorInsertPage.size());
+
+                        preparePages.remove(i);
+                        lemmaStrings.remove(i);
+                    });
+
+                    //Повторная попытка записать - произойдёт при следующем цикле!!!
+                    //batchUpdate(preparePages, lemmaStrings);
 
                 } finally {
                     preparePages.clear();
@@ -176,7 +196,7 @@ public class DBWriter extends Thread {
     }
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private boolean batchUpdate(List<Page> preparePages, List<String> lemmaStrings) {
+    private int[] batchUpdate(List<Page> preparePages, List<String> lemmaStrings) {
 
         System.out.println("Запись данных; name = " + getName());
 
@@ -215,59 +235,7 @@ public class DBWriter extends Thread {
 
         });
 
-        for (int i : results) {
-            //System.out.print(i);
-            if (i == 0) return false;
-        }
-
-        return true;
-    }//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private boolean batchUpdateWithoutTransaction(List<Page> preparePages, List<String> lemmaStrings) {
-
-        System.out.println("Запись данных; name = " + getName());
-
-        String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
-        int[] results = beanAccess.getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                Page page = preparePages.get(i);
-
-                System.out.println("Запись из пакета  " + i + ":    " + page.getPath());
-
-                Integer siteId = page.getSiteId();
-                ps.setInt(1, siteId);
-                Integer code = page.getCode();
-                ps.setInt(2, code);
-
-                String path = page.getPath();
-                if (path.length() > 255) {
-                    System.out.println(path);
-                    System.out.printf("длина более 255 символов: %d ссылка будет сокращена до 255 ", path.length());
-                    path = path.substring(0, 255);
-                }
-
-                ps.setString(3, path);
-                String content = page.getContent();
-                ps.setString(4, content);
-
-                ps.setString(5, lemmaStrings.get(i));
-            }
-
-            @Override
-            public int getBatchSize() {
-                return preparePages.size();
-            }
-
-        });
-
-        for (int i : results) {
-            //System.out.print(i);
-            if (i == 0) return false;
-        }
-
-        return true;
+        return results;
     }//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 

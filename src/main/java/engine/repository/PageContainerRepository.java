@@ -103,9 +103,10 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t\t\t\treturning id)\n" +
             "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
             "\n" +
+            "\n--if (page_id != null) then\n" +
             "\t\t\tinsert into INDEX (page_id, lemma_id, rank) \n" +
             "\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
-            "\n" +
+            "\n--end if;" +
             "\n" +
             "\t\tend if;\n" +
             "\tend loop;\n" +
