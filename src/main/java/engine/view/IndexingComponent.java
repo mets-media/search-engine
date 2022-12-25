@@ -40,12 +40,6 @@ import static engine.view.CreateUI.showMessage;
 public class IndexingComponent {
 
     private static BeanAccess beanAccess;
-
-//    private static PartOfSpeechRepository partOfSpeechRepository;
-//    private static SiteRepository siteRepository;
-//    private static PageRepository pageRepository;
-//    private static FieldRepository fieldRepository;
-//    private static EntityManager entityManager;
     private final VerticalLayout mainLayout;
     private final Grid<Field> fieldGrid = new Grid<>(Field.class, false);
     private Grid<Page> grid = null;

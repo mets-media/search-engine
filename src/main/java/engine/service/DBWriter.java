@@ -93,7 +93,7 @@ public class DBWriter extends Thread {
                         lemmaStrings.remove(i);
                     });
 
-                    //Повторная попытка записать - произойдёт при следующем цикле!!!
+                    //Повторная попытка записи произойдёт при следующем цикле!!!
                     //batchUpdate(preparePages, lemmaStrings);
 
                 } finally {

@@ -1,6 +1,5 @@
 package engine.repository;
 
-import engine.entity.Page;
 import engine.entity.PageContainer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -54,9 +53,13 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t\t\t\tdo update set Frequency = LEMMA.Frequency + 1\n" +
             "\t\t\t\treturning id)\n" +
             "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
-            "\t\n" +
+
+            "\n" +
+            "\t\t\n--if (page_id != null) then\n" +
             "\t\t\tinsert into INDEX (page_id, lemma_id, rank) \n" +
             "\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
+            "\t\t\n--end if;\n" +
+
             "\t\tend if;\t\n" +
             "\tend loop;\n" +
             "\tdelete from page_container where id = container.id;\n" +
@@ -106,7 +109,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\n--if (page_id != null) then\n" +
             "\t\t\tinsert into INDEX (page_id, lemma_id, rank) \n" +
             "\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
-            "\n--end if;" +
+            "\n--end if;\n" +
             "\n" +
             "\t\tend if;\n" +
             "\tend loop;\n" +

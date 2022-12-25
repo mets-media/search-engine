@@ -36,16 +36,8 @@ public class SearchComponent {
 
     private static BeanAccess beanAccess;
     private ComboBox<Site> siteComboBox = null;
-    private static final HashMap<String, List<String>> pagesHashMap = new HashMap<>();
-    private static final HashMap<String, List<Integer>> pageIdHashMap = new HashMap<>();
-
-//    private static SiteRepository siteRepository;
-//    private static PageRepository pageRepository;
-//    private static LemmaRepository lemmaRepository;
-//    private static PathTableRepository pathTableRepository;
-//    private static PartOfSpeechRepository partOfSpeechRepository;
-
-
+    private final HashMap<String, List<String>> pagesHashMap = new HashMap<>();
+    private final HashMap<String, List<Integer>> pageIdHashMap = new HashMap<>();
     private final VerticalLayout mainLayout;
     private final HorizontalLayout requestLayout = new HorizontalLayout();
     private final HorizontalLayout gridsLayout = new HorizontalLayout();
@@ -57,7 +49,7 @@ public class SearchComponent {
     private final TextField lemmaCountTextField = new TextField("Количество лемм");
     private final TextField requestTextField = new TextField("Поисковый запрос");
 
-    private static final TextArea htmlTextArea = new TextArea("Snippet: <b> tag");
+    private final TextArea htmlTextArea = new TextArea("Snippet: <b> tag");
 
 
     public SearchComponent() {
