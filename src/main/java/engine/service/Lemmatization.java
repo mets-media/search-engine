@@ -11,7 +11,6 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import static engine.service.HtmlParsing.getRussianWords;
 

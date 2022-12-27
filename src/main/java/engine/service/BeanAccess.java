@@ -1,7 +1,9 @@
 package engine.service;
 
+import com.vaadin.flow.component.UI;
 import engine.config.YAMLConfig;
 import engine.repository.*;
+import engine.view.SiteComponent;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,12 +48,20 @@ public class BeanAccess {
     YAMLConfig yamlConfig;
     @PersistenceContext
     EntityManager entityManager;
-
+    @Autowired
+    SiteComponent siteComponent;
     private TransactionTemplate transactionTemplate;
+
+    public void setUi(UI ui) {
+        this.ui = ui;
+    }
+
+    private UI ui;
 
     @PostConstruct
     private void setPrivateVariable() {
         transactionTemplate = new TransactionTemplate(transactionManager);
+
     }
 }
 

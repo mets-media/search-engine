@@ -75,18 +75,6 @@ public class SearchComponent {
         SearchComponent.beanAccess = beanAccess;
     }
 
-//            PageRepository pRepository,
-//                                     SiteRepository sRepository,
-//                                     LemmaRepository lRepository,
-//                                     PartOfSpeechRepository posRepository,
-//                                     PathTableRepository ptRepository) {
-//        pageRepository = pRepository;
-//        siteRepository = sRepository;
-//        lemmaRepository = lRepository;
-//        partOfSpeechRepository = posRepository;
-//        pathTableRepository = ptRepository;
-//    }
-
     private VerticalLayout createSearchComponent() {
 
         pageCountTextField.setReadOnly(true);
@@ -171,7 +159,6 @@ public class SearchComponent {
                 setResizable(true);
 
         HeaderRow headerRow = relevanceGrid.prependHeaderRow();
-//        headerRow.join(absRelevanceColumn, relRelevanceColumn).setText("Релевантность");
 
         Div simpleCell = new Div();
         simpleCell.setText("Релевантность");

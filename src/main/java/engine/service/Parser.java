@@ -1,5 +1,6 @@
 package engine.service;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -111,14 +112,13 @@ public class Parser extends RecursiveAction {
 
         pageHashMap.put(siteId, new ConcurrentLinkedQueue<>());
 
-        //errorLinksHashMap.put(siteId, new ConcurrentSkipListSet<>());
         errorLinksHashMap.put(siteId, new ConcurrentHashMap<>());
 
         dbWriterHashMap.put(siteId, new DBWriter("DBWriter[" + HtmlParsing.getDomainName(site.getUrl())  + "]", beanAccess, pageHashMap.get(siteId), batchSize, checkPartOfSpeech));
-
     }
 
     public static void start(Site site) {
+
         String path = site.getUrl();
         String domainName = HtmlParsing.getDomainName(path);
 
@@ -127,7 +127,7 @@ public class Parser extends RecursiveAction {
 
         //Инициализация статических переменных для класса Parser
         initSite(site, readyLinksFilename, stopLinksFilename);
-        //ConcurrentHashMap<String, Page> readyLinks = readyLinksHashMap.get(site.getId());
+
         var readyLinks = readyLinksHashMap.get(site.getId());
 
         int pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
@@ -154,9 +154,9 @@ public class Parser extends RecursiveAction {
 
         ConcurrentSkipListSet<String> stopLinks = inProcessLinksHashMap.get(site.getId());
 
-        stopLinks.addAll(beanAccess.getKeepLinkRepository().getPathsBySiteId(site.getId()));
+        stopLinks.addAll(beanAccess.getKeepLinkRepository().getPathsBySiteId(site.getId(), LinkStatus.ON_STOP_SCAN_LINK.ordinal()));
 
-        stopLinks.addAll(beanAccess.getKeepLinkRepository().getPathsBySiteId(site.getId()));
+        //stopLinks.addAll(beanAccess.getKeepLinkRepository().getPathsBySiteId(site.getId()));
 
         if (!(stopLinks.size() == 0)) {
             stopLinks.forEach(p -> {
@@ -165,6 +165,7 @@ public class Parser extends RecursiveAction {
             });
             beanAccess.getKeepLinkRepository().deleteBySiteId(site.getId());
             stopLinks.clear();
+
             DBWriter dbWriter = dbWriterHashMap.get(site.getId());
             dbWriter.start();
         }
@@ -173,16 +174,17 @@ public class Parser extends RecursiveAction {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public static void writeToKeepLink(Integer siteId, List<String> links) {
+    public static void writeToKeepLink(Integer siteId, LinkStatus status, List<String> links) {
         System.out.println("Записываю: " + links.size());
-        String sql = "Insert into Keep_Link (Site_Id, Path) values (?,?)";
+        String sql = "Insert into Keep_Link (Site_Id, Status, Path) values (?,?,?)";
 
         int[] result = beanAccess.getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 String link = links.get(i);
                 ps.setInt(1, siteId);
-                ps.setString(2, link);
+                ps.setInt(2, status.ordinal());
+                ps.setString(3, link);
             }
 
             @Override
@@ -196,9 +198,12 @@ public class Parser extends RecursiveAction {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public static void writeToKeepLinkHM(Integer siteId, List<String> links, List<Integer> codes) {
+    public static void writeToKeepLinkHM(Integer siteId,
+                                         List<String> links,
+                                         List<Integer> codes,
+                                         LinkStatus status) {
         System.out.println("Записываю: " + links.size());
-        String sql = "Insert into Keep_Link (Site_Id, Path, Code) values (?,?,?)";
+        String sql = "Insert into Keep_Link (Site_Id, Path, Code, Status) values (?,?,?,?)";
 
         int[] result = beanAccess.getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
@@ -206,6 +211,7 @@ public class Parser extends RecursiveAction {
                 ps.setInt(1, siteId);
                 ps.setString(2, links.get(i));
                 ps.setInt(3, codes.get(i));
+                ps.setInt(4, status.ordinal());
             }
 
             @Override
@@ -287,10 +293,9 @@ public class Parser extends RecursiveAction {
                 //Записать inProcessLinks включая текущую - она последняя
                 System.out.println("Запись inProcessLink");
                 inProcessLinks.add(path);
-                writeToKeepLink(siteId, inProcessLinks.stream().toList());
+                writeToKeepLink(siteId, LinkStatus.ON_STOP_SCAN_LINK, inProcessLinks.stream().toList());
 
                 System.out.println("Запись errorLinks");
-                //writeToKeepLink(siteId, errorLinksHashMap.get(siteId).stream().toList());
 
                 List<String> links = new ArrayList<>();
                 List<Integer> codes = new ArrayList<>();
@@ -300,7 +305,7 @@ public class Parser extends RecursiveAction {
                     codes.add(eLink.getValue());
                 });
 
-                writeToKeepLinkHM(siteId, links, codes);
+                writeToKeepLinkHM(siteId, links, codes, LinkStatus.ERROR_LINK);
 
                 System.out.println("readyPage.size: " + readyPages.size());
                 System.out.println("inProccesLinks: " + inProcessLinks.size());

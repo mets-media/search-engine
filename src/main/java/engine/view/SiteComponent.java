@@ -1,5 +1,6 @@
 package engine.view;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -10,6 +11,7 @@ import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import engine.entity.Site;
@@ -20,6 +22,8 @@ import engine.service.Parser;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.io.FileUtils;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,15 +39,18 @@ import java.util.stream.Stream;
 import static com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.START;
 import static engine.view.CreateUI.showMessage;
 
+@Component
 @Getter
 @Setter
 public class SiteComponent {
     private static BeanAccess beanAccess;
     private final VerticalLayout mainLayout;
     private final Grid<Site> grid;
+
     public static void setDataAccess(BeanAccess beanAccess) {
         SiteComponent.beanAccess = beanAccess;
     }
+
     public SiteComponent() {
 
         mainLayout = CreateUI.getMainLayout();
@@ -65,9 +72,20 @@ public class SiteComponent {
 //        grid.addColumn(Site::getPageCount).setHeader("Страниц в базе").setResizable(true)
 //                .setTextAlign(ColumnTextAlign.CENTER);
 
+
         grid.addColumn(Site::getStatus).setHeader("Статус").setResizable(true)
                 .setTextAlign(ColumnTextAlign.CENTER);
 
+        grid.addComponentColumn(item -> {
+            ProgressBar progressBar = new ProgressBar();
+            progressBar.setIndeterminate(false);
+            progressBar.setMin(0l);
+            progressBar.setMax(100l);
+            progressBar.setValue(0l);
+            progressBar.setVisible(true);
+            return progressBar;
+
+        });
 
         //grid.addColumn(new LocalDateTimeRenderer<>((ValueProvider<Site, LocalDateTime>) site ->
         //        site.getStatusTime())).setHeader("Дата статуса ").setResizable(true);
@@ -121,10 +139,14 @@ public class SiteComponent {
         parseButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         parseButton.addClickListener(buttonClickEvent -> {
+
+
             Parser.setDataAccess(grid, beanAccess);
 
             Set<Site> selectedSites = grid.getSelectedItems();
             selectedSites.forEach(site -> {
+                //grid.getColumns().get(3).getElement().setE
+
                 grid.deselect(site); //после модификации - другой "site" - выделение не снимется
                 Parser.getStopList().remove(site);
 
@@ -133,6 +155,8 @@ public class SiteComponent {
                 Parser.start(site);
             });
             grid.setItems(beanAccess.getSiteRepository().findAll());
+
+            //grid.getColumns().get(3).
         });
 
         //========================= СТОП СКАНИРОВАНИЕ ==========================================
@@ -253,7 +277,6 @@ public class SiteComponent {
             fieldsCount++;
         }
 
-
         dialog.add(verticalLayout);
 
         dialog.open();
@@ -354,6 +377,5 @@ public class SiteComponent {
         return new ComponentRenderer<>(SiteDetailFormLayout::new,
                 SiteDetailFormLayout::setSite);
     }
-
 
 }

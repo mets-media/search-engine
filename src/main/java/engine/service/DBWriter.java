@@ -1,17 +1,18 @@
 package engine.service;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.notification.Notification;
 import engine.entity.Page;
 import engine.entity.PartsOfSpeech;
+import engine.view.CreateUI;
+import engine.view.SiteComponent;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -19,6 +20,8 @@ import java.util.stream.IntStream;
 
 public class DBWriter extends Thread {
     private final BeanAccess beanAccess;
+
+
     private final ConcurrentLinkedQueue<Page> readyPage;
     private final Integer batchSize;
     private final boolean checkPartOfSpeech;
@@ -78,10 +81,9 @@ public class DBWriter extends Thread {
                     results = batchUpdate(preparePages, lemmaStrings);
                 } catch (Exception e) {// Возникновении ошибки - транзакция откатывается => записываем по одной...
                     //throw new RuntimeException(e);
-                    System.out.println(getName() + " Ошибка записи данных! => записываеи без общей транзакции");
+                    e.printStackTrace();
+                    System.out.println(getName() + " Ошибка записи данных! => записываем без общей транзакции");
                     //Определяем в каком Insert ошибка
-
-
 
                     Arrays.stream(results).dropWhile(i -> (i == 1)).forEach(i -> {
                         errorInsertPage.add(preparePages.get(i));
@@ -93,12 +95,17 @@ public class DBWriter extends Thread {
                         lemmaStrings.remove(i);
                     });
 
-                    //Повторная попытка записи произойдёт при следующем цикле!!!
-                    //batchUpdate(preparePages, lemmaStrings);
+                    //Повторная попытка записи произойдёт в следующем цикле
 
                 } finally {
-                    preparePages.clear();
+
+                    int siteId = preparePages.get(0).getSiteId();
+                    int pageCount = beanAccess.getPageRepository().countBySiteId(siteId);
+                    beanAccess.getSiteRepository().setPageCountBySiteId(siteId, pageCount);
+
                     System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
+
+                    preparePages.clear();
                 }
             }
 
@@ -194,6 +201,7 @@ public class DBWriter extends Thread {
 
         return true;
     }
+
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private int[] batchUpdate(List<Page> preparePages, List<String> lemmaStrings) {

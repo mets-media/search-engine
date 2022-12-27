@@ -1,5 +1,6 @@
 package engine.view;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.H1;
@@ -90,6 +91,7 @@ public class MainView extends AppLayout {
                 Parser.start(site);
             });
         }
+        beanAccess.setUi(UI.getCurrent());
     }
 
     public MainView() {
