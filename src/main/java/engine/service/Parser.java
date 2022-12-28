@@ -338,7 +338,7 @@ public class Parser extends RecursiveAction {
                 beanAccess.getSiteRepository().save(site);
                 System.out.println("Не удалось загрузить стартовую страницу");
             } else {
-                site.setStatus(SiteStatus.LOADED);
+                site.setStatus(SiteStatus.INDEXED);
                 beanAccess.getSiteRepository().save(site);
                 stop(site);
                 System.out.println(site.getUrl() + " -> Загрузка завершена.");

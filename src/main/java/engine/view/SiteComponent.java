@@ -1,6 +1,5 @@
 package engine.view;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -22,7 +21,6 @@ import engine.service.Parser;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.io.FileUtils;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -83,6 +81,32 @@ public class SiteComponent {
             progressBar.setMax(100l);
             progressBar.setValue(0l);
             progressBar.setVisible(true);
+
+            progressBar.addAttachListener(attachEvent -> {
+                switch ((SiteStatus)item.getStatus()) {
+                    case INDEXING -> {
+                        progressBar.setIndeterminate(true);
+                    }
+                    case INDEXED -> {
+                        progressBar.setIndeterminate(false);
+                        progressBar.setValue(100L);
+                    }
+                    case STOPPED -> {
+                        progressBar.setIndeterminate(false);
+                        progressBar.setValue(10L);
+                    }
+                    default -> {
+                        progressBar.setIndeterminate(false);
+                        progressBar.setValue(0l);
+                    }
+                }
+
+//                if (item.getStatus() == SiteStatus.DOWNLOADING) {
+//                    progressBar.setIndeterminate(true);
+//                }
+            });
+
+
             return progressBar;
 
         });
@@ -150,7 +174,7 @@ public class SiteComponent {
                 grid.deselect(site); //после модификации - другой "site" - выделение не снимется
                 Parser.getStopList().remove(site);
 
-                site.setStatus(SiteStatus.DOWNLOADING);
+                site.setStatus(SiteStatus.INDEXING);
                 beanAccess.getSiteRepository().save(site);
                 Parser.start(site);
             });
@@ -174,7 +198,6 @@ public class SiteComponent {
                 beanAccess.getSiteRepository().save(site);
 
             });
-            //grid.getDataProvider().refreshAll();
             grid.setItems(beanAccess.getSiteRepository().findAll());
         });
         return buttons;

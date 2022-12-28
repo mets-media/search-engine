@@ -1,6 +1,7 @@
 package engine.service;
 
 import engine.entity.Field;
+import engine.entity.PartsOfSpeech;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.lucene.morphology.LuceneMorphology;
@@ -11,6 +12,7 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import static engine.service.HtmlParsing.getRussianWords;
 
@@ -147,5 +149,9 @@ public class Lemmatization {
         return htmlFields;
     }
 
+    public static Lemmatization getLemmatizator(List<String> excludeList, List<Field> fields) {
+        Lemmatization lemmatizator = new Lemmatization(excludeList, fields);
+        return lemmatizator;
+    }
 
 }

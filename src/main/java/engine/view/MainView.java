@@ -86,7 +86,7 @@ public class MainView extends AppLayout {
 
             listSites.forEach(site -> {
                 Parser.getStopList().remove(site);
-                site.setStatus(SiteStatus.DOWNLOADING);
+                site.setStatus(SiteStatus.INDEXING);
                 siteRepository.save(site);
                 Parser.start(site);
             });
@@ -128,8 +128,8 @@ public class MainView extends AppLayout {
                 }
                 case "Лемматизатор" -> {
                     if (!contentsHashMap.containsKey(label)) {
-                        LemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
-                        LemmaComponent lemmaComponent = new LemmaComponent();
+                        //LemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
+                        LemmaComponent lemmaComponent = new LemmaComponent(beanAccess);
                         setContent(lemmaComponent.getMainLayout());
                         contentsHashMap.put(label, lemmaComponent.getMainLayout());
                     }

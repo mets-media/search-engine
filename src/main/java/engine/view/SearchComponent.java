@@ -42,13 +42,11 @@ public class SearchComponent {
     private final HorizontalLayout requestLayout = new HorizontalLayout();
     private final HorizontalLayout gridsLayout = new HorizontalLayout();
     private final Grid<Lemma> lemmaGrid = new Grid<>(Lemma.class, false);
-
-    // private final Grid<String> pageGrid = new Grid<>(String.class, false);
     private final Grid<PathTable> relevanceGrid = new Grid<>(PathTable.class, false);
     private final TextField pageCountTextField = new TextField("Количество страниц");
     private final TextField lemmaCountTextField = new TextField("Количество лемм");
+    private final TextField indexCountTextField = new TextField("Таблица Index");
     private final TextField requestTextField = new TextField("Поисковый запрос");
-
     private final TextArea htmlTextArea = new TextArea("Snippet: <b> tag");
 
 
@@ -79,10 +77,13 @@ public class SearchComponent {
 
         pageCountTextField.setReadOnly(true);
         lemmaCountTextField.setReadOnly(true);
+        indexCountTextField.setReadOnly(true);
+
         var horizontalLayout = new HorizontalLayout(
                 createSiteComboBox(),
                 pageCountTextField,
-                lemmaCountTextField);
+                lemmaCountTextField,
+                indexCountTextField);
         horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         horizontalLayout.setSizeUndefined();
 
@@ -125,8 +126,11 @@ public class SearchComponent {
             int siteId = event.getValue().getId();
             Integer pageCount = beanAccess.getPageRepository().countBySiteId(siteId);
             Integer lemmaCount = beanAccess.getLemmaRepository().countBySiteId(siteId);
+            Integer indexCount = beanAccess.getIndexRepository().countBySiteId(siteId);
+
             pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
             lemmaCountTextField.setValue(new DecimalFormat("#,###").format(lemmaCount));
+            indexCountTextField.setValue(new DecimalFormat("#,###").format(indexCount));
         });
         return siteComboBox;
     }
@@ -228,8 +232,6 @@ public class SearchComponent {
             StringBuilder stringBuilder = new StringBuilder();
             selectionEvent.getAllSelectedItems().forEach(l -> stringBuilder.append(l.getLemma()).append(","));
             String includeLemma = stringBuilder.toString();
-
-
 
             if (includeLemma.isEmpty()) {
                 relevanceGrid.setItems(new ArrayList<>());

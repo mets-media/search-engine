@@ -55,7 +55,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
 
             "\n" +
-            "\t\t\nif (page_id != null) then\n" +
+            "\t\t\nif (page_id notnull) then\n" +
             "\t\t\tinsert into INDEX (page_id, lemma_id, rank) \n" +
             "\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
             "\t\t\nend if;\n" +
@@ -106,7 +106,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t\t\t\treturning id)\n" +
             "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
             "\n" +
-            "\n\tif (page_id != null) then\n" +
+            "\n\tif (page_id notnull) then\n" +
             "\t\t\tinsert into INDEX (page_id, lemma_id, rank) \n" +
             "\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
             "\n\tend if;\n" +
