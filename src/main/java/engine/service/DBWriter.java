@@ -62,66 +62,72 @@ public class DBWriter extends Thread {
                 }
 
 //          Новый вариант - с заранее подготовленными строками лемматизации
-            readyPage.stream().findFirst().ifPresent(page -> {
-                if (page.getPath().length() > 255) {
-                    //Записать длинную ссылку
-                    //longLinkRepository
-                }
-                //Исключение ошибки 0x00 UTF-8
-                page.setContent(page.getContent().replaceAll("\u0000", ""));
-
-                preparePages.add(page);
-                lemmaStrings.add(getLemmaString(page.getContent(), lemmatizator));
-                readyPage.remove(page); //Удаление обработанной страницы
-            });
-
-            if (preparePages.size() >= batchSize) {
-                int[] results = new int[0];
-                try {
-                    results = batchUpdate(preparePages, lemmaStrings);
-                } catch (Exception e) {// Возникновении ошибки - транзакция откатывается => записываем по одной...
-                    //throw new RuntimeException(e);
-                    e.printStackTrace();
-                    System.out.println(getName() + " Ошибка записи данных! => записываем без общей транзакции");
-                    //Определяем в каком Insert ошибка
-
-                    Arrays.stream(results).dropWhile(i -> (i == 1)).forEach(i -> {
-                        errorInsertPage.add(preparePages.get(i));
-                        errorLemmaString.add(lemmaStrings.get(i));
-
-                        System.out.println("Страниц с ошибками: " + errorInsertPage.size());
-
-                        preparePages.remove(i);
-                        lemmaStrings.remove(i);
-                    });
-
-                    //Повторная попытка записи произойдёт в следующем цикле
-
-                } finally {
-
-                    int siteId = preparePages.get(0).getSiteId();
-                    int pageCount = beanAccess.getPageRepository().countBySiteId(siteId);
-                    beanAccess.getSiteRepository().setPageCountBySiteId(siteId, pageCount);
-
-                    System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
-
-                    preparePages.clear();
-                }
-            }
-
-
-//            if (readyPage.size() > batchSize) {
-//                List<Page> savePage = readyPage.stream().limit(batchSize).toList();
-//
-//                try {
-//                    batchUpdate(savePage);
-//                } catch (Exception e) {
-//                    //e.printStackTrace();
+//--------------------------------------------------------------------------------------------------------------------
+//            readyPage.stream().findFirst().ifPresent(page -> {
+//                if (page.getPath().length() > 255) {
+//                    //Записать длинную ссылку
+//                    //longLinkRepository
 //                }
+//                //Исключение ошибки 0x00 UTF-8
+//                page.setContent(page.getContent().replaceAll("\u0000", ""));
 //
-//                readyPage.removeAll(savePage);
-//                System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
+//                preparePages.add(page);
+//                lemmaStrings.add(getLemmaString(page.getContent(), lemmatizator));
+//                readyPage.remove(page); //Удаление обработанной страницы
+//            });
+//
+//            if (preparePages.size() >= batchSize) {
+//                int[] results = new int[0];
+//                try {
+//                    if (!(preparePages.size() == lemmaStrings.size()))
+//                        System.out.println("Ошибка алгоритма DBWriter");
+//
+//                    results = batchUpdate(preparePages, lemmaStrings);
+//                } catch (Exception e) {// Возникновении ошибки - транзакция откатывается
+//                    //throw new RuntimeException(e);
+//                    e.printStackTrace();
+//                    System.out.println(getName() + " Ошибка записи данных! => записываем без общей транзакции");
+//                    //Определяем в каком Insert ошибка
+//
+//                    Arrays.stream(results).dropWhile(i -> (i == 1)).forEach(i -> {
+//                        errorInsertPage.add(preparePages.get(i));
+//                        errorLemmaString.add(lemmaStrings.get(i));
+//
+//                        System.out.println("Страниц с ошибками: " + errorInsertPage.size());
+//
+//                        preparePages.remove(i);
+//                        lemmaStrings.remove(i);
+//                    });
+//
+//                    //Повторная попытка записи произойдёт в следующем цикле
+//
+//                } finally {
+//
+//                    int siteId = preparePages.get(0).getSiteId();
+//                    int pageCount = beanAccess.getPageRepository().countBySiteId(siteId);
+//                    beanAccess.getSiteRepository().setPageCountBySiteId(siteId, pageCount);
+//
+//                    System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
+//
+//                    preparePages.clear();
+//                    lemmaStrings.clear();
+//                }
 //            }
+//--------------------------------------------------------------------------------------------------------------------
+
+
+            if (readyPage.size() > batchSize) {
+                List<Page> savePage = readyPage.stream().limit(batchSize).toList();
+
+                try {
+                    batchUpdate(savePage);
+                } catch (Exception e) {
+                    //e.printStackTrace();
+                }
+
+                readyPage.removeAll(savePage);
+                System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
+            }
 
 
         }//========================================================================================================

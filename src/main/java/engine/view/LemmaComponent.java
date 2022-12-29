@@ -17,7 +17,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.NumberRenderer;
 import engine.entity.Field;
 import engine.entity.PartsOfSpeech;
-import engine.repository.PartOfSpeechRepository;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Lemmatization;
@@ -25,10 +24,10 @@ import lombok.Getter;
 import org.jsoup.nodes.Document;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static engine.service.HtmlParsing.getRussianWords;
@@ -166,12 +165,27 @@ public class LemmaComponent {
         return verticalLayout;
     }
 
+    private void removeComponentById(String tabCaption) {
+        VerticalLayout content = contentsHashMap.get(tabCaption);
+        content.getChildren().forEach(component -> {
+            component.getId().ifPresent(id -> {
+                if (id.equals("VerticalLayoutForGrids")) {
+                    content.remove(component);
+                }
+            });
+
+        });
+    }
+
     private VerticalLayout createSearchLemmaComponent() {
 
         TextField researchUrlTextField = new TextField("url: ");
         Button researchButton = new Button("Загрузить");
 
         researchButton.addClickListener(buttonClickEvent -> {
+
+            removeComponentById("Леммы");
+
             if (researchUrlTextField.isEmpty())
                 return;
 
@@ -199,32 +213,28 @@ public class LemmaComponent {
 
 
                 VerticalLayout verticalLayout = new VerticalLayout();
+                verticalLayout.setId("VerticalLayoutForGrids");
                 verticalLayout.setWidthFull();
 
-                HorizontalLayout hLayoutForGrids = null;
+                HorizontalLayout hLayoutForGrids = new HorizontalLayout();
+                hLayoutForGrids.setWidthFull();
 
-                int i =0;
+                int i = 0;
                 while (i < cssSelectors.size()) {
-                    if ((i & 1) == 0) {
-                        if (!(hLayoutForGrids == null))
-                            verticalLayout.add(hLayoutForGrids);
-
-                        hLayoutForGrids = new HorizontalLayout();
-                        hLayoutForGrids.setWidthFull();
-                    }
-
+                    //создаём grid для css
                     hLayoutForGrids.add(createCSSGrid("CSS-селектор: [" + cssSelectors.get(i).getName() + "]",
                             listCssSelectorsHashMap.get(i).values()));
                     i++;
+                    if ((i & 1) == 0) {
+                        verticalLayout.add(hLayoutForGrids);
+                        hLayoutForGrids = new HorizontalLayout();
+                        hLayoutForGrids.setWidthFull();
+                    }
+                    if ((i & 1) == 0)
+                        verticalLayout.add(hLayoutForGrids);
                 }
-
-                if ((i & 1) == 1)
-                    verticalLayout.add(hLayoutForGrids);
-
-
                 contentsHashMap.get("Леммы").add(verticalLayout);
             }
-
 
         });
 
@@ -252,9 +262,14 @@ public class LemmaComponent {
 
         Grid<Lemmatization.LemmaInfo> grid = new Grid<>(Lemmatization.LemmaInfo.class, false);
 
-        Grid.Column<Lemmatization.LemmaInfo> col1 = grid.addColumn("lemma").setHeader("Lemma").setTextAlign(ColumnTextAlign.START);
-        Grid.Column<Lemmatization.LemmaInfo> col2 = grid.addColumn("count").setHeader("Count").setTextAlign(ColumnTextAlign.CENTER);
-        Grid.Column<Lemmatization.LemmaInfo> col3 = grid.addColumn(new NumberRenderer<>(Lemmatization.LemmaInfo::getRank, decimalFormat)).setHeader("Rank");
+        Grid.Column<Lemmatization.LemmaInfo> col1 = grid.addColumn("lemma")
+                .setHeader("Lemma")
+                .setTextAlign(ColumnTextAlign.START);
+        Grid.Column<Lemmatization.LemmaInfo> col2 = grid.addColumn("count")
+                .setHeader("Count")
+                .setTextAlign(ColumnTextAlign.CENTER).setFooter(createLemmaCountFooterText(values));
+        Grid.Column<Lemmatization.LemmaInfo> col3 =
+                grid.addColumn(new NumberRenderer<>(Lemmatization.LemmaInfo::getRank, decimalFormat)).setHeader("Rank");
 
         HeaderRow headerRow = grid.prependHeaderRow();
 
@@ -267,6 +282,18 @@ public class LemmaComponent {
 
         return grid;
 
+    }
+
+    private static String createLemmaCountFooterText(Collection<Lemmatization.LemmaInfo> ListLemmaInfo) {
+
+        Optional<Integer> lemmaCount = ListLemmaInfo
+                .stream()
+                .map(Lemmatization.LemmaInfo::getCount)
+                .reduce((a, b) -> a + b);
+
+        if (lemmaCount.isPresent())
+            return String.format("Леммы: %s", lemmaCount.get());
+        return "";
     }
 
     private void createTabs(List<String> captions) {
@@ -309,6 +336,8 @@ public class LemmaComponent {
                         content.setSizeFull();
                     }
                     //CreateUI.hideAllVerticalLayouts(mainLayout);
+
+
                 }
             }
             contentsHashMap.get(label).setVisible(true);
