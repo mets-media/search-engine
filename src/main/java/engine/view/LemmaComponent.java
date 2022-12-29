@@ -2,11 +2,13 @@ package engine.view;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -34,19 +36,21 @@ import static engine.service.HtmlParsing.getRussianWords;
 
 @Getter
 public class LemmaComponent {
-    //private static PartOfSpeechRepository partOfSpeechRepository;
     private VerticalLayout mainLayout;
     private final Grid<PartsOfSpeech> gridPartsOfSpeech = new Grid<>();
     private final TextArea resultTextArea = new TextArea("Результаты морфологического анализа");
     private final TextArea textArea = new TextArea("Текст для морфологического анализа");
     private final HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
     private final BeanAccess beanAccess;
+    private final ComboBox<String> sourceSelectComboBox = new ComboBox<>("Источник:");
 
     public LemmaComponent(BeanAccess beanAccess) {
         this.beanAccess = beanAccess;
         mainLayout = CreateUI.getMainLayout();
         mainLayout.add(CreateUI.getTopLayout("Лемматизатор", "xl", null));
         createTabs(List.of("Части речи", "Леммы", "Лемматизатор"));
+        sourceSelectComboBox.setItems("Internet", "Database");
+        sourceSelectComboBox.setValue("Internet");
     }
 
     private VerticalLayout createPartOfSpeechContent() {
@@ -177,9 +181,15 @@ public class LemmaComponent {
         });
     }
 
+
+    private Document getDocumentFromDataBase() {
+
+        return null;
+    }
+
     private VerticalLayout createSearchLemmaComponent() {
 
-        TextField researchUrlTextField = new TextField("url: ");
+        TextField researchUrlTextField = new TextField("Адрес страницы: ");
         Button researchButton = new Button("Загрузить");
 
         researchButton.addClickListener(buttonClickEvent -> {
@@ -201,40 +211,48 @@ public class LemmaComponent {
 
             Document document = null;
             String content = "";
-            try {
-                document = HtmlParsing.getHtmlDocument(researchUrlTextField.getValue());
-                content = document.body().toString();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            } finally {
 
-                var listCssSelectorsHashMap =
-                        lemmatizator.getHashMapsLemmaForEachCssSelector(content);
-
-
-                VerticalLayout verticalLayout = new VerticalLayout();
-                verticalLayout.setId("VerticalLayoutForGrids");
-                verticalLayout.setWidthFull();
-
-                HorizontalLayout hLayoutForGrids = new HorizontalLayout();
-                hLayoutForGrids.setWidthFull();
-
-                int i = 0;
-                while (i < cssSelectors.size()) {
-                    //создаём grid для css
-                    hLayoutForGrids.add(createCSSGrid("CSS-селектор: [" + cssSelectors.get(i).getName() + "]",
-                            listCssSelectorsHashMap.get(i).values()));
-                    i++;
-                    if ((i & 1) == 0) {
-                        verticalLayout.add(hLayoutForGrids);
-                        hLayoutForGrids = new HorizontalLayout();
-                        hLayoutForGrids.setWidthFull();
-                    }
-                    if ((i & 1) == 0)
-                        verticalLayout.add(hLayoutForGrids);
-                }
-                contentsHashMap.get("Леммы").add(verticalLayout);
+            if (sourceSelectComboBox.getValue() == "Database") {
+                String searchPath = researchUrlTextField.getValue();
+                content = beanAccess.getPageRepository().getContentByPath(searchPath);
             }
+
+            else
+                try {
+                    document = HtmlParsing.getHtmlDocument(researchUrlTextField.getValue());
+                    content = document.toString();
+
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+            var listCssSelectorsHashMap =
+                    lemmatizator.getHashMapsLemmaForEachCssSelector(content);
+
+
+            VerticalLayout verticalLayout = new VerticalLayout();
+            verticalLayout.setId("VerticalLayoutForGrids");
+            verticalLayout.setWidthFull();
+
+            HorizontalLayout hLayoutForGrids = new HorizontalLayout();
+            hLayoutForGrids.setWidthFull();
+
+            int i = 0;
+            while (i < cssSelectors.size()) {
+                //создаём grid для css
+                hLayoutForGrids.add(createCSSGrid("CSS-селектор: [" + cssSelectors.get(i).getName() + "]",
+                        listCssSelectorsHashMap.get(i).values()));
+                i++;
+                if ((i & 1) == 0) {
+                    verticalLayout.add(hLayoutForGrids);
+                    hLayoutForGrids = new HorizontalLayout();
+                    hLayoutForGrids.setWidthFull();
+                }
+                if ((i & 1) == 0)
+                    verticalLayout.add(hLayoutForGrids);
+            }
+            contentsHashMap.get("Леммы").add(verticalLayout);
+
 
         });
 
@@ -247,9 +265,10 @@ public class LemmaComponent {
         hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
 
         hLayout.add(researchUrlTextField);
-        researchUrlTextField.setWidth("75%");
+        researchUrlTextField.setWidth("50%");
 
-        hLayout.add(researchButton);
+        hLayout.add(sourceSelectComboBox, researchButton);
+        sourceSelectComboBox.setWidth("25%");
         researchButton.setWidth("25%");
 
         verticalLayout.add(hLayout);

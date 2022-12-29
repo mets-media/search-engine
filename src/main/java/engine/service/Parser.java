@@ -263,7 +263,7 @@ public class Parser extends RecursiveAction {
             try {
                 code = HtmlParsing.getStatusCode(path);
                 document = HtmlParsing.getHtmlDocument(path);
-                content = document.body().toString();
+                content = document.toString();
             } catch (Exception e) {
                 //throw new RuntimeException(e);
                 //e.printStackTrace();
