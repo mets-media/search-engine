@@ -1,14 +1,11 @@
 package engine.view;
 
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -18,12 +15,15 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.NumberRenderer;
 import engine.entity.Field;
+import engine.entity.Page;
 import engine.entity.PartsOfSpeech;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Lemmatization;
 import lombok.Getter;
 import org.jsoup.nodes.Document;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.text.DecimalFormat;
 import java.util.Collection;
@@ -36,7 +36,7 @@ import static engine.service.HtmlParsing.getRussianWords;
 
 @Getter
 public class LemmaComponent {
-    private VerticalLayout mainLayout;
+    private final VerticalLayout mainLayout;
     private final Grid<PartsOfSpeech> gridPartsOfSpeech = new Grid<>();
     private final TextArea resultTextArea = new TextArea("Результаты морфологического анализа");
     private final TextArea textArea = new TextArea("Текст для морфологического анализа");
@@ -48,39 +48,9 @@ public class LemmaComponent {
         this.beanAccess = beanAccess;
         mainLayout = CreateUI.getMainLayout();
         mainLayout.add(CreateUI.getTopLayout("Лемматизатор", "xl", null));
-        createTabs(List.of("Части речи", "Леммы", "Лемматизатор"));
+        createTabs(List.of("Лемматизатор", "Леммы"));
         sourceSelectComboBox.setItems("Internet", "Database");
-        sourceSelectComboBox.setValue("Internet");
-    }
-
-    private VerticalLayout createPartOfSpeechContent() {
-        var vLayout = new VerticalLayout();
-        vLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.END);
-
-        gridPartsOfSpeech.addThemeVariants(GridVariant.LUMO_COMPACT);
-        gridPartsOfSpeech.setSelectionMode(Grid.SelectionMode.SINGLE);
-
-        gridPartsOfSpeech.addComponentColumn(item -> {
-                    Checkbox checkbox = new Checkbox();
-                    checkbox.setValue(item.getInclude());
-                    checkbox.addValueChangeListener(event -> {
-                        item.setInclude(event.getValue());
-                        beanAccess.getPartOfSpeechRepository().save(item);
-                    });
-                    return checkbox;
-                }).setHeader("Вкл").setAutoWidth(true)
-                .setSortable(false
-
-                )
-                .setWidth("10%")
-                .setTextAlign(ColumnTextAlign.CENTER);
-        gridPartsOfSpeech.addColumn(PartsOfSpeech::getName)
-                .setHeader("Наименование").setAutoWidth(true).setSortable(true);
-        gridPartsOfSpeech.addColumn(PartsOfSpeech::getShortName)
-                .setHeader("Признак").setAutoWidth(true).setSortable(true);
-
-        vLayout.add(gridPartsOfSpeech);
-        return vLayout;
+        sourceSelectComboBox.setValue("Database");
     }
 
     private HorizontalLayout createButtons() {
@@ -98,9 +68,12 @@ public class LemmaComponent {
 
                     StringBuilder stringBuilder = new StringBuilder();
 
-                    lemmatizator.getLemmaCount(textArea.getValue()).entrySet().forEach(x -> {
-                        stringBuilder.append(x.getKey() + " -> " + x.getValue() + "\n");
-                    });
+//                    lemmatizator.getLemmaCount(textArea.getValue()).entrySet().forEach(x -> {
+//                        stringBuilder.append(x.getKey() + " -> " + x.getValue() + "\n");
+//                    });
+                    lemmatizator.getLemmaCount(textArea.getValue()).forEach((key, value) ->
+                            stringBuilder.append(key + " -> " + value + "\n"));
+
                     resultTextArea.setValue(stringBuilder.toString());
                 }
         );
@@ -109,11 +82,11 @@ public class LemmaComponent {
         splitButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         splitButton.addClickListener(event -> {
-            StringBuilder stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder();
             String[] words = getRussianWords(textArea.getValue());
             for (String word : words) {
                 if (!word.isBlank())
-                    stringBuilder.append("-" + word + "\n");
+                    stringBuilder.append("-").append(word).append("\n");
             }
             resultTextArea.setValue(stringBuilder.toString());
         });
@@ -131,7 +104,7 @@ public class LemmaComponent {
             Lemmatization lemmatizator = new Lemmatization(excludeList, null);
             StringBuilder stringBuilder = new StringBuilder();
             lemmatizator.getLemmaInfo(textArea.getValue()).forEach(l -> {
-                stringBuilder.append(l + '\n');
+                stringBuilder.append(l).append('\n');
                 //partOfSpeechRepository.save(new PartsOfSpeech(l,true));
 
             });
@@ -187,7 +160,21 @@ public class LemmaComponent {
         return null;
     }
 
+    private ComboBox<Page> createPageComboBox() {
+        ComboBox<Page> pageComboBox = new ComboBox<>("Адрес страницы");
+        pageComboBox.setItemLabelGenerator(Page::getPath);
+        pageComboBox.setItems(query -> {
+            return beanAccess.getPageRepository().findAll(
+                    PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path"))
+            ).stream();
+        });
+        return pageComboBox;
+    }
+
     private VerticalLayout createSearchLemmaComponent() {
+
+        ComboBox<Page> pageComboBox = createPageComboBox();
+        pageComboBox.setWidth("100%");
 
         TextField researchUrlTextField = new TextField("Адрес страницы: ");
         Button researchButton = new Button("Загрузить");
@@ -215,9 +202,7 @@ public class LemmaComponent {
             if (sourceSelectComboBox.getValue() == "Database") {
                 String searchPath = researchUrlTextField.getValue();
                 content = beanAccess.getPageRepository().getContentByPath(searchPath);
-            }
-
-            else
+            } else
                 try {
                     document = HtmlParsing.getHtmlDocument(researchUrlTextField.getValue());
                     content = document.toString();
@@ -252,8 +237,6 @@ public class LemmaComponent {
                     verticalLayout.add(hLayoutForGrids);
             }
             contentsHashMap.get("Леммы").add(verticalLayout);
-
-
         });
 
         var verticalLayout = new VerticalLayout();
@@ -261,7 +244,6 @@ public class LemmaComponent {
 
         var hLayout = new HorizontalLayout();
         hLayout.setWidthFull();
-        //hLayout.setHeightFull();
         hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
 
         hLayout.add(researchUrlTextField);
@@ -271,7 +253,7 @@ public class LemmaComponent {
         sourceSelectComboBox.setWidth("25%");
         researchButton.setWidth("25%");
 
-        verticalLayout.add(hLayout);
+        verticalLayout.add(pageComboBox, hLayout);
 
         return verticalLayout;
     }
@@ -286,7 +268,8 @@ public class LemmaComponent {
                 .setTextAlign(ColumnTextAlign.START);
         Grid.Column<Lemmatization.LemmaInfo> col2 = grid.addColumn("count")
                 .setHeader("Count")
-                .setTextAlign(ColumnTextAlign.CENTER).setFooter(createLemmaCountFooterText(values));
+                .setTextAlign(ColumnTextAlign.CENTER)
+                .setFooter(createLemmaCountFooterText(values));  //Footer для column
         Grid.Column<Lemmatization.LemmaInfo> col3 =
                 grid.addColumn(new NumberRenderer<>(Lemmatization.LemmaInfo::getRank, decimalFormat)).setHeader("Rank");
 
@@ -300,19 +283,23 @@ public class LemmaComponent {
         grid.setItems(values);
 
         return grid;
-
     }
 
-    private static String createLemmaCountFooterText(Collection<Lemmatization.LemmaInfo> ListLemmaInfo) {
+    private static String createLemmaCountFooterText(Collection<Lemmatization.LemmaInfo> listLemmaInfo) {
 
-        Optional<Integer> lemmaCount = ListLemmaInfo
+        //Сумма всех лемм с повторениями
+        Optional<Integer> lemmaCount = listLemmaInfo
                 .stream()
                 .map(Lemmatization.LemmaInfo::getCount)
                 .reduce((a, b) -> a + b);
 
         if (lemmaCount.isPresent())
-            return String.format("Леммы: %s", lemmaCount.get());
+            return String.format("Всего: %s", lemmaCount.get());
         return "";
+
+        //Количество уникальных лемм:
+//        return "Леммы:".concat(String.valueOf(listLemmaInfo.size()));
+
     }
 
     private void createTabs(List<String> captions) {
@@ -339,14 +326,6 @@ public class LemmaComponent {
                     }
                 }
 
-                case "Части речи" -> {
-                    if (!contentsHashMap.containsKey(label)) {
-                        content = createPartOfSpeechContent();
-                        contentsHashMap.put(label, content);
-                        mainLayout.add(content);
-                    }
-                    gridPartsOfSpeech.setItems(beanAccess.getPartOfSpeechRepository().findAll());
-                }
                 case "Леммы" -> {
                     if (!contentsHashMap.containsKey(label)) {
                         content = createSearchLemmaComponent();
@@ -355,28 +334,18 @@ public class LemmaComponent {
                         content.setSizeFull();
                     }
                     //CreateUI.hideAllVerticalLayouts(mainLayout);
-
-
                 }
             }
             contentsHashMap.get(label).setVisible(true);
         });
 
-//        VerticalLayout cont = createLemmatisatorContent();
-//        contentsHashMap.put("Лематизатор", cont);
-//        mainLayout.add(cont);
-
-        VerticalLayout cont = createPartOfSpeechContent();
-        contentsHashMap.put("Части речи", cont);
+        var cont = createLemmatisatorContent();
+        contentsHashMap.put("Лематизатор", cont);
         mainLayout.add(cont);
 
         CreateUI.hideAllVerticalLayouts(mainLayout);
 
-//        VerticalLayout activeComponent = contentsHashMap.get("Лематизатор");
-//        activeComponent.setVisible(true);
-
-        VerticalLayout activeComponent = contentsHashMap.get("Части речи");
+        VerticalLayout activeComponent = contentsHashMap.get("Лематизатор");
         activeComponent.setVisible(true);
-        gridPartsOfSpeech.setItems(beanAccess.getPartOfSpeechRepository().findAll());
     }
 }

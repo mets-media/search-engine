@@ -43,8 +43,8 @@ public class SearchComponent {
     private final HorizontalLayout gridsLayout = new HorizontalLayout();
     private final Grid<Lemma> lemmaGrid = new Grid<>(Lemma.class, false);
     private final Grid<PathTable> relevanceGrid = new Grid<>(PathTable.class, false);
-    private final TextField pageCountTextField = new TextField("Количество страниц");
-    private final TextField lemmaCountTextField = new TextField("Количество лемм");
+    private final TextField pageCountTextField = new TextField("Страницы");
+    private final TextField lemmaCountTextField = new TextField("Леммы");
     private final TextField indexCountTextField = new TextField("Таблица Index");
     private final TextField requestTextField = new TextField("Поисковый запрос");
     private final TextArea htmlTextArea = new TextArea("Snippet: <b> tag");
@@ -79,11 +79,18 @@ public class SearchComponent {
         lemmaCountTextField.setReadOnly(true);
         indexCountTextField.setReadOnly(true);
 
+        pageCountTextField.setWidth("15%");
+        lemmaCountTextField.setWidth("15%");
+        indexCountTextField.setWidth("15%");
+
+
         var horizontalLayout = new HorizontalLayout(
                 createSiteComboBox(),
                 pageCountTextField,
                 lemmaCountTextField,
                 indexCountTextField);
+        siteComboBox.setWidthFull();
+        horizontalLayout.setAlignItems(FlexComponent.Alignment.END);
         horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         horizontalLayout.setSizeUndefined();
 
@@ -132,6 +139,7 @@ public class SearchComponent {
             lemmaCountTextField.setValue(new DecimalFormat("#,###").format(lemmaCount));
             indexCountTextField.setValue(new DecimalFormat("#,###").format(indexCount));
         });
+        siteComboBox.setWidth("30%");
         return siteComboBox;
     }
 
@@ -240,6 +248,7 @@ public class SearchComponent {
             }
             includeLemma = "'" + includeLemma.substring(0, includeLemma.length() - 1) + "'";
 
+            //Retain all pageId
             var pageIdRetained = retainAllPageId(pageIdHashMap);
 
             stringBuilder.delete(0, stringBuilder.length());
@@ -261,8 +270,6 @@ public class SearchComponent {
                 relevanceGrid.setItems(new ArrayList<>());
                 relevanceGrid.getColumns().get(2).setHeader("Страницы");
             }
-
-
         });
     }
 

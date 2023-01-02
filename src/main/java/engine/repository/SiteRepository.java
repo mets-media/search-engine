@@ -19,13 +19,16 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "order by url", nativeQuery = true)
     Page<Site> getSitesFromPageTable(Pageable pageable);
 
+
+
+
     @Modifying
     @Transactional
     @Query(value="Update Site set page_count = :pageCount Where id = :siteId",nativeQuery = true)
     void setPageCountBySiteId(@Param("siteId") Integer siteId, @Param("pageCount") Integer pageCount);
 
 
-            @Modifying
+    @Modifying
     @Transactional
     @Query(value="CREATE OR REPLACE FUNCTION delete_site_function()\n" +
             "    RETURNS trigger\n" +
@@ -48,4 +51,5 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "    FOR EACH ROW\n" +
             "    EXECUTE FUNCTION delete_site_function();",nativeQuery = true)
     void createTrigger();
+
 }

@@ -1,7 +1,6 @@
 package engine.service;
 
 import engine.entity.Field;
-import engine.entity.PartsOfSpeech;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.lucene.morphology.LuceneMorphology;
@@ -12,10 +11,10 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import static engine.service.HtmlParsing.getRussianWords;
 
+@Getter
 public class Lemmatization {
     private final LuceneMorphology luceneMorph;
     private final List<String> excludeList;
@@ -42,7 +41,8 @@ public class Lemmatization {
 
     private Boolean includeForm(String lemma) {
         List<String> lemmaForms = luceneMorph.getMorphInfo(lemma);
-        return !lemmaForms.stream().anyMatch(this::hasProperty);
+        //return !lemmaForms.stream().anyMatch(this::hasProperty);
+        return lemmaForms.stream().noneMatch(this::hasProperty);
     }
 
     public Set<String> getLemmaInfo(String text) {
@@ -78,7 +78,7 @@ public class Lemmatization {
                     //List<String> info = luceneMorph.getMorphInfo(normalForm);
                     if (includeForm(normalForm)) {
                         //lemmaHashMap.put(word + "->" + normalForm + " -> " + info, 1);
-                        Integer count = 1;
+                        int count = 1;
                         if (lemmaHashMap.containsKey(normalForm)) {
                             count = count + lemmaHashMap.get(normalForm);
                         }
@@ -105,7 +105,7 @@ public class Lemmatization {
                         includeForm = includeForm(normalForm);
                     }
                     if (includeForm) {
-                        Integer count = 1;
+                        int count = 1;
                         if (lemmaHashMap.containsKey(normalForm)) {
                             count = count + lemmaHashMap.get(normalForm).count;
                         }
@@ -127,15 +127,16 @@ public class Lemmatization {
     BiFunction<LemmaInfo, LemmaInfo, LemmaInfo> SUM_LEMMA_PROPERTIES = (l1, l2) ->
             new LemmaInfo(l1.getLemma(),l1.getCount() + l2.getCount(), l1.getRank() + l2.getRank());
 
+    //BiFunction<LemmaInfo,LemmaInfo,LemmaInfo> REMOVE_DUPLICATION = ()
+
     //Проверить
     public HashMap<String, LemmaInfo> mergeAllHashMaps(List<HashMap<String, LemmaInfo>> listHashMaps) {
         HashMap<String, LemmaInfo> result = new HashMap<>(listHashMaps.get(0));
 
         for (int i = 1; i < listHashMaps.size();i++) {
-            listHashMaps.get(i).forEach((k, v) -> {
-                result.merge(k, v, SUM_LEMMA_PROPERTIES);
-            });
+            listHashMaps.get(i).forEach((k, v) -> result.merge(k, v, SUM_LEMMA_PROPERTIES));
         }
+
         return result;
     }
     public List<HashMap<String, LemmaInfo>> getHashMapsLemmaForEachCssSelector(String content) {

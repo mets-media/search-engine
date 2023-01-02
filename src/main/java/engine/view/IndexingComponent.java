@@ -7,6 +7,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -17,6 +18,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import engine.entity.Field;
 import engine.entity.Page;
+import engine.entity.PartsOfSpeech;
 import engine.entity.Site;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
@@ -49,10 +51,12 @@ public class IndexingComponent {
     private final TextField pageCountTextField = new TextField("Страниц в базе данных");
     private final HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
 
+    private final Grid<PartsOfSpeech> gridPartsOfSpeech = new Grid<>();
+
     public IndexingComponent() {
         mainLayout = CreateUI.getMainLayout();
         mainLayout.add(CreateUI.getTopLayout("Настройки индексации", "xl", null));
-        createTabs(List.of("HTML-поля", "Страницы сайта"));
+        createTabs(List.of("HTML-поля", "Части речи", "Страницы сайта"));
     }
 
     public VerticalLayout getMainLayout() {
@@ -88,6 +92,14 @@ public class IndexingComponent {
                         contentsHashMap.put(label, content);
                         mainLayout.add(content);
                     }
+                }
+                case "Части речи" -> {
+                    if (!contentsHashMap.containsKey(label)) {
+                        content = createPartOfSpeechContent();
+                        contentsHashMap.put(label, content);
+                        mainLayout.add(content);
+                    }
+                    gridPartsOfSpeech.setItems(beanAccess.getPartOfSpeechRepository().findAll());
                 }
             }
             CreateUI.hideAllVerticalLayouts(mainLayout);
@@ -220,37 +232,38 @@ public class IndexingComponent {
     public static void setDataAccess(BeanAccess beanAccess) {
         IndexingComponent.beanAccess = beanAccess;
     }
-   private ComboBox<Site> createSiteComboBox() {
 
-       ComboBox<Site> siteComboBox = new ComboBox<>("страницы сайта:");
-       siteComboBox.setItemLabelGenerator(Site::getUrl);
+    private ComboBox<Site> createSiteComboBox() {
 
-       siteComboBox.setItems(query -> {
-           return beanAccess.getSiteRepository().getSitesFromPageTable(
-                   PageRequest.of(query.getPage(), query.getPageSize())
-           ).stream();
-       });
+        ComboBox<Site> siteComboBox = new ComboBox<>("страницы сайта:");
+        siteComboBox.setItemLabelGenerator(Site::getUrl);
 
-       //==================================================================================
-       siteComboBox.addValueChangeListener(event -> {
-           cssSelectorComboBox.clear();
-           cssSelectorTextArea.clear();
-           cssSelectorTextArea.setReadOnly(true);
+        siteComboBox.setItems(query -> {
+            return beanAccess.getSiteRepository().getSitesFromPageTable(
+                    PageRequest.of(query.getPage(), query.getPageSize())
+            ).stream();
+        });
 
-           Site site = event.getValue();
-           Integer pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
-           site.setPageCount(pageCount);
-           pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
+        //==================================================================================
+        siteComboBox.addValueChangeListener(event -> {
+            cssSelectorComboBox.clear();
+            cssSelectorTextArea.clear();
+            cssSelectorTextArea.setReadOnly(true);
 
-           grid.setItems(query -> beanAccess.getPageRepository()
-                   .findBySiteId(
-                           site.getId(),
-                           PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path")))
-                   .stream());
-       });//===============================================================================
+            Site site = event.getValue();
+            Integer pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
+            site.setPageCount(pageCount);
+            pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
+
+            grid.setItems(query -> beanAccess.getPageRepository()
+                    .findBySiteId(
+                            site.getId(),
+                            PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path")))
+                    .stream());
+        });//===============================================================================
 
         return siteComboBox;
-   }
+    }
 
     private VerticalLayout createPageComponent() {
 
@@ -291,6 +304,7 @@ public class IndexingComponent {
         fillCssLayout();
         return new VerticalLayout(horizontalLayout, grid, cssVerticalLayout);
     }
+
     private void fillCssLayout() {
         cssVerticalLayout.setWidth("100%");
 
@@ -350,7 +364,7 @@ public class IndexingComponent {
         });
 
         Button indexingButton = new Button("Индексация");
-        indexingButton.addClickListener(buttonClickEvent ->  {
+        indexingButton.addClickListener(buttonClickEvent -> {
             cssSelectorComboBox.setValue("");
             List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
                     .stream()
@@ -361,19 +375,22 @@ public class IndexingComponent {
                     beanAccess.getFieldRepository().findByActive(true));
 
             grid.getSelectedItems().stream().findFirst().ifPresent(page -> {
-                List<HashMap<String, Lemmatization.LemmaInfo>> list =
+                var list =
                         lemmatization.getHashMapsLemmaForEachCssSelector(page.getContent());
 
                 StringBuilder stringBuilder = new StringBuilder();
-                for (int i = 0; i < list.size();i++) {
-                    stringBuilder.append(list.get(i).size() + "\n\n");
+
+                //Количество лемм для каждого cssSelector
+                for (int i = 0; i < list.size(); i++) {
+                    stringBuilder.append(lemmatization.getCssSelectors().get(i).getSelector() + ": " + list.get(i).size() + " лемм\n");
                 }
+                stringBuilder.append("---\n");
 
                 HashMap<String, Lemmatization.LemmaInfo> hm = lemmatization.mergeAllHashMaps(list);
                 hm.entrySet().forEach(e -> stringBuilder.append(e.getValue().getLemma() + "," +
-                        e.getValue().getCount() + ", " + e.getValue().getRank()+"\n\n"));
+                        e.getValue().getCount() + ", " + e.getValue().getRank() + "\n\n"));
 
-                //stringBuilder.append("\n\n Size посе BiFunction: " + hm.size() + "\n\n");
+                //stringBuilder.append("\n\n Size после BiFunction: " + hm.size() + "\n\n");
 
                 cssSelectorTextArea.setValue(stringBuilder.toString());
             });
@@ -392,5 +409,34 @@ public class IndexingComponent {
         cssVerticalLayout.setEnabled(false);
     }
 
+    private VerticalLayout createPartOfSpeechContent() {
+        var vLayout = new VerticalLayout();
+        vLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.END);
+
+        gridPartsOfSpeech.addThemeVariants(GridVariant.LUMO_COMPACT);
+        gridPartsOfSpeech.setSelectionMode(Grid.SelectionMode.SINGLE);
+
+        gridPartsOfSpeech.addComponentColumn(item -> {
+                    Checkbox checkbox = new Checkbox();
+                    checkbox.setValue(item.getInclude());
+                    checkbox.addValueChangeListener(event -> {
+                        item.setInclude(event.getValue());
+                        beanAccess.getPartOfSpeechRepository().save(item);
+                    });
+                    return checkbox;
+                }).setHeader("Вкл").setAutoWidth(true)
+                .setSortable(false
+
+                )
+                .setWidth("10%")
+                .setTextAlign(ColumnTextAlign.CENTER);
+        gridPartsOfSpeech.addColumn(PartsOfSpeech::getName)
+                .setHeader("Наименование").setAutoWidth(true).setSortable(true);
+        gridPartsOfSpeech.addColumn(PartsOfSpeech::getShortName)
+                .setHeader("Признак").setAutoWidth(true).setSortable(true);
+
+        vLayout.add(gridPartsOfSpeech);
+        return vLayout;
+    }
 
 }

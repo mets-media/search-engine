@@ -1,10 +1,7 @@
 package engine.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -37,4 +34,5 @@ public class Page implements Serializable {
         this.code = code;
         this.content = content;
     }
+
 }
