@@ -28,7 +28,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import java.text.DecimalFormat;
-import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,13 +74,19 @@ public class SearchComponent {
 
     private VerticalLayout createSearchComponent() {
 
-        pageCountTextField.setReadOnly(true);
-        lemmaCountTextField.setReadOnly(true);
-        indexCountTextField.setReadOnly(true);
+        Collection<TextField> textFieldCollection = Arrays.asList(pageCountTextField,lemmaCountTextField,indexCountTextField);
+        textFieldCollection.forEach(textField -> {
+            textField.setReadOnly(true);
+            textField.setWidth("15%");
+        });
 
-        pageCountTextField.setWidth("15%");
-        lemmaCountTextField.setWidth("15%");
-        indexCountTextField.setWidth("15%");
+//        pageCountTextField.setReadOnly(true);
+//        lemmaCountTextField.setReadOnly(true);
+//        indexCountTextField.setReadOnly(true);
+//
+//        pageCountTextField.setWidth("15%");
+//        lemmaCountTextField.setWidth("15%");
+//        indexCountTextField.setWidth("15%");
 
 
         var horizontalLayout = new HorizontalLayout(

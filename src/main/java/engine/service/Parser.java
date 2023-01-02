@@ -23,6 +23,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static java.lang.Thread.sleep;
+
 @Service
 @RequiredArgsConstructor
 public class Parser extends RecursiveAction {
@@ -314,12 +316,22 @@ public class Parser extends RecursiveAction {
             }
 
         //Рекурсия
+
         Set<String> hReference = HtmlParsing.getAllLinks(document, domainName);
         if (hReference != null)
             for (String hRef : hReference) {
-                if (!inProcessLinks.contains(hRef))
-                    //if ((HtmlParsing.isCurrentSite(hRef, domainName)) && (!readyLinks.keySet().contains(hRef))) {
+                if (!inProcessLinks.contains(hRef))  //очередь ожидания
                     if ((HtmlParsing.isCurrentSite(hRef, domainName)) && (!readyLinks.contains(hRef))) {
+                        //при критическои количестве в очереди пула - возникнет ошибка Too many file open
+                        System.out.println("inProcessLink.size(): " + inProcessLinks.size());
+                        while (inProcessLinks.size() > 10) {
+                            try {
+                                sleep(5000);
+                                System.out.println("sleep(5000)");
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                         inProcessLinks.add(hRef);
                         Parser parser = new Parser(site, hRef, domainName);
                         pool.execute(parser);

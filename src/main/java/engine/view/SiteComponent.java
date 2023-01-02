@@ -83,7 +83,7 @@ public class SiteComponent {
             progressBar.setVisible(true);
 
             progressBar.addAttachListener(attachEvent -> {
-                switch ((SiteStatus)item.getStatus()) {
+                switch ((SiteStatus) item.getStatus()) {
                     case INDEXING -> {
                         progressBar.setIndeterminate(true);
                     }
@@ -133,7 +133,10 @@ public class SiteComponent {
         buttons.add(testButton);
         testButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         testButton.addClickListener(event -> {
-
+//            grid.getSelectedItems().forEach(site -> {
+//                site.setStatus(SiteStatus.INDEXED);
+//                beanAccess.getSiteRepository().save(site);
+//            });
         });
         //========================= ДОБАВИТЬ САЙТ ==========================================
         Button createButton = new Button("Добавить");
@@ -169,18 +172,18 @@ public class SiteComponent {
 
             Set<Site> selectedSites = grid.getSelectedItems();
             selectedSites.forEach(site -> {
-                //grid.getColumns().get(3).getElement().setE
-
                 grid.deselect(site); //после модификации - другой "site" - выделение не снимется
-                Parser.getStopList().remove(site);
 
-                site.setStatus(SiteStatus.INDEXING);
-                beanAccess.getSiteRepository().save(site);
-                Parser.start(site);
+                SiteStatus status = (SiteStatus) site.getStatus();
+                if ((status.equals(SiteStatus.NEW_SITE)) || (status.equals(SiteStatus.STOPPED))) {
+                    Parser.getStopList().remove(site);
+
+                    site.setStatus(SiteStatus.INDEXING);
+                    beanAccess.getSiteRepository().save(site);
+                    Parser.start(site);
+                }
             });
             grid.setItems(beanAccess.getSiteRepository().findAll());
-
-            //grid.getColumns().get(3).
         });
 
         //========================= СТОП СКАНИРОВАНИЕ ==========================================
@@ -190,13 +193,15 @@ public class SiteComponent {
         stopButton.addClickListener(event -> {
             Set<Site> stopSites = grid.getSelectedItems();
             stopSites.forEach(site -> {
-                Parser.stop(site);
                 grid.deselect(site);
-                site.setStatus(SiteStatus.STOPPED);
-                beanAccess.getSiteRepository().save(site);
-                site.setPageCount(beanAccess.getPageRepository().countBySiteId(site.getId()));
-                beanAccess.getSiteRepository().save(site);
-
+                if (site.getStatus().equals(SiteStatus.INDEXING)) {
+                    Parser.stop(site);
+                    //grid.deselect(site);
+                    site.setStatus(SiteStatus.STOPPED);
+                    beanAccess.getSiteRepository().save(site);
+                    site.setPageCount(beanAccess.getPageRepository().countBySiteId(site.getId()));
+                    beanAccess.getSiteRepository().save(site);
+                }
             });
             grid.setItems(beanAccess.getSiteRepository().findAll());
         });
@@ -244,13 +249,8 @@ public class SiteComponent {
             sites.forEach(delSite -> {
                 //new Thread(() -> pageRepository.deleteBySiteId(delSite.getId())).start();
 
-                beanAccess.getSiteRepository().delete(delSite);
-
-                try {
-                    FileUtils.deleteDirectory(new File("data/" + HtmlParsing.getDomainName(delSite.getUrl())));
-                } catch (IOException e) {
-                    //throw new RuntimeException(e);
-                }
+                new Thread(() -> beanAccess.getSiteRepository().delete(delSite)).start();
+                //beanAccess.getSiteRepository().delete(delSite);
 
             });
 

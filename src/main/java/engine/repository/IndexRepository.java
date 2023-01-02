@@ -1,13 +1,13 @@
 package engine.repository;
 
-import engine.entity.Index;
+import engine.entity.IndexEntity;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface IndexRepository extends CrudRepository<Index,Integer> {
+public interface IndexRepository extends CrudRepository<IndexEntity,Integer> {
     @Query(value = "select count(*) from index\n" +
             "join page on (index.page_id = page.id)\n" +
             "where page.site_id = :siteId", nativeQuery = true)

@@ -20,8 +20,6 @@ import java.util.stream.IntStream;
 
 public class DBWriter extends Thread {
     private final BeanAccess beanAccess;
-
-
     private final ConcurrentLinkedQueue<Page> readyPage;
     private final Integer batchSize;
     private final boolean checkPartOfSpeech;
