@@ -4,17 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Корректировка интерфейса">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Мсключения при записи в базу данных">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/generated/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/generated/index.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/Application.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Index.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/IndexEntity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Lemma.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Lemma.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/IndexEntity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/IndexEntity.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/IndexRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/IndexRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Site.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Site.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/DBWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/DBWriter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,8 +24,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Interface" />
         <option value="Enum" />
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -57,18 +57,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "C:/mets.java/mets",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/mets.java/mets/lib/ russianmorphology&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Libraries&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.project.maven.repository.indices&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="engine.entity" />
@@ -110,6 +110,48 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Morph dependencies. MultiSelect mode.">
+      <created>1666579407416</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1666579407417</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Morph dependencies. MultiSelect mode.">
+      <created>1666802867871</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1666802867871</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Morph dependencies. MultiSelect mode.">
+      <created>1667020079465</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1667020079465</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Morph dependencies. Start-Stop-Continue downloading">
+      <created>1667856975830</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1667856975831</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Morph dependencies. MultiScan">
+      <created>1668098786336</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1668098786336</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Morph dependencies. MultiScan">
+      <created>1668140144807</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1668140144808</updated>
     </task>
     <task id="LOCAL-00015" summary="Morph dependencies. MultiScan">
       <created>1668172910228</created>
@@ -412,49 +454,7 @@
       <option name="project" value="LOCAL" />
       <updated>1671815400431</updated>
     </task>
-    <task id="LOCAL-00058" summary="Оптимизация записи в базу данных">
-      <created>1671852275491</created>
-      <option name="number" value="00058" />
-      <option name="presentableId" value="LOCAL-00058" />
-      <option name="project" value="LOCAL" />
-      <updated>1671852275494</updated>
-    </task>
-    <task id="LOCAL-00059" summary="SearcComponent refresh">
-      <created>1671937570901</created>
-      <option name="number" value="00059" />
-      <option name="presentableId" value="LOCAL-00059" />
-      <option name="project" value="LOCAL" />
-      <updated>1671937570903</updated>
-    </task>
-    <task id="LOCAL-00060" summary="SearcComponent refresh">
-      <created>1672109556376</created>
-      <option name="number" value="00060" />
-      <option name="presentableId" value="LOCAL-00060" />
-      <option name="project" value="LOCAL" />
-      <updated>1672109556382</updated>
-    </task>
-    <task id="LOCAL-00061" summary="Проверка лемм">
-      <created>1672333688807</created>
-      <option name="number" value="00061" />
-      <option name="presentableId" value="LOCAL-00061" />
-      <option name="project" value="LOCAL" />
-      <updated>1672333688809</updated>
-    </task>
-    <task id="LOCAL-00062" summary="Проверка лемм">
-      <created>1672340896130</created>
-      <option name="number" value="00062" />
-      <option name="presentableId" value="LOCAL-00062" />
-      <option name="project" value="LOCAL" />
-      <updated>1672340896135</updated>
-    </task>
-    <task id="LOCAL-00063" summary="Корректировка интерфейса">
-      <created>1672632952379</created>
-      <option name="number" value="00063" />
-      <option name="presentableId" value="LOCAL-00063" />
-      <option name="project" value="LOCAL" />
-      <updated>1672632952382</updated>
-    </task>
-    <option name="localTasksCounter" value="64" />
+    <option name="localTasksCounter" value="58" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -503,11 +503,7 @@
     <MESSAGE value="dbWriter - отдельным потоком" />
     <MESSAGE value="Оптимизация" />
     <MESSAGE value="Мсключения при записи в базу данных" />
-    <MESSAGE value="Оптимизация записи в базу данных" />
-    <MESSAGE value="SearcComponent refresh" />
-    <MESSAGE value="Проверка лемм" />
-    <MESSAGE value="Корректировка интерфейса" />
-    <option name="LAST_COMMIT_MESSAGE" value="Корректировка интерфейса" />
+    <option name="LAST_COMMIT_MESSAGE" value="Мсключения при записи в базу данных" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -533,9 +529,9 @@
           <option name="timeStamp" value="91" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>158</line>
-          <option name="timeStamp" value="107" />
+          <url>file://$PROJECT_DIR$/src/main/java/engine/service/DBWriter.java</url>
+          <line>87</line>
+          <option name="timeStamp" value="103" />
         </line-breakpoint>
         <breakpoint enabled="true" type="java-exception">
           <properties class="org.postgresql.util.PSQLException" package="org.postgresql.util" />

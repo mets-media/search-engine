@@ -46,10 +46,29 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "$BODY$;\n" +
 
             "CREATE OR REPLACE TRIGGER delete_site_trigger\n" +
-            "    BEFORE DELETE\n" +
+            "    AFTER DELETE\n" +
             "    ON site\n" +
             "    FOR EACH ROW\n" +
             "    EXECUTE FUNCTION delete_site_function();",nativeQuery = true)
     void createTrigger();
 
+    @Modifying
+    @Transactional
+    @Query(value =
+            "CREATE OR REPLACE FUNCTION public.delete_site(\n" +
+            "site_id integer)\n" +
+            "RETURNS void\n" +
+            "LANGUAGE 'plpgsql'\n" +
+            "COST 100\n" +
+            "VOLATILE PARALLEL UNSAFE\n" +
+            "AS $BODY$\n" +
+            "begin\n" +
+            "delete from keep_link where site_id = site_id;\n" +
+            "delete from lemma where site_id = site_id;\n" +
+            "delete from index where page_id in (select id from page where site_id = site_id);\n" +
+            "delete from page where site_id = site_id;\n" +
+            "delete from site where id = site_id;\n" +
+            "end;\n" +
+            "$BODY$;", nativeQuery = true)
+    void createDeleteSiteFunction();
 }

@@ -116,7 +116,11 @@ public class Parser extends RecursiveAction {
 
         errorLinksHashMap.put(siteId, new ConcurrentHashMap<>());
 
-        dbWriterHashMap.put(siteId, new DBWriter("DBWriter[" + HtmlParsing.getDomainName(site.getUrl())  + "]", beanAccess, pageHashMap.get(siteId), batchSize, checkPartOfSpeech));
+        dbWriterHashMap.put(siteId, new DBWriter("DBWriter[" + HtmlParsing.getDomainName(site.getUrl())  + "]",
+                beanAccess,
+                pageHashMap.get(siteId),
+                batchSize,
+                checkPartOfSpeech));
     }
 
     public static void start(Site site) {
@@ -323,15 +327,15 @@ public class Parser extends RecursiveAction {
                 if (!inProcessLinks.contains(hRef))  //очередь ожидания
                     if ((HtmlParsing.isCurrentSite(hRef, domainName)) && (!readyLinks.contains(hRef))) {
                         //при критическои количестве в очереди пула - возникнет ошибка Too many file open
-                        System.out.println("inProcessLink.size(): " + inProcessLinks.size());
-                        while (inProcessLinks.size() > 10) {
-                            try {
-                                sleep(5000);
-                                System.out.println("sleep(5000)");
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
+//                        System.out.println("inProcessLink.size(): " + inProcessLinks.size());
+//                        while (inProcessLinks.size() > 10) {
+//                            try {
+//                                sleep(5000);
+//                                System.out.println("sleep(5000)");
+//                            } catch (InterruptedException e) {
+//                                throw new RuntimeException(e);
+//                            }
+//                        }
                         inProcessLinks.add(hRef);
                         Parser parser = new Parser(site, hRef, domainName);
                         pool.execute(parser);

@@ -9,8 +9,9 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "index",
-        indexes = @Index(name = "pageId_idx", columnList = "pageId"))
+//@Table(name = "index",
+//        indexes = @Index(name = "pageId_idx", columnList = "pageId"))
+@Table(name = "index")
 public class IndexEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

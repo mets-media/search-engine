@@ -2,6 +2,8 @@ package engine.entity;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import javax.persistence.Index;
@@ -21,6 +23,7 @@ public class Page implements Serializable {
     //@SequenceGenerator(name = "seqGenPage", sequenceName = "seqPage", initialValue = 1)
     private Integer id;
     @NotNull
+    @Column(insertable = false,updatable = false)
     private Integer siteId;
     @NotNull
     @Column(columnDefinition = "Text")
@@ -29,6 +32,10 @@ public class Page implements Serializable {
     private Integer code;
     @Column(columnDefinition = "Text")
     private String content;
+
+//    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    @JoinColumn(name = "siteId")
+//    private Site site;
 
     public Page(Integer siteId, String path, Integer code, String content) {
         this.path = path;
