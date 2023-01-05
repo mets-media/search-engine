@@ -19,9 +19,6 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "order by url", nativeQuery = true)
     Page<Site> getSitesFromPageTable(Pageable pageable);
 
-
-
-
     @Modifying
     @Transactional
     @Query(value="Update Site set page_count = :pageCount Where id = :siteId",nativeQuery = true)
@@ -41,7 +38,7 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "  delete from lemma where site_id = old.id;\n" +
             "  delete from index where page_id in (select id from page where site_id = old.id);\n" +
             "  delete from page where site_id = old.id;\n" +
-            "  return null;" +
+            "  return null;\n" +
             "end\n" +
             "$BODY$;\n" +
 
@@ -56,19 +53,25 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
     @Transactional
     @Query(value =
             "CREATE OR REPLACE FUNCTION public.delete_site(\n" +
-            "site_id integer)\n" +
+            "siteId integer)\n" +
             "RETURNS void\n" +
             "LANGUAGE 'plpgsql'\n" +
             "COST 100\n" +
             "VOLATILE PARALLEL UNSAFE\n" +
             "AS $BODY$\n" +
             "begin\n" +
-            "delete from keep_link where site_id = site_id;\n" +
-            "delete from lemma where site_id = site_id;\n" +
-            "delete from index where page_id in (select id from page where site_id = site_id);\n" +
-            "delete from page where site_id = site_id;\n" +
-            "delete from site where id = site_id;\n" +
+            "delete from keep_link where site_id = siteId;\n" +
+            "delete from lemma where site_id = siteId;\n" +
+            "delete from index where page_id in (select id from page where site_id = siteId);\n" +
+            "delete from page where site_id = siteId;\n" +
+            "delete from site where id = siteId;\n" +
             "end;\n" +
             "$BODY$;", nativeQuery = true)
     void createDeleteSiteFunction();
+
+    @Modifying
+    @Transactional
+    @Query(value = "Select delete_site(:siteId)", nativeQuery = true)
+    void deleteSite(@Param("siteId") Integer siteId);
+
 }

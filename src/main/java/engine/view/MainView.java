@@ -64,17 +64,22 @@ public class MainView extends AppLayout {
 
     @PostConstruct
     private void getSites() {
+        beanAccess.setUi(UI.getCurrent());
         SiteComponent.setDataAccess(beanAccess);
 
         var listSites = yamlConfig.getSites();
-        listSites.forEach(site -> {
-            if (!siteRepository.getSiteByUrl(site.getUrl()).isPresent()) {
-                site.setPageCount(0);
-                site.setStatus(SiteStatus.NEW_SITE);
-                site.setStatusTime(LocalDateTime.now());
-                siteRepository.save(site);
-            }
-        });
+
+        if (!(listSites == null))
+            listSites.forEach(site -> {
+                if (!siteRepository.getSiteByUrl(site.getUrl()).isPresent()) {
+                    site.setPageCount(0);
+                    site.setStatus(SiteStatus.NEW_SITE);
+                    site.setStatusTime(LocalDateTime.now());
+                    siteRepository.save(site);
+                }
+            });
+
+        yamlConfig.setSites(null);
 
         var siteComponent = new SiteComponent();
         setContent(siteComponent.getMainLayout());
@@ -93,7 +98,7 @@ public class MainView extends AppLayout {
                 Parser.start(site);
             });
         }
-        beanAccess.setUi(UI.getCurrent());
+        //beanAccess.setUi(UI.getCurrent());
     }
 
     public MainView() {

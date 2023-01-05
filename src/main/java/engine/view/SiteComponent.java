@@ -245,20 +245,21 @@ public class SiteComponent {
         dialog.add(verticalLayout);
 
         confirm.addClickListener(clickEvent -> {
-
             sites.forEach(delSite -> {
-                //new Thread(() -> pageRepository.deleteBySiteId(delSite.getId())).start();
-
-                new Thread(() -> beanAccess.getSiteRepository().delete(delSite)).start();
-                //beanAccess.getSiteRepository().delete(delSite);
+                SiteStatus status = (SiteStatus) delSite.getStatus();
+                switch (status) {
+                    case NEW_SITE, STOPPED, INDEXED, FAILED -> beanAccess.getSiteRepository().delete(delSite);
+                    default -> grid.deselect(delSite);
+                }
 
             });
-
             dialog.close();
             Notification notification = new Notification("Удалени выполнено!", 1000);
             notification.setPosition(Notification.Position.MIDDLE);
+            notification.addDetachListener(detachEvent -> {
+               grid.setItems(beanAccess.getSiteRepository().findAll());
+            });
             notification.open();
-            grid.setItems(beanAccess.getSiteRepository().findAll());
         });
         cancel.addClickListener(clickEvent -> {
             dialog.close();

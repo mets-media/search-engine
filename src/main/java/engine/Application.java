@@ -42,23 +42,24 @@ public class Application extends SpringBootServletInitializer {
             HtmlParsing.setReferrer(yamlConfig.getReferrer());
             HtmlParsing.setTimeout(yamlConfig.getTimeout());
             List<Site> siteList = yamlConfig.getSites();
-
+            //------- Инициализация служебных данных ------------
             if (fieldRepository.count() == 0)
                 fieldRepository.initData();
-
             if (configRepository.count() == 0)
                 configRepository.initData();
-
             if (partOfSpeechRepository.count() == 0)
                partOfSpeechRepository.initData();
+            //----------------------------------------------------
 
-             pageContainerRepository.createFunction();
-
-             //siteRepository.createTrigger();
-            siteRepository.createDeleteSiteFunction();
-
-
+            //Парсинг lemmaString
             pageContainerRepository.createTrigger();
+            //Функция парсинга lemmaString
+            //pageContainerRepository.createFunction();
+
+             //Удаление данных в подчинённых таблицах
+             siteRepository.createTrigger();
+            //siteRepository.createDeleteSiteFunction();
+
 
 
         };
