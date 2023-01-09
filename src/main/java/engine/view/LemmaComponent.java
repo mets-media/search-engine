@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static engine.service.HtmlParsing.getRussianWords;
@@ -150,14 +151,7 @@ public class LemmaComponent {
                     content.remove(component);
                 }
             });
-
         });
-    }
-
-
-    private Document getDocumentFromDataBase() {
-
-        return null;
     }
 
     private ComboBox<Page> createPageComboBox() {
@@ -171,12 +165,11 @@ public class LemmaComponent {
         return pageComboBox;
     }
 
-    private VerticalLayout createSearchLemmaComponent() {
+    BiFunction<Lemmatization.LemmaInfo, Lemmatization.LemmaInfo, Lemmatization.LemmaInfo> SUB_LEMMA_PROPERTIES = (l1, l2) ->
+            new Lemmatization.LemmaInfo(l1.getLemma(), l1.getCount() - l2.getCount(), l1.getRank() - l2.getRank());
 
-        ComboBox<Page> pageComboBox = createPageComboBox();
-        pageComboBox.setWidth("100%");
 
-        TextField researchUrlTextField = new TextField("Адрес страницы: ");
+    private Button createResearchButton(TextField researchUrlTextField) {
         Button researchButton = new Button("Загрузить");
 
         researchButton.addClickListener(buttonClickEvent -> {
@@ -206,7 +199,6 @@ public class LemmaComponent {
                 try {
                     document = HtmlParsing.getHtmlDocument(researchUrlTextField.getValue());
                     content = document.toString();
-
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -214,6 +206,19 @@ public class LemmaComponent {
             var listCssSelectorsHashMap =
                     lemmatizator.getHashMapsLemmaForEachCssSelector(content);
 
+            if (listCssSelectorsHashMap.size() > 2) {
+                //Надо вычесть из body...
+                System.out.println(cssSelectors.get(1));
+                //Первоначальные данные
+                HashMap<String, Lemmatization.LemmaInfo> newBodyHashMap = new HashMap<>(listCssSelectorsHashMap.get(1));
+
+                for (int i = 2; i < listCssSelectorsHashMap.size(); i++) {
+                    listCssSelectorsHashMap.get(i).forEach((k, v) -> newBodyHashMap.merge(k, v, SUB_LEMMA_PROPERTIES));
+                }
+
+                listCssSelectorsHashMap.set(1, newBodyHashMap);
+
+            }
 
             VerticalLayout verticalLayout = new VerticalLayout();
             verticalLayout.setId("VerticalLayoutForGrids");
@@ -238,6 +243,17 @@ public class LemmaComponent {
             }
             contentsHashMap.get("Леммы").add(verticalLayout);
         });
+        return researchButton;
+    }
+
+    private VerticalLayout createSearchLemmaComponent() {
+
+        ComboBox<Page> pageComboBox = createPageComboBox();
+        pageComboBox.setWidth("100%");
+
+        TextField researchUrlTextField = new TextField("Адрес страницы: ");
+
+        Button researchButton = createResearchButton(researchUrlTextField);
 
         var verticalLayout = new VerticalLayout();
         verticalLayout.setAlignItems(FlexComponent.Alignment.START);
