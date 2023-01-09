@@ -7,6 +7,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.server.Command;
 import engine.entity.*;
 import engine.view.CreateUI;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +23,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static java.lang.Thread.sleep;
 
 @Service
 @RequiredArgsConstructor
@@ -41,15 +40,13 @@ public class Parser extends RecursiveAction {
     public final static String ERROR_LINKS_FILENAME = "Error_Links.txt";
     private static final HashMap<Integer, ForkJoinPool> activePools = new HashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> readyLinksHashMap = new ConcurrentHashMap<>();
-
-    //private static final ConcurrentHashMap<Integer, List<Page>> pageHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentLinkedQueue<Page>> pageHashMap = new ConcurrentHashMap<>();
-    //private static final ConcurrentHashMap<Integer, Lemmatization> lemmatizatorHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> inProcessLinksHashMap = new ConcurrentHashMap<>();
-    //private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> errorLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentHashMap<String, Integer>> errorLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, DBWriter> dbWriterHashMap = new ConcurrentHashMap<>();
     private static Integer batchSize = 100;
+    private static Integer delay;
+    private static int parallelism = Runtime.getRuntime().availableProcessors();
     private static Boolean checkPartOfSpeech = true;
 
     private static final boolean saveLinksInShortFormat = false;
@@ -76,7 +73,42 @@ public class Parser extends RecursiveAction {
 
         int siteId = site.getId();
 
-        int parallelism = Runtime.getRuntime().availableProcessors();
+        List<Config> configList = beanAccess.getConfigRepository().findAll();
+        configList.forEach(configLine -> {
+            switch (configLine.getKey()) {
+                case "delay" -> {
+                    delay = Integer.parseInt(configLine.getValue());
+                }
+                case "tps" -> {
+                    try {
+                        parallelism = Integer.parseInt(configLine.getValue());
+                    } catch (Exception e) {
+                        CreateUI.showMessage("Тип свойства 'tps' должен быть Integer",
+                                2000, Notification.Position.MIDDLE);
+                    }
+                }
+                case "batch" -> {
+                    try {
+                        batchSize = Integer.parseInt(configLine.getValue());
+                    } catch (Exception e) {
+                        CreateUI.showMessage("Тип свойства 'batch' должен быть Integer",
+                                2000, Notification.Position.MIDDLE);
+                    }
+                }
+                case "isPoS" -> {
+                    try {
+                        checkPartOfSpeech = Boolean.parseBoolean(configLine.getValue());
+                    } catch (Exception e) {
+                        CreateUI.showMessage("Тип свойства 'isPoS' должен быть true/false!",
+                                2000, Notification.Position.MIDDLE);
+                    }
+                }
+            }
+        });
+
+
+/*
+        //int parallelism = Runtime.getRuntime().availableProcessors();
         Config config = beanAccess.getConfigRepository().findByKey("tps");
         try {
             if (!(config == null))
@@ -103,7 +135,7 @@ public class Parser extends RecursiveAction {
             CreateUI.showMessage("Тип свойства 'isPoS' должен быть true/false!",
                     2000, Notification.Position.MIDDLE);
         }
-
+*/
         activePools.put(siteId, new ForkJoinPool(parallelism,
                 ForkJoinPool.defaultForkJoinWorkerThreadFactory,
                 null, true));
@@ -116,7 +148,7 @@ public class Parser extends RecursiveAction {
 
         errorLinksHashMap.put(siteId, new ConcurrentHashMap<>());
 
-        dbWriterHashMap.put(siteId, new DBWriter("DBWriter[" + HtmlParsing.getDomainName(site.getUrl())  + "]",
+        dbWriterHashMap.put(siteId, new DBWriter("DBWriter[" + HtmlParsing.getDomainName(site.getUrl()) + "]",
                 beanAccess,
                 pageHashMap.get(siteId),
                 batchSize,
@@ -264,9 +296,12 @@ public class Parser extends RecursiveAction {
         Document document = null;
 
         if (readyLinks.contains(path))
+            //Переиндексация
             return;
         else {
             try {
+                if (delay > 0)
+                    Thread.sleep(delay);
                 code = HtmlParsing.getStatusCode(path);
                 document = HtmlParsing.getHtmlDocument(path);
                 content = document.toString();
@@ -326,16 +361,6 @@ public class Parser extends RecursiveAction {
             for (String hRef : hReference) {
                 if (!inProcessLinks.contains(hRef))  //очередь ожидания
                     if ((HtmlParsing.isCurrentSite(hRef, domainName)) && (!readyLinks.contains(hRef))) {
-                        //при критическои количестве в очереди пула - возникнет ошибка Too many file open
-//                        System.out.println("inProcessLink.size(): " + inProcessLinks.size());
-//                        while (inProcessLinks.size() > 10) {
-//                            try {
-//                                sleep(5000);
-//                                System.out.println("sleep(5000)");
-//                            } catch (InterruptedException e) {
-//                                throw new RuntimeException(e);
-//                            }
-//                        }
                         inProcessLinks.add(hRef);
                         Parser parser = new Parser(site, hRef, domainName);
                         pool.execute(parser);
@@ -353,6 +378,7 @@ public class Parser extends RecursiveAction {
                 site.setLastError("Не удалось загрузить стартовую страницу");
                 beanAccess.getSiteRepository().save(site);
                 System.out.println("Не удалось загрузить стартовую страницу");
+
             } else {
                 site.setStatus(SiteStatus.INDEXED);
                 beanAccess.getSiteRepository().save(site);
@@ -362,6 +388,7 @@ public class Parser extends RecursiveAction {
             siteGrid.setItems(beanAccess.getSiteRepository().findAll());
         }
     }
+
 
     private static void showPrevDataDialog(Site site, Integer pageCount) {
         //ConcurrentHashMap<String, Page> readyLinks = readyLinksHashMap.get(site.getId());

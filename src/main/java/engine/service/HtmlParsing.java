@@ -1,8 +1,5 @@
 package engine.service;
 
-import engine.Application;
-import engine.config.YAMLConfig;
-import engine.entity.Lemma;
 import lombok.Setter;
 import lombok.experimental.UtilityClass;
 import org.jsoup.Connection;
@@ -10,7 +7,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,26 +18,20 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 @UtilityClass
 public class HtmlParsing {
 
     private static String userAgent;
     private static String referrer;
     private static Integer timeout;
+    private static Integer delay;
 
     private static int saveFilesCount = 0;
 
-    public static void setUserAgent(String userAgent) {
-        HtmlParsing.userAgent = userAgent;
-    }
-
-    public static void setReferrer(String referrer) {
-        HtmlParsing.referrer = referrer;
-    }
-    public static void setTimeout(Integer timeout) {
-        HtmlParsing.timeout = timeout;
-    }
+    public static void setUserAgent(String userAgent) {HtmlParsing.userAgent = userAgent;}
+    public static void setReferrer(String referrer) {HtmlParsing.referrer = referrer;}
+    public static void setTimeout(Integer timeout) {HtmlParsing.timeout = timeout;}
+    public static void setDelay(Integer delay) {HtmlParsing.delay = delay;}
 
     public static String getShortLink(String link, String domainName) {
         String shortLink = link.substring(link.indexOf(domainName) + domainName.length());

@@ -50,7 +50,16 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "join Lemma on Lemma.Id = Index.Lemma_Id " +
             "where Lemma.Lemma = :lemma and Lemma.Site_Id = :siteId " +
             "order by Path",nativeQuery = true)
-    List<Integer> getPageIdBySiteIdLemmaIn(@Param("lemma") String lemma, @Param("siteId") Integer siteId);
+    List<Integer> getPageIdBySiteIdAndLemma(@Param("lemma") String lemma, @Param("siteId") Integer siteId);
+
+    @Query(value="Select Page.id Page_Id from Page " +
+            "join Index on Index.Page_Id = Page.Id " +
+            "join Lemma on Lemma.Id = Index.Lemma_Id " +
+            "where Lemma.Lemma = :lemma " +
+            "order by Path",nativeQuery = true)
+    List<Integer> getPageIdByLemma(@Param("lemma") String lemma);
+
+
 
     @Query(value = "Select Content from Page where Path = :path", nativeQuery = true)
     String getContentByPath(@Param("path") String path);

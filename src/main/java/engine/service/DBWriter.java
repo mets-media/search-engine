@@ -66,15 +66,22 @@ public class DBWriter extends Thread {
                 List<Page> savePage = readyPage.stream().limit(batchSize).toList();
 
                 try {
-                    batchUpdate(savePage);
+                    batchUpdate(savePage, false);
                     //lemmaStrings.clear();
                 } catch (Exception e) {
-                    //e.printStackTrace();
                     e.printStackTrace();
+                    //Ошибка utf-8 0x00
+
+                    try {//Исключение ошибки 0x00
+                        batchUpdate(savePage, true);
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
+                    }
+
                 }
 
                 readyPage.removeAll(savePage);
-                System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
+                //System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
             }
 
 
@@ -85,7 +92,8 @@ public class DBWriter extends Thread {
         //batchUpdate(savePage);
         //readyPage.removeAll(savePage);
 
-        batchUpdate(preparePages, lemmaStrings);
+        //batchUpdate(preparePages, lemmaStrings);
+        batchUpdate(readyPage.stream().toList(), true);
         System.out.println("Запись хвоста: " + beanAccess.getPageRepository().count());
 
         System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
@@ -100,7 +108,7 @@ public class DBWriter extends Thread {
 
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private boolean batchUpdate(List<Page> savePages) {
+    private boolean batchUpdate(List<Page> savePages, boolean replace0x00) {
 
         System.out.println("Запись данных; name = " + getName());
 
@@ -124,7 +132,13 @@ public class DBWriter extends Thread {
                     path = "Truncate link:  (" + Math.random() + "): " + path.substring(0, 200);
                 }
                 ps.setString(3, path);
+
+
                 String content = page.getContent();
+
+                if (replace0x00)//Исключение ошибки 0x00 UTF-8
+                    page.setContent(page.getContent().replaceAll("\u0000", ""));
+
                 ps.setString(4, content);
 
                 String lemmaString = getLemmaString(content, lemmatizator);
@@ -246,20 +260,20 @@ public class DBWriter extends Thread {
 
 //          Новый вариант - с заранее подготовленными строками лемматизации
 //--------------------------------------------------------------------------------------------------------------------
-            //readyPage.stream().findFirst().ifPresent(page -> {
+        //readyPage.stream().findFirst().ifPresent(page -> {
         readyPage.forEach(page -> {
-                if (page.getPath().length() > 255) {
-                    //Записать длинную ссылку
-                    //longLinkRepository
-                }
-                //Исключение ошибки 0x00 UTF-8
-                page.setContent(page.getContent().replaceAll("\u0000", ""));
+            if (page.getPath().length() > 255) {
+                //Записать длинную ссылку
+                //longLinkRepository
+            }
+            //Исключение ошибки 0x00 UTF-8
+            page.setContent(page.getContent().replaceAll("\u0000", ""));
 
-                preparePages.add(page);
-                lemmaStrings.add(getLemmaString(page.getContent(), lemmatizator));
-                //временно заглушил
-                //readyPage.remove(page); //Удаление обработанной страницы
-            });
+            preparePages.add(page);
+            lemmaStrings.add(getLemmaString(page.getContent(), lemmatizator));
+            //временно заглушил
+            //readyPage.remove(page); //Удаление обработанной страницы
+        });
 /*
             if (preparePages.size() >= batchSize) {
                 int[] results = new int[0];

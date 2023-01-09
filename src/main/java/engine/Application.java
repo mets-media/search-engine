@@ -41,7 +41,10 @@ public class Application extends SpringBootServletInitializer {
             HtmlParsing.setUserAgent(yamlConfig.getUserAgent());
             HtmlParsing.setReferrer(yamlConfig.getReferrer());
             HtmlParsing.setTimeout(yamlConfig.getTimeout());
-            List<Site> siteList = yamlConfig.getSites();
+            HtmlParsing.setDelay(yamlConfig.getDelay());
+
+            //List<Site> siteList = yamlConfig.getSites();
+
             //------- Инициализация служебных данных ------------
             if (fieldRepository.count() == 0)
                 fieldRepository.initData();

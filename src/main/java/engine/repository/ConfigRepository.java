@@ -11,6 +11,7 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
     @Transactional
     @Modifying
     @Query(value = "Insert into Config (Id,Key,Name,Value) values " +
+            "(-5,'delay','Пауза при обращении к страницам, м.сек.','150'), " +
             "(-4,'isPoS','Учитывать части речи при индексации','true'), " +
             "(-3,'batch','Размер блока для записи','10'), " +
             "(-2,'sLiSF','Короткая запись ссылок (boolean)','false'), " +

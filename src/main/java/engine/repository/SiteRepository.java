@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface SiteRepository extends JpaRepository<Site, Integer> {
@@ -19,11 +20,16 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "order by url", nativeQuery = true)
     Page<Site> getSitesFromPageTable(Pageable pageable);
 
+    @Query(value = "Select * from Site " +
+            "where id in (select distinct Site_Id from page) " +
+            "order by url", nativeQuery = true)
+    List<Site> getSitesFromPageTable();
+
+
     @Modifying
     @Transactional
     @Query(value="Update Site set page_count = :pageCount Where id = :siteId",nativeQuery = true)
     void setPageCountBySiteId(@Param("siteId") Integer siteId, @Param("pageCount") Integer pageCount);
-
 
     @Modifying
     @Transactional

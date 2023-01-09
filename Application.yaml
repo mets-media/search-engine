@@ -20,7 +20,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -45,4 +45,5 @@ autoScan: false
 userAgent: "Chrome/100.0.4896.127"
 referrer: "http://www.google.com"
 timeout: 1000
+delay: 100
 

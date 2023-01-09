@@ -98,7 +98,6 @@ public class MainView extends AppLayout {
                 Parser.start(site);
             });
         }
-        //beanAccess.setUi(UI.getCurrent());
     }
 
     public MainView() {

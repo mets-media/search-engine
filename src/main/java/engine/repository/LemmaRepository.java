@@ -16,6 +16,13 @@ public interface LemmaRepository extends CrudRepository<Lemma,Integer> {
 
     List<Lemma> findBySiteIdAndLemmaIn(Integer siteId, List<String> lemma, Pageable pageable);
 
+    @Query(value = "select 0 id, sum(frequency) frequency, lemma, sum(rank) rank, 0 site_id \n" +
+            "from lemma\n" +
+            "where lemma in (:lemmaIn)\n" +
+            "group by lemma\n" +
+            "order by frequency", nativeQuery = true)
+    List<Lemma> findByLemmaIn(@Param("lemmaIn") List<String> lemmaIn, Pageable pageable);
+
 
     @Query(value=
             "with page_lemma_count as (select lemma_id, count(*) lemma_count, sum(lemma.rank) rank from index \n" +

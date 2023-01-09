@@ -1,5 +1,6 @@
 package engine.view;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -34,6 +35,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.END;
 import static com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.START;
 import static engine.view.CreateUI.showMessage;
 
@@ -100,15 +102,8 @@ public class SiteComponent {
                         progressBar.setValue(0l);
                     }
                 }
-
-//                if (item.getStatus() == SiteStatus.DOWNLOADING) {
-//                    progressBar.setIndeterminate(true);
-//                }
             });
-
-
             return progressBar;
-
         });
 
         //grid.addColumn(new LocalDateTimeRenderer<>((ValueProvider<Site, LocalDateTime>) site ->
@@ -121,6 +116,8 @@ public class SiteComponent {
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         mainLayout.add(grid);
+
+
 
 
     }
@@ -184,6 +181,7 @@ public class SiteComponent {
                 }
             });
             grid.setItems(beanAccess.getSiteRepository().findAll());
+            beanAccess.setUi(UI.getCurrent());
         });
 
         //========================= СТОП СКАНИРОВАНИЕ ==========================================
@@ -196,7 +194,6 @@ public class SiteComponent {
                 grid.deselect(site);
                 if (site.getStatus().equals(SiteStatus.INDEXING)) {
                     Parser.stop(site);
-                    //grid.deselect(site);
                     site.setStatus(SiteStatus.STOPPED);
                     beanAccess.getSiteRepository().save(site);
                     site.setPageCount(beanAccess.getPageRepository().countBySiteId(site.getId()));
@@ -254,7 +251,7 @@ public class SiteComponent {
 
             });
             dialog.close();
-            Notification notification = new Notification("Удалени выполнено!", 1000);
+            Notification notification = new Notification("Удаление выполнено!", 1000);
             notification.setPosition(Notification.Position.MIDDLE);
             notification.addDetachListener(detachEvent -> {
                grid.setItems(beanAccess.getSiteRepository().findAll());
@@ -360,24 +357,33 @@ public class SiteComponent {
 
 
     private static class SiteDetailFormLayout extends FormLayout {
-        private final TextField pageCountTextField = new TextField("Страниц в базе данных");
+        private final TextField pageCountTextField = new TextField("Страниц в базе");
         private final TextField siteStatusTextField = new TextField("Статус");
-        private final TextField statusTimeTextField = new TextField("время установки статуса");
+        private final TextField statusTimeTextField = new TextField("Время статуса");
         private final TextField lastErrorTextField = new TextField("Сообщение");
 
         public SiteDetailFormLayout() {
-            Stream.of(pageCountTextField, siteStatusTextField, statusTimeTextField, lastErrorTextField)
-                    .forEach(field -> {
-                        field.setReadOnly(true);
-                        field.setSizeFull();
-                    });
+            var verticalLayout = new VerticalLayout();
+            verticalLayout.setWidthFull();
+            verticalLayout.setAlignItems(END);
 
-            var horizontalLayout = new HorizontalLayout(pageCountTextField, siteStatusTextField, statusTimeTextField);
-            horizontalLayout.setAlignItems(START);
-            horizontalLayout.setSizeFull();
+            var horizontalLayout = new HorizontalLayout(pageCountTextField,
+                    siteStatusTextField,
+                    statusTimeTextField,
+                    lastErrorTextField);
 
-            var verticalLayout = new VerticalLayout(horizontalLayout, lastErrorTextField);
-            verticalLayout.setAlignItems(START);
+            verticalLayout.add(horizontalLayout);
+            horizontalLayout.setAlignItems(END);
+            horizontalLayout.setWidth("100%");
+
+            Stream.of(pageCountTextField, siteStatusTextField, statusTimeTextField)
+                    .forEach(field -> field.setReadOnly(true));
+
+            pageCountTextField.setWidth("20%");
+            siteStatusTextField.setWidth("30%");
+            statusTimeTextField.setWidth("40%");
+
+            lastErrorTextField.setWidthFull();
 
             add(verticalLayout);
         }

@@ -21,4 +21,5 @@ public class YAMLConfig {
     private String referrer;
     private Integer timeout;
     private Boolean autoScan;
+    private Integer delay;
 }

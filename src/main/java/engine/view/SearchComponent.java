@@ -74,20 +74,11 @@ public class SearchComponent {
 
     private VerticalLayout createSearchComponent() {
 
-        Collection<TextField> textFieldCollection = Arrays.asList(pageCountTextField,lemmaCountTextField,indexCountTextField);
+        Collection<TextField> textFieldCollection = Arrays.asList(pageCountTextField, lemmaCountTextField, indexCountTextField);
         textFieldCollection.forEach(textField -> {
             textField.setReadOnly(true);
             textField.setWidth("15%");
         });
-
-//        pageCountTextField.setReadOnly(true);
-//        lemmaCountTextField.setReadOnly(true);
-//        indexCountTextField.setReadOnly(true);
-//
-//        pageCountTextField.setWidth("15%");
-//        lemmaCountTextField.setWidth("15%");
-//        indexCountTextField.setWidth("15%");
-
 
         var horizontalLayout = new HorizontalLayout(
                 createSiteComboBox(),
@@ -127,22 +118,53 @@ public class SearchComponent {
         siteComboBox = new ComboBox<>("Сайт:");
         siteComboBox.setItemLabelGenerator(Site::getUrl);
 
-        siteComboBox.setItems(query -> {
-            return beanAccess.getSiteRepository().getSitesFromPageTable(
-                    PageRequest.of(query.getPage(), query.getPageSize())
-            ).stream();
-        });
+//        siteComboBox.setItems(query -> {
+//            return beanAccess.getSiteRepository().getSitesFromPageTable(
+//                    PageRequest.of(query.getPage(), query.getPageSize())
+//            ).stream();
+//        });
+
+
+        List<Site> siteList = beanAccess.getSiteRepository().getSitesFromPageTable();
+
+        Site allSiteObject = new Site();
+        allSiteObject.setId(0);
+        allSiteObject.setName("*");
+        allSiteObject.setUrl("Все сайты");
+        siteList.add(0, allSiteObject);
+
+        siteComboBox.setItems(siteList.stream());
+
 
         siteComboBox.addValueChangeListener(event -> {
-            requestLayout.setEnabled(true);
-            int siteId = event.getValue().getId();
-            Integer pageCount = beanAccess.getPageRepository().countBySiteId(siteId);
-            Integer lemmaCount = beanAccess.getLemmaRepository().countBySiteId(siteId);
-            Integer indexCount = beanAccess.getIndexRepository().countBySiteId(siteId);
 
-            pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
-            lemmaCountTextField.setValue(new DecimalFormat("#,###").format(lemmaCount));
-            indexCountTextField.setValue(new DecimalFormat("#,###").format(indexCount));
+            lemmaGrid.setItems(new ArrayList<>());
+            relevanceGrid.setItems(new ArrayList<>());
+            pageIdHashMap.clear();
+
+            switch (event.getValue().getName()) {
+                case "*" -> {
+                    long pageCount = beanAccess.getPageRepository().count();
+                    long lemmaCount = beanAccess.getLemmaRepository().count();
+                    long indexCount = beanAccess.getIndexRepository().count();
+
+                    pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
+                    lemmaCountTextField.setValue(new DecimalFormat("#,###").format(lemmaCount));
+                    indexCountTextField.setValue(new DecimalFormat("#,###").format(indexCount));
+
+                }
+                default -> {
+                    int siteId = event.getValue().getId();
+                    Integer pageCount = beanAccess.getPageRepository().countBySiteId(siteId);
+                    Integer lemmaCount = beanAccess.getLemmaRepository().countBySiteId(siteId);
+                    Integer indexCount = beanAccess.getIndexRepository().countBySiteId(siteId);
+
+                    pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
+                    lemmaCountTextField.setValue(new DecimalFormat("#,###").format(lemmaCount));
+                    indexCountTextField.setValue(new DecimalFormat("#,###").format(indexCount));
+                }
+            }
+            requestLayout.setEnabled(true);
         });
         siteComboBox.setWidth("30%");
         return siteComboBox;
@@ -237,7 +259,12 @@ public class SearchComponent {
             selectionEvent.getAllSelectedItems().forEach(lemma -> {
                 String selectedLemma = lemma.getLemma();
 
-                List<Integer> pageIdList = beanAccess.getPageRepository().getPageIdBySiteIdLemmaIn(selectedLemma, siteId);
+                List<Integer> pageIdList;
+                if (siteId == 0)
+                    pageIdList = beanAccess.getPageRepository().getPageIdByLemma(selectedLemma);
+                else
+                    pageIdList = beanAccess.getPageRepository().getPageIdBySiteIdAndLemma(selectedLemma, siteId);
+
                 if (!pageIdHashMap.containsKey(selectedLemma))
                     pageIdHashMap.put(selectedLemma, pageIdList);
             });
@@ -265,8 +292,13 @@ public class SearchComponent {
             if (!(includePageId.isBlank())) {
                 includePageId = includePageId.substring(0, includePageId.length() - 1);
 
-                List<PathTable> pathTableList = beanAccess.getPathTableRepository()
-                        .getResultTable(siteId, includeLemma, includePageId);
+                List<PathTable> pathTableList;
+            if (siteId == 0)
+                pathTableList = beanAccess.getPathTableRepository()
+                        .getResultTableForAllSites(includeLemma, includePageId);
+            else
+                pathTableList = beanAccess.getPathTableRepository()
+                        .getResultTableForSelectedSite(siteId, includeLemma, includePageId);
 
                 //Результаты
                 relevanceGrid.setItems(pathTableList);
@@ -277,6 +309,7 @@ public class SearchComponent {
             }
         });
     }
+
 
     private List<String> retainAllSelectedLemmas() {
 
@@ -324,19 +357,30 @@ public class SearchComponent {
         searchButton.setWidth("10%");
 
         searchButton.addClickListener(buttonClickEvent -> {
+            setLemmaGridItems(siteComboBox.getValue().getId());
+        });
+        return searchButton;
+    }
 
-            List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
-                    .stream()
-                    .map(p -> p.getShortName())
-                    .collect(Collectors.toList());
+    private void setLemmaGridItems(Integer siteId) {
+        List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
+                .stream()
+                .map(p -> p.getShortName())
+                .collect(Collectors.toList());
 
-            Lemmatization lemmatizator = new Lemmatization(excludeList, null);
+        Lemmatization lemmatizator = new Lemmatization(excludeList, null);
 
-            HashMap<String, Integer> requestLemmas = lemmatizator.getLemmaCount(requestTextField.getValue());
+        HashMap<String, Integer> requestLemmas = lemmatizator.getLemmaCount(requestTextField.getValue());
 
-            Integer siteId = siteComboBox.getValue().getId();
-            List<String> lemmaList = requestLemmas.keySet().stream().toList();
+        //Integer siteId = siteComboBox.getValue().getId();
+        List<String> lemmaList = requestLemmas.keySet().stream().toList();
 
+        if (siteId == 0)  //Все сайты
+            lemmaGrid.setItems(query -> beanAccess.getLemmaRepository()
+                    .findByLemmaIn(lemmaList,
+                            PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("frequency")))
+                    .stream());
+        else  //Выбранный сайт
             lemmaGrid.setItems(query -> beanAccess.getLemmaRepository()
                     .findBySiteIdAndLemmaIn(
                             siteId,
@@ -344,10 +388,7 @@ public class SearchComponent {
                             PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("frequency")))
                     .stream());
 
-        });
-        return searchButton;
     }
-
 
     private static class PageDetailFormLayout extends FormLayout {
         private static final Button browserButton = new Button("Открыть страницу");

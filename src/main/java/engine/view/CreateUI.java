@@ -86,6 +86,16 @@ public class CreateUI {
         notification.open();
     }
 
+    public static void showMessageWith(String text, int duration, Notification.Position position) {
+        Notification notification = new Notification(text, duration);
+        notification.setPosition(position);
+
+        notification.addDetachListener(detachEvent -> {
+
+        });
+
+        notification.open();
+    }
 
 
 }

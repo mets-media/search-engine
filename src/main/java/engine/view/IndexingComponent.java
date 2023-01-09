@@ -235,7 +235,7 @@ public class IndexingComponent {
 
     private ComboBox<Site> createSiteComboBox() {
 
-        ComboBox<Site> siteComboBox = new ComboBox<>("страницы сайта:");
+        ComboBox<Site> siteComboBox = new ComboBox<>("Страницы сайта:");
         siteComboBox.setItemLabelGenerator(Site::getUrl);
 
         siteComboBox.setItems(query -> {
@@ -251,8 +251,10 @@ public class IndexingComponent {
             cssSelectorTextArea.setReadOnly(true);
 
             Site site = event.getValue();
+            //Предусмотреть - Все сайты
             Integer pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
             site.setPageCount(pageCount);
+
             pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
 
             grid.setItems(query -> beanAccess.getPageRepository()
@@ -262,6 +264,7 @@ public class IndexingComponent {
                     .stream());
         });//===============================================================================
 
+        siteComboBox.setWidth("50%");
         return siteComboBox;
     }
 
@@ -269,6 +272,7 @@ public class IndexingComponent {
 
         var horizontalLayout = new HorizontalLayout();
         horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
+        horizontalLayout.setSizeFull();
 
         horizontalLayout.add(createSiteComboBox(), pageCountTextField);
 
@@ -280,12 +284,13 @@ public class IndexingComponent {
             grid.addColumn(Page::getCode)
                     .setHeader("Code")
                     .setTextAlign(ColumnTextAlign.CENTER)
-                    .setWidth("10%");
+                    .setWidth("10%")
+                    .setResizable(true);
 
             grid.addColumn(Page::getPath)
                     .setHeader("Path")
                     .setKey("path")
-                    .setAutoWidth(true)
+                    .setWidth("90%")
                     .setResizable(true);
 
 
