@@ -59,10 +59,10 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "order by Path",nativeQuery = true)
     List<Integer> getPageIdByLemma(@Param("lemma") String lemma);
 
-
-
     @Query(value = "Select Content from Page where Path = :path", nativeQuery = true)
     String getContentByPath(@Param("path") String path);
+
+    List<Page> findByPathContainingOrderByPath(String filter, Pageable pageable);
 
 }
 

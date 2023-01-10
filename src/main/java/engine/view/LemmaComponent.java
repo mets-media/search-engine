@@ -143,24 +143,31 @@ public class LemmaComponent {
         return verticalLayout;
     }
 
-    private void removeComponentById(String tabCaption) {
+    private void removeComponentById(String tabCaption, String deleteId) {
         VerticalLayout content = contentsHashMap.get(tabCaption);
         content.getChildren().forEach(component -> {
             component.getId().ifPresent(id -> {
-                if (id.equals("VerticalLayoutForGrids")) {
+                if (id.equals(deleteId)) {
                     content.remove(component);
                 }
             });
         });
     }
 
-    private ComboBox<Page> createPageComboBox() {
-        ComboBox<Page> pageComboBox = new ComboBox<>("Адрес страницы");
-        pageComboBox.setItemLabelGenerator(Page::getPath);
+    private ComboBox<Page> createPageComboBox(TextField researchUrlTextField) {
+        ComboBox<Page> pageComboBox = new ComboBox<>("Страницы в базе данных");
+
         pageComboBox.setItems(query -> {
             return beanAccess.getPageRepository().findAll(
                     PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path"))
             ).stream();
+        });
+
+
+        pageComboBox.setItemLabelGenerator(Page::getPath);
+
+        pageComboBox.addValueChangeListener(event -> {
+           researchUrlTextField.setValue(event.getValue().getPath());
         });
         return pageComboBox;
     }
@@ -174,7 +181,7 @@ public class LemmaComponent {
 
         researchButton.addClickListener(buttonClickEvent -> {
 
-            removeComponentById("Леммы");
+            removeComponentById("Леммы", "VerticalLayoutForGrids");
 
             if (researchUrlTextField.isEmpty())
                 return;
@@ -246,30 +253,51 @@ public class LemmaComponent {
         return researchButton;
     }
 
+    private TextField createFilterTextField(ComboBox<Page> pageComboBox) {
+        TextField filterTextField = new TextField("Фильтр");
+
+        filterTextField.addValueChangeListener(event -> {
+            pageComboBox.setItems(query -> {
+                return beanAccess.getPageRepository().findByPathContainingOrderByPath(event.getValue(),
+                        PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path"))
+                ).stream();
+            });
+        });
+
+        return filterTextField;
+    }
     private VerticalLayout createSearchLemmaComponent() {
 
-        ComboBox<Page> pageComboBox = createPageComboBox();
-        pageComboBox.setWidth("100%");
-
         TextField researchUrlTextField = new TextField("Адрес страницы: ");
+        //------------------------------------------------------------------------------------
+
+        ComboBox<Page> pageComboBox = createPageComboBox(researchUrlTextField);
+        TextField filterTextField = createFilterTextField(pageComboBox);
+
+        HorizontalLayout filterHLayout = new HorizontalLayout(filterTextField, pageComboBox);
+        filterHLayout.setWidthFull();
+        filterHLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
+
+        filterTextField.setWidth("30%");
+        pageComboBox.setWidth("70%");
+
+        //------------------------------------------------------------------------------------
 
         Button researchButton = createResearchButton(researchUrlTextField);
-
-        var verticalLayout = new VerticalLayout();
-        verticalLayout.setAlignItems(FlexComponent.Alignment.START);
 
         var hLayout = new HorizontalLayout();
         hLayout.setWidthFull();
         hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
+        hLayout.add(researchUrlTextField, sourceSelectComboBox, researchButton);
 
-        hLayout.add(researchUrlTextField);
         researchUrlTextField.setWidth("50%");
-
-        hLayout.add(sourceSelectComboBox, researchButton);
         sourceSelectComboBox.setWidth("25%");
         researchButton.setWidth("25%");
+        //------------------------------------------------------------------------------------
 
-        verticalLayout.add(pageComboBox, hLayout);
+        var verticalLayout = new VerticalLayout();
+        verticalLayout.setAlignItems(FlexComponent.Alignment.START);
+        verticalLayout.add(filterHLayout, hLayout);
 
         return verticalLayout;
     }
