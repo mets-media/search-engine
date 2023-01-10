@@ -359,7 +359,7 @@ public class IndexingComponent {
 
             Lemmatization lemma = new Lemmatization(excludeList, null);
 
-            HashMap<String, Integer> lemmaHashMap = lemma.getLemmaCount(cssSelectorTextArea.getValue());
+            HashMap<String, Integer> lemmaHashMap = lemma.getLemmaHashMap(cssSelectorTextArea.getValue());
 
             StringBuilder stringBuilder = new StringBuilder();
             lemmaHashMap.entrySet().forEach(x -> {

@@ -370,7 +370,7 @@ public class SearchComponent {
 
         Lemmatization lemmatizator = new Lemmatization(excludeList, null);
 
-        HashMap<String, Integer> requestLemmas = lemmatizator.getLemmaCount(requestTextField.getValue());
+        HashMap<String, Integer> requestLemmas = lemmatizator.getLemmaHashMap(requestTextField.getValue());
 
         //Integer siteId = siteComboBox.getValue().getId();
         List<String> lemmaList = requestLemmas.keySet().stream().toList();

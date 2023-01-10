@@ -56,7 +56,7 @@ public class Lemmatization {
                     List<String> info = luceneMorph.getMorphInfo(normalForm);
                     info.forEach(i -> {
                         String[] prop = i.split(" ");
-                        //lemmaInfo.add(i +" -> "+prop[1]);
+                        //lemmaInfo.add(i +" -> " + prop[1]);
                         lemmaInfo.add(prop[1]);
                     });
                 });
@@ -65,7 +65,7 @@ public class Lemmatization {
         return lemmaInfo;
     }
 
-    public HashMap<String, Integer> getLemmaCount(String text) {
+    public HashMap<String, Integer> getLemmaHashMap(String text) {
 
         String[] words = getRussianWords(text);
 
