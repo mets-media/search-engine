@@ -6,6 +6,7 @@ import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -155,7 +156,8 @@ public class LemmaComponent {
     }
 
     private ComboBox<Page> createPageComboBox(TextField researchUrlTextField) {
-        ComboBox<Page> pageComboBox = new ComboBox<>("Страницы в базе данных");
+        ComboBox<Page> pageComboBox = new ComboBox<>("Поиск страниц по фильтру в базе данных");
+        pageComboBox.setClearButtonVisible(true);
 
         pageComboBox.setItems(query -> {
             return beanAccess.getPageRepository().findAll(
@@ -167,17 +169,21 @@ public class LemmaComponent {
         pageComboBox.setItemLabelGenerator(Page::getPath);
 
         pageComboBox.addValueChangeListener(event -> {
-           researchUrlTextField.setValue(event.getValue().getPath());
+            if (!(event.getValue() == null))
+                researchUrlTextField.setValue(event.getValue().getPath());
         });
         return pageComboBox;
     }
 
-    BiFunction<Lemmatization.LemmaInfo, Lemmatization.LemmaInfo, Lemmatization.LemmaInfo> SUB_LEMMA_PROPERTIES = (l1, l2) ->
-            new Lemmatization.LemmaInfo(l1.getLemma(), l1.getCount() - l2.getCount(), l1.getRank() - l2.getRank());
+    BiFunction<Lemmatization.LemmaInfo, Lemmatization.LemmaInfo, Lemmatization.LemmaInfo> SUB_LEMMA_PROPERTIES =
+            (l1, l2) -> new Lemmatization.LemmaInfo(l1.getLemma(),
+                    l1.getCount() - l2.getCount(),
+                    l1.getRank() - l2.getCount() * (l1.getRank() / l1.getCount()));
 
 
     private Button createResearchButton(TextField researchUrlTextField) {
-        Button researchButton = new Button("Загрузить");
+        Button researchButton = new Button("Найти леммы");
+        researchButton.setIcon(VaadinIcon.TWIN_COL_SELECT.create());
 
         researchButton.addClickListener(buttonClickEvent -> {
 
@@ -255,8 +261,11 @@ public class LemmaComponent {
 
     private TextField createFilterTextField(ComboBox<Page> pageComboBox) {
         TextField filterTextField = new TextField("Фильтр");
+        //filterTextField.setPlaceholder("Фильтр");
+        filterTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
 
         filterTextField.addValueChangeListener(event -> {
+
             pageComboBox.setItems(query -> {
                 return beanAccess.getPageRepository().findByPathContainingOrderByPath(event.getValue(),
                         PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path"))
@@ -266,15 +275,40 @@ public class LemmaComponent {
 
         return filterTextField;
     }
+
+    private TextField createResearchTextField() {
+        TextField researchUrlTextField = new TextField("Адрес страницы: ");
+
+        researchUrlTextField.setPrefixComponent(VaadinIcon.FILE_SEARCH.create());
+
+        researchUrlTextField.addValueChangeListener(event -> {
+            removeComponentById("Леммы", "VerticalLayoutForGrids");
+        });
+
+        return researchUrlTextField;
+    }
+
+    private Button createBrowserButton(ComboBox<Page> pageComboBox) {
+        Button browserButton = new Button();
+        browserButton.setIcon(VaadinIcon.BROWSER.create());
+
+        browserButton.addClickListener(event -> {
+            StartBrowser.startBrowser(pageComboBox.getValue().getPath());
+        });
+
+        return browserButton;
+    }
+
     private VerticalLayout createSearchLemmaComponent() {
 
-        TextField researchUrlTextField = new TextField("Адрес страницы: ");
+        TextField researchUrlTextField = createResearchTextField();
         //------------------------------------------------------------------------------------
 
         ComboBox<Page> pageComboBox = createPageComboBox(researchUrlTextField);
         TextField filterTextField = createFilterTextField(pageComboBox);
+        Button browserButton = createBrowserButton(pageComboBox);
 
-        HorizontalLayout filterHLayout = new HorizontalLayout(filterTextField, pageComboBox);
+        HorizontalLayout filterHLayout = new HorizontalLayout(filterTextField, pageComboBox, browserButton);
         filterHLayout.setWidthFull();
         filterHLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
 

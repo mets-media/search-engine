@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Вычитание лемм из css[body]">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Фильтр во вкладке Леммы">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -103,13 +102,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00018" summary="Проверка Лемматизатора">
-      <created>1668459251606</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1668459251606</updated>
     </task>
     <task id="LOCAL-00019" summary="Проверка Лемматизатора">
       <created>1668480377169</created>
@@ -447,7 +439,14 @@
       <option name="project" value="LOCAL" />
       <updated>1673293474361</updated>
     </task>
-    <option name="localTasksCounter" value="67" />
+    <task id="LOCAL-00067" summary="Фильтр во вкладке Леммы">
+      <created>1673328756860</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1673328756861</updated>
+    </task>
+    <option name="localTasksCounter" value="68" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -478,7 +477,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="Итоговый проек.SearchEngine. Первый этап." />
     <MESSAGE value="Итоговый проект. SearchEngine. Первый этап." />
     <MESSAGE value="SearchEngine. Editing Grid." />
     <MESSAGE value="adds morph dependencies" />
@@ -503,7 +501,8 @@
     <MESSAGE value="Триггер удаления сайта" />
     <MESSAGE value="Поиск по всем сайтам" />
     <MESSAGE value="Вычитание лемм из css[body]" />
-    <option name="LAST_COMMIT_MESSAGE" value="Вычитание лемм из css[body]" />
+    <MESSAGE value="Фильтр во вкладке Леммы" />
+    <option name="LAST_COMMIT_MESSAGE" value="Фильтр во вкладке Леммы" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -527,6 +526,11 @@
           <url>file://$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java</url>
           <line>199</line>
           <option name="timeStamp" value="91" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java</url>
+          <line>268</line>
+          <option name="timeStamp" value="130" />
         </line-breakpoint>
         <breakpoint enabled="true" type="java-exception">
           <properties class="org.postgresql.util.PSQLException" package="org.postgresql.util" />
