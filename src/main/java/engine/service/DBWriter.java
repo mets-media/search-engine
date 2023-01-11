@@ -4,6 +4,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
 import engine.entity.Page;
 import engine.entity.PartsOfSpeech;
+import engine.entity.Site;
 import engine.view.CreateUI;
 import engine.view.SiteComponent;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
@@ -20,6 +22,7 @@ import java.util.stream.IntStream;
 
 public class DBWriter extends Thread {
     private final BeanAccess beanAccess;
+    private final Site site;
     private final ConcurrentLinkedQueue<Page> readyPage;
     private final Integer batchSize;
     private final boolean checkPartOfSpeech;
@@ -35,8 +38,9 @@ public class DBWriter extends Thread {
     private boolean run;
 
 
-    public DBWriter(String name, BeanAccess beanAccess, ConcurrentLinkedQueue<Page> readyPage, Integer batchSize, boolean checkPartOfSpeech) {
+    public DBWriter(String name, Site site, BeanAccess beanAccess, ConcurrentLinkedQueue<Page> readyPage, Integer batchSize, boolean checkPartOfSpeech) {
         super(name);
+        this.site = site;
         this.beanAccess = beanAccess;
         this.readyPage = readyPage;
         this.batchSize = batchSize;
@@ -79,6 +83,11 @@ public class DBWriter extends Thread {
                     }
 
                 }
+
+
+                //Обновление времени статуса
+                site.setStatusTime(LocalDateTime.now());
+                beanAccess.getSiteRepository().save(site);
 
                 readyPage.removeAll(savePage);
                 //System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());

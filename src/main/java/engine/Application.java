@@ -2,11 +2,7 @@ package engine;
 
 import engine.config.YAMLConfig;
 import engine.entity.Site;
-import engine.repository.ConfigRepository;
-import engine.repository.FieldRepository;
-import engine.repository.PageContainerRepository;
-import engine.repository.PartOfSpeechRepository;
-import engine.repository.SiteRepository;
+import engine.repository.*;
 import engine.service.HtmlParsing;
 import org.apache.catalina.core.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +25,7 @@ public class Application extends SpringBootServletInitializer {
 
     @Bean
     public CommandLineRunner dataGenerator(ConfigRepository configRepository,
+                                           PageRepository pageRepository,
                                            PartOfSpeechRepository partOfSpeechRepository,
                                            FieldRepository fieldRepository,
                                            PageContainerRepository pageContainerRepository,
@@ -54,17 +51,15 @@ public class Application extends SpringBootServletInitializer {
                partOfSpeechRepository.initData();
             //----------------------------------------------------
 
+            pageRepository.createTrigger();
             //Парсинг lemmaString
             pageContainerRepository.createTrigger();
             //Функция парсинга lemmaString
             //pageContainerRepository.createFunction();
 
-             //Удаление данных в подчинённых таблицах
-             siteRepository.createTrigger();
-            //siteRepository.createDeleteSiteFunction();
-
-
-
+            //Удаление данных в подчинённых таблицах
+            siteRepository.createTrigger();
+            //siteRepository.createDeleteSiteInfoFunction();
         };
     }
 

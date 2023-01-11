@@ -21,4 +21,18 @@ public interface KeepLinkRepository extends JpaRepository<KeepLink, Integer> {
     @Modifying
     void deleteBySiteId(Integer siteId);
 
+    @Transactional
+    @Modifying
+    @Query(value = "drop table keep_link;\n" +
+            "CREATE TABLE IF NOT EXISTS public.keep_link\n" +
+            "(id  serial not null, \n" +
+            "code integer,\n" +
+            "path text NOT NULL,\n" +
+            "site_id integer NOT NULL,\n" +
+            "status integer,\n" +
+            "CONSTRAINT keep_link_pkey PRIMARY KEY (id)\n" +
+            ")", nativeQuery = true)
+    void reCreateTable();
+
+
 }

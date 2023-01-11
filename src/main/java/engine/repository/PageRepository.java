@@ -3,6 +3,7 @@ package engine.repository;
 import engine.entity.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -63,6 +64,49 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
     String getContentByPath(@Param("path") String path);
 
     List<Page> findByPathContainingOrderByPath(String filter, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    void deleteByPath(String path);
+
+    @Modifying
+    @Transactional
+    @Query(value = "drop table Page;\n" +
+            "create table page \n" +
+            "(id  serial not null, \n" +
+            " code int4 not null, \n" +
+            " content Text, \n" +
+            " path Text not null, \n" +
+            " site_id int4 not null, \n" +
+            " primary key (id));\n" +
+            " \n" +
+            " create index siteId_idx on page (site_id);\n" +
+            " \n" +
+            " alter table page add constraint siteId_path_unique unique (site_id, path);",
+            nativeQuery = true)
+    void reCreateTable();
+
+    @Modifying
+    @Transactional
+    @Query(value = "CREATE OR REPLACE FUNCTION public.delete_page_function()\n" +
+            "    RETURNS trigger\n" +
+            "    LANGUAGE 'plpgsql'\n" +
+            "    COST 100\n" +
+            "    VOLATILE NOT LEAKPROOF\n" +
+            "AS $BODY$\n" +
+            "begin\n" +
+            "\tdelete from lemma where id in (Select lemma_id from index where page_id = old.id);\n" +
+            "\tdelete from index where page_id = old.id;\n" +
+            "return null;\n" +
+            "end\n" +
+            "$BODY$;\n" +
+            "\n" +
+            "CREATE OR REPLACE TRIGGER delete_page_trigger\n" +
+            "    after DELETE\n" +
+            "    ON page\n" +
+            "    FOR EACH ROW\n" +
+            "    EXECUTE FUNCTION delete_page_function();", nativeQuery = true)
+    void createTrigger();
 
 }
 

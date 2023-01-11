@@ -2,9 +2,11 @@ package engine.repository;
 
 import engine.entity.Lemma;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -34,4 +36,20 @@ public interface LemmaRepository extends CrudRepository<Lemma,Integer> {
             "  join lemma on (lemma.id = page_lemma_count.lemma_id)\n" +
             "  order by lemma_count desc, lemma\n", nativeQuery = true)
     List<Lemma> findByPageId(@Param("pageId") Integer pageId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "drop table Lemma;\n" +
+            "create table lemma \n" +
+            "(id  serial not null, \n" +
+            "frequency integer NOT NULL DEFAULT 0,\n" +
+            "lemma character varying(255) NOT NULL,\n" +
+            "rank real NOT NULL DEFAULT 0,\n" +
+            "site_id integer NOT NULL,\n" +
+            "CONSTRAINT lemma_pkey PRIMARY KEY (id),\n" +
+            "CONSTRAINT siteid_lemma_unique UNIQUE (site_id, lemma)\n" +
+            ")",
+             nativeQuery = true)
+    void reCreateTable();
+
 }

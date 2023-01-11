@@ -1,9 +1,11 @@
 package engine.repository;
 
 import engine.entity.IndexEntity;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,4 +21,16 @@ public interface IndexRepository extends CrudRepository<IndexEntity,Integer> {
             "where Lemma.Lemma = :lemma \n" +
             "and Lemma.Site_Id = :siteId",nativeQuery = true)
     List<Integer> findPageIdByLemmaSiteId(@Param("lemma") String lemma, @Param("siteId") Integer siteId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "drop table index;\n" +
+            "create table index\n" +
+            "(id serial not null, \n" +
+            "lemma_id integer NOT NULL,\n" +
+            "page_id integer NOT NULL,\n" +
+            "rank real NOT NULL,\n" +
+            "CONSTRAINT index_pkey PRIMARY KEY (id)\n" +
+            ")", nativeQuery = true)
+    void reCreateTable();
 }

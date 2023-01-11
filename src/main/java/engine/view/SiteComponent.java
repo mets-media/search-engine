@@ -165,7 +165,7 @@ public class SiteComponent {
         parseButton.addClickListener(buttonClickEvent -> {
 
 
-            Parser.setDataAccess(grid, beanAccess);
+            Parser.setDataAccess(beanAccess);
 
             Set<Site> selectedSites = grid.getSelectedItems();
             selectedSites.forEach(site -> {
@@ -195,6 +195,7 @@ public class SiteComponent {
                 if (site.getStatus().equals(SiteStatus.INDEXING)) {
                     Parser.stop(site);
                     site.setStatus(SiteStatus.STOPPED);
+                    site.setStatusTime(LocalDateTime.now());
                     beanAccess.getSiteRepository().save(site);
                     site.setPageCount(beanAccess.getPageRepository().countBySiteId(site.getId()));
                     beanAccess.getSiteRepository().save(site);

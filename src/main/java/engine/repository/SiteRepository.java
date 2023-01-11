@@ -25,7 +25,6 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "order by url", nativeQuery = true)
     List<Site> getSitesFromPageTable();
 
-
     @Modifying
     @Transactional
     @Query(value="Update Site set page_count = :pageCount Where id = :siteId",nativeQuery = true)
@@ -58,9 +57,9 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
     @Modifying
     @Transactional
     @Query(value =
-            "CREATE OR REPLACE FUNCTION public.delete_site(\n" +
+            "CREATE OR REPLACE FUNCTION public.delete_site_information(\n" +
             "siteId integer)\n" +
-            "RETURNS void\n" +
+            "RETURNS integer\n" +
             "LANGUAGE 'plpgsql'\n" +
             "COST 100\n" +
             "VOLATILE PARALLEL UNSAFE\n" +
@@ -70,14 +69,14 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "delete from lemma where site_id = siteId;\n" +
             "delete from index where page_id in (select id from page where site_id = siteId);\n" +
             "delete from page where site_id = siteId;\n" +
-            "delete from site where id = siteId;\n" +
+            "return siteId;\n" +
             "end;\n" +
             "$BODY$;", nativeQuery = true)
-    void createDeleteSiteFunction();
+    void createDeleteSiteInfoFunction();
 
     @Modifying
     @Transactional
-    @Query(value = "Select delete_site(:siteId)", nativeQuery = true)
-    void deleteSite(@Param("siteId") Integer siteId);
+    @Query(value = "Select delete_site_information(:siteId)", nativeQuery = true)
+    Integer deleteSiteInformation(@Param("siteId") Integer siteId);
 
 }

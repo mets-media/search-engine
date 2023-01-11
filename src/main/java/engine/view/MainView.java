@@ -87,9 +87,7 @@ public class MainView extends AppLayout {
         siteComponent.getGrid().setItems(siteRepository.findAll());
 
         if (yamlConfig.getAutoScan()) {
-            Parser.setDataAccess(
-                    siteComponent.getGrid(),
-                    beanAccess);
+            Parser.setDataAccess(beanAccess);
 
             listSites.forEach(site -> {
                 Parser.getStopList().remove(site);

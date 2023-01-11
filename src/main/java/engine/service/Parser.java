@@ -32,8 +32,8 @@ public class Parser extends RecursiveAction {
     private String content;
     private Integer code;
     private String domainName;
-    //private DBWriter dbWriter;
-    private static Grid<Site> siteGrid;
+
+    //private static Grid<Site> siteGrid;
     private static BeanAccess beanAccess;
     public final static String READY_LINKS_FILENAME = "links.txt";
     public final static String STOP_LINKS_FILENAME = "Stoplinks.txt";
@@ -57,9 +57,9 @@ public class Parser extends RecursiveAction {
         return stopList;
     }
 
-    public static void setDataAccess(Grid<Site> siteGrid,
+    public static void setDataAccess(//Grid<Site> siteGrid,
                                      BeanAccess beanAccess) {
-        Parser.siteGrid = siteGrid;
+        //Parser.siteGrid = siteGrid;
         Parser.beanAccess = beanAccess;
     }
 
@@ -149,6 +149,7 @@ public class Parser extends RecursiveAction {
         errorLinksHashMap.put(siteId, new ConcurrentHashMap<>());
 
         dbWriterHashMap.put(siteId, new DBWriter("DBWriter[" + HtmlParsing.getDomainName(site.getUrl()) + "]",
+                site,
                 beanAccess,
                 pageHashMap.get(siteId),
                 batchSize,
@@ -385,7 +386,7 @@ public class Parser extends RecursiveAction {
                 stop(site);
                 System.out.println(site.getUrl() + " -> Загрузка завершена.");
             }
-            siteGrid.setItems(beanAccess.getSiteRepository().findAll());
+            //siteGrid.setItems(beanAccess.getSiteRepository().findAll());
         }
     }
 
