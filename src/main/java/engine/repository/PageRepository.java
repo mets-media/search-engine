@@ -162,5 +162,67 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
                     "    EXECUTE FUNCTION delete_page_function();", nativeQuery = true)
     void createTriggers();
 
+    @Modifying
+    @Transactional
+    @Query(value = "CREATE OR REPLACE FUNCTION search_lemma_all_sites(includelemma text)\n" +
+            "    RETURNS TABLE(page_id integer, abs double precision, rel double precision, path text) \n" +
+            "    LANGUAGE 'plpgsql'\n" +
+            "    COST 100\n" +
+            "    VOLATILE PARALLEL UNSAFE\n" +
+            "    ROWS 1000\n" +
+            "\n" +
+            "AS $BODY$\n" +
+            "declare sqlCommand text;\n" +
+            "declare sqlText text;\n" +
+            "declare new_lemma text;\n" +
+            "declare commaCR text;\n" +
+            "declare comma text;\n" +
+            "declare queryName text;\n" +
+            "declare i integer;\n" +
+            "declare finalQuery text;\n" +
+            "declare lemmas text;\n" +
+            "declare stmt text;\n" +
+            "declare result_row record;\n" +
+            "begin\n" +
+            "\tsqlCommand = ' as (select index.page_id, index.rank from index join lemma on (lemma.id = index.lemma_id) where lemma = ';\n" +
+            "\tsqlText = '';\tcomma = ''; commaCR = ''; i = 0;\n" +
+            "\tqueryName = 'query_';\n" +
+            "\tfinalQuery = ''; lemmas = '';\n" +
+            "  for new_lemma in (select unnest(string_to_array(includeLemma,',')))\n" +
+            "  loop--##########################################################\n" +
+            "  \t\tlemmas = lemmas || comma || '''' || new_lemma || '''';\n" +
+            "  \n" +
+            "  \t\tsqlText = sqlText || commaCR || queryName || i || sqlCommand ||  '''' || new_lemma || ''')';\n" +
+            "\t\tcommaCR = ', ' || chr(10); comma = ', '; \n" +
+            "\t\tif i > 0 then\n" +
+            "\t\t\tfinalQuery = finalQuery || ' join ' || queryName || i || ' on ('|| queryName || 0 || '.page_id = ' || queryName || i || '.page_id)' || chr(10); \n" +
+            "\t\tend if;\t\n" +
+            "\t\ti = i + 1;\n" +
+            "\t\t\n" +
+            "  end loop;--#####################################################\n" +
+            "  \n" +
+            " \n" +
+            "  stmt = 'with ' ||  sqlText || ', ' || chr(10) || 'findPages as (select ' || queryName || 0 || '.page_id, ' || queryName || 0 || '.rank from ' || queryName || 0 || chr(10) || \n" +
+            "\t\t finalQuery || '), ' || chr(10) || \n" +
+            "\t\t 'statisticQuery as (select index.page_id, sum(index.rank) abs, sum(index.rank)/max(index.rank) rel from findPages ' || chr(10) ||\n" +
+            "\t\t 'join index on (index.page_id = findPages.page_id) ' || chr(10) ||\n" +
+            "\t\t 'where index.lemma_id in (select id lemma_id from lemma where lemma in (' || lemmas || ')) ' || chr(10) || \n" +
+            "\t\t 'group by index.page_id) ' || chr(10) ||\n" +
+            "\t\t 'select page.id, abs, rel, path from page ' || chr(10) ||\n" +
+            "\t\t 'join statisticQuery on (statisticQuery.page_id = page.id) ' || chr(10) ||\n" +
+            "\t\t 'order by abs desc, rel asc';\n" +
+            "\n" +
+            "\t\t for result_row in execute(stmt)\n" +
+            "\t\t loop\n" +
+            "\t\t   page_id = result_row.id;\n" +
+            "\t\t   abs = result_row.abs;\n" +
+            "\t\t   rel = result_row.rel;\n" +
+            "\t\t   path = result_row.path;\n" +
+            "\t\t   return next;\n" +
+            "\t\t end loop;\n" +
+            "\t\t \n" +
+            "end\n" +
+            "$BODY$;\n", nativeQuery = true)
+    void createFunctionForAllSiteLemmaInfo();
 }
 

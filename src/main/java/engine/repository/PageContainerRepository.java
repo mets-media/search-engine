@@ -137,6 +137,4 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
     Integer parsePageContainer();
 
 
-    Integer countBySiteId(Integer siteId);
-
 }

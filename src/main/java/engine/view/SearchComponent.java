@@ -299,7 +299,7 @@ public class SearchComponent {
             stringBuilder.delete(0, stringBuilder.length());
             pageIdRetained.forEach(pageId -> stringBuilder.append(pageId.toString()).append(","));
 
-            //Строка с общими для всех лемм страницами
+            //Строка с общими для всех лемм pageId
             var includePageId = stringBuilder.toString();
 
             if (!(includePageId.isBlank())) {
@@ -308,7 +308,7 @@ public class SearchComponent {
                 List<PathTable> pathTableList;
                 if (siteId == 0)
                     pathTableList = beanAccess.getPathTableRepository()
-                            .getResultTableForAllSites(includeLemma, includePageId);
+                            .getResultTableForAllSites(includeLemma);
                 else
                     pathTableList = beanAccess.getPathTableRepository()
                             .getResultTableForSelectedSite(siteId, includeLemma, includePageId);

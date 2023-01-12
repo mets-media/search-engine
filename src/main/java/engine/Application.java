@@ -56,6 +56,8 @@ public class Application extends SpringBootServletInitializer {
             //Удаление данных в подчинённых таблицах
             siteRepository.createTrigger();
             //siteRepository.createDeleteSiteInfoFunction();
+
+            pageRepository.createFunctionForAllSiteLemmaInfo();
         };
     }
 
