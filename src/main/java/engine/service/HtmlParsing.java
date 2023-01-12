@@ -1,5 +1,6 @@
 package engine.service;
 
+import engine.entity.Lemma;
 import lombok.Setter;
 import lombok.experimental.UtilityClass;
 import org.jsoup.Connection;
@@ -279,4 +280,31 @@ public class HtmlParsing {
         return stringBuilder.toString();
     }
 
+    public static List<String> getRussianListString(String content) {
+        List<String> list = List.of(content.split("\n"));
+        String RegEx = "[ЁёА-я]";
+        Pattern pattern = Pattern.compile(RegEx);
+
+        List<String> result = new ArrayList<>();
+
+        for (String s : list) {
+            Matcher matcher = pattern.matcher(s);
+            if (matcher.find())
+                result.add(s.concat("\n"));
+        }
+        return result;
+    }
+
+    public static List<String> getStringsContainsLemma(String content, Set<Lemma> searchLemmaList, Lemmatization lemmatizator) {
+        List<String> result = new ArrayList<>();
+        var list = getRussianListString(content);
+        for (String s : list) {
+            var stringLemmaHashMap = lemmatizator.getLemmaCountRankHashMap(s,1);
+            for (Lemma searchLemma : searchLemmaList) {
+                if (stringLemmaHashMap.containsKey(searchLemma.getLemma()))
+                    result.add(s);
+            }
+        }
+        return result;
+    }
 }

@@ -3,6 +3,7 @@ package engine.service;
 import engine.entity.Field;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.jsoup.Jsoup;
@@ -11,6 +12,7 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import static engine.service.HtmlParsing.getRussianWords;
 
@@ -19,6 +21,12 @@ public class Lemmatization {
     private final LuceneMorphology luceneMorph;
     private final List<String> excludeList;
     private final List<Field> cssSelectors;
+
+    private static BeanAccess beanAccess;
+
+    public static void setDataAccess(BeanAccess beanAccess) {
+        Lemmatization.beanAccess = beanAccess;
+    }
 
     public Lemmatization(List<String> excludeList, List<Field> cssSelectors) {
         this.excludeList = excludeList;
@@ -150,8 +158,13 @@ public class Lemmatization {
         return htmlFields;
     }
 
-    public static Lemmatization getLemmatizator(List<String> excludeList, List<Field> fields) {
-        Lemmatization lemmatizator = new Lemmatization(excludeList, fields);
+    public static Lemmatization getLemmatizator() {
+        List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
+                .stream()
+                .map(p -> p.getShortName())
+                .collect(Collectors.toList());
+
+        Lemmatization lemmatizator = new Lemmatization(excludeList, beanAccess.getFieldRepository().findByActive(true));
         return lemmatizator;
     }
 

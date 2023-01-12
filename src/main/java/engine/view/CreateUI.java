@@ -1,6 +1,7 @@
 package engine.view;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.html.Label;
@@ -97,5 +98,30 @@ public class CreateUI {
         notification.open();
     }
 
+    public static Grid<String> getStringGrid(String caption, List<String> words) {
+        Grid<String> grid = new Grid<>(String.class, false);
+        Grid.Column<String> col1 = grid.addColumn(String::toString)
+                .setHeader(caption)
+                .setTextAlign(ColumnTextAlign.START)
+                .setFooter(createWordsCountFooterText(words));
+
+        grid.setItems(words);
+        return grid;
+    }
+
+    private static String createWordsCountFooterText(List<String> words) {
+        return "Всего: " + words.size();
+    }
+
+    public static void removeComponentById(VerticalLayout container, String deleteId) {
+
+        container.getChildren().forEach(component -> {
+            component.getId().ifPresent(id -> {
+                if (id.equals(deleteId)) {
+                    container.remove(component);
+                }
+            });
+        });
+    }
 
 }
