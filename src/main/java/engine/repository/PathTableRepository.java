@@ -132,7 +132,7 @@ public class PathTableRepository {
     @Autowired
     private LemmaMapper lemmaMapper;
 
-    String FIND_LEMMA_IN_ALL_SITES = "select 0 id, sum(frequency) frequency, lemma, sum(rank) rank, 0 site_id \n" +
+    String FIND_LEMMA_IN_ALL_SITES = "select 0 id, sum(frequency) frequency, lemma, 0 site_id \n" +
             "from lemma\n" +
             "where lemma in (:lemmaIn)\n" +
             "group by lemma\n" +
