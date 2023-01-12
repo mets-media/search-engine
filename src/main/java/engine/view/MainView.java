@@ -5,13 +5,8 @@ import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
-
 import com.vaadin.flow.router.Route;
-
-import com.vaadin.flow.theme.Theme;
-import com.vaadin.flow.theme.lumo.Lumo;
 import engine.config.YAMLConfig;
 import engine.entity.SiteStatus;
 import engine.repository.*;
@@ -27,6 +22,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 
 @Route
 @Getter
@@ -73,6 +69,8 @@ public class MainView extends AppLayout {
             listSites.forEach(site -> {
                 if (!siteRepository.getSiteByUrl(site.getUrl()).isPresent()) {
                     site.setPageCount(0);
+                    site.setLemmaCount(0);
+                    site.setIndexCount(0);
                     site.setStatus(SiteStatus.NEW_SITE);
                     site.setStatusTime(LocalDateTime.now());
                     siteRepository.save(site);
@@ -103,15 +101,9 @@ public class MainView extends AppLayout {
         H1 title = new H1("Search Engine");
         title.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
-        Tabs tabs = new Tabs();
-        tabs.setOrientation(Tabs.Orientation.VERTICAL);
-        tabs.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-
-        Tab tabSites = new Tab("Сайты");
-        Tab tabOptions = new Tab("Настройки");
-        Tab tabLemma = new Tab("Лемматизатор");
-        Tab tabIndexing = new Tab("Индексация");
-        Tab tabSearch = new Tab("Поиск");
+        //Tabs tabs = CreateUI.createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск", "Тест"),
+        Tabs tabs = CreateUI.createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск"),
+                Tabs.Orientation.VERTICAL);
 
         tabs.addSelectedChangeListener(event -> {
             String label = tabs.getSelectedTab().getLabel();
@@ -155,11 +147,18 @@ public class MainView extends AppLayout {
                         contentsHashMap.put(label, searchComponent.getMainLayout());
                     }
                 }
+                case "Тест" -> {
+                    if (!contentsHashMap.containsKey(label)) {
+                        TestComponent.setDataAccess(beanAccess);
+                        TestComponent testComponent = new TestComponent();
+                        setContent(testComponent.getMainLayout());
+                        contentsHashMap.put(label, testComponent.getMainLayout());
+                    }
+
+                }
             }
             setContent(contentsHashMap.get(label));
         });
-
-        tabs.add(tabSites, tabOptions, tabIndexing, tabLemma, tabSearch);
 
         addToDrawer(tabs);
         addToNavbar(toggle, title);

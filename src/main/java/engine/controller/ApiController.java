@@ -11,14 +11,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +35,47 @@ public class ApiController {
         return "index.html";
     }
 
-    //@RequestMapping(value = "/api/startIndexing", method = RequestMethod.GET)
+    @PostMapping(value ="/indexPage",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> indexPage(@RequestParam String path) {
+        beanAccess.getPageRepository().deleteByPath(path);
+
+        return ResponseEntity.ok("{\n" +
+                "'result': true\n" +
+                "}");
+
+    }
+
+    @GetMapping(value = "/stopIndexing", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> StopIndexing() {
+        List<Site> listSites = beanAccess.getSiteRepository().findAll();
+
+        if (!(listSites.get(0).getStatus() == SiteStatus.INDEXING)) {
+            return ResponseEntity.ok("{\n" +
+                    "'result': false,\n" +
+                    "'error': \"Индексация не запущена\"\n" +
+                    "}");
+        }
+
+        listSites.forEach(site -> {
+            if (site.getStatus().equals(SiteStatus.INDEXING)) {
+                Parser.stop(site);
+                site.setStatus(SiteStatus.STOPPED);
+                site.setStatusTime(LocalDateTime.now());
+                beanAccess.getSiteRepository().save(site);
+                site.setPageCount(beanAccess.getPageRepository().countBySiteId(site.getId()));
+                beanAccess.getSiteRepository().save(site);
+            }
+        });
+
+
+        return ResponseEntity.ok("{\n" +
+                "'result': true\n" +
+                "}");
+    }
+
+
     @GetMapping(value = "/startIndexing", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> StartIndexing() {
 
@@ -45,7 +84,7 @@ public class ApiController {
         if (listSites.get(0).getStatus() == SiteStatus.INDEXING) {
             return ResponseEntity.ok("{\n" +
                     "'result': false,\n" +
-                    "'error': \"Индексация не запущена\"\n" +
+                    "'error': \"Индексация уже запущена\"\n" +
                     "}");
         }
 

@@ -1,5 +1,6 @@
-package engine.entity;
+package engine.mapper;
 
+import engine.entity.PathTable;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 

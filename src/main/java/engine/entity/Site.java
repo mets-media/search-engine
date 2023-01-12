@@ -26,6 +26,12 @@ public class Site implements Serializable {
     @ColumnDefault("0")
     private Integer pageCount;
     @NotNull
+    @ColumnDefault("0")
+    private Integer IndexCount;
+    @NotNull
+    @ColumnDefault("0")
+    private Integer lemmaCount;
+    @NotNull
     private LocalDateTime statusTime;
     @Column(columnDefinition = "Text")
     private String lastError;

@@ -7,6 +7,7 @@ import engine.entity.PartsOfSpeech;
 import engine.entity.Site;
 import engine.view.CreateUI;
 import engine.view.SiteComponent;
+import org.jsoup.nodes.Document;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +67,7 @@ public class DBWriter extends Thread {
             //prepareLemmaStrings();
 
 
-            if (readyPage.size() > batchSize) {
+            if (readyPage.size() >= batchSize) {
                 List<Page> savePage = readyPage.stream().limit(batchSize).toList();
 
                 try {
@@ -83,11 +84,9 @@ public class DBWriter extends Thread {
                     }
 
                 }
-
-
                 //Обновление времени статуса
-                site.setStatusTime(LocalDateTime.now());
-                beanAccess.getSiteRepository().save(site);
+                //site.setStatusTime(LocalDateTime.now());
+                //beanAccess.getSiteRepository().save(site);
 
                 readyPage.removeAll(savePage);
                 //System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
@@ -119,7 +118,8 @@ public class DBWriter extends Thread {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private boolean batchUpdate(List<Page> savePages, boolean replace0x00) {
 
-        System.out.println("Запись данных; name = " + getName());
+        TimeMeasure.setStartTime();
+        //System.out.printf("Запись данных; name = %s\n", getName());
 
         String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
         //int[] results = beanAccess.getJdbcTemplate().batchUpdate(sql, new InterruptibleBatchPreparedStatementSetter() {
@@ -138,7 +138,7 @@ public class DBWriter extends Thread {
                 if (path.length() > 255) {
                     System.out.println(path);
                     System.out.printf("длина более 255 символов: %d ссылка будет сокращена до 255 ", path.length());
-                    path = "Truncate link:  (" + Math.random() + "): " + path.substring(0, 200);
+                    path = "Truncate link:  (" + Math.round(Math.random() * 1000) + "): " + path.substring(0, 200);
                 }
                 ps.setString(3, path);
 
@@ -181,6 +181,8 @@ public class DBWriter extends Thread {
             //System.out.print(i);
             if (i == 0) return false;
         }
+
+        System.out.println(getName() +"Страниц: " + results.length +" Время записи: " + TimeMeasure.getStringExperienceTime());
 
         return true;
     }

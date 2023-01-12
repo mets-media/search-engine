@@ -99,17 +99,19 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t  \t\tnew_count = Cast(Split_Part(lemmaInfo,',',2) as Integer);\n" +
             "\t\t\tnew_rank  = Cast(Split_Part(lemmaInfo,',',3) as real);\n" +
             "\t\t\twith lemma_upsert as (\n" +
-            "\t\t\tinsert into LEMMA (Site_Id, Lemma,Frequency, Rank) \n" +
-            "\t\t\t\tvalues (new.site_id, new_lemma, new_count, new_rank) \n" +
+            "\t\t\t--insert into LEMMA (Site_Id, Lemma,Frequency, Rank) \n" +
+            "\t\t\t--tvalues (new.site_id, new_lemma, new_count, new_rank) \n" +
+            "\t\t\tinsert into LEMMA (Site_Id, Lemma,Frequency) \n" +
+            "\t\t\t\tvalues (new.site_id, new_lemma, new_count) \n" +
             "\t\t\t\ton conflict on constraint siteId_lemma_unique \n" +
             "\t\t\t\tdo update set Frequency = LEMMA.Frequency + 1\n" +
             "\t\t\t\treturning id)\n" +
             "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
             "\n" +
-            "\n\tif (page_id notnull) then\n" +
-            "\t\t\tinsert into INDEX (page_id, lemma_id, rank) \n" +
-            "\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
-            "\n\tend if;\n" +
+            "\n\t\t\tif (page_id notnull) then\n" +
+            "\t\t\t\t\tinsert into INDEX (page_id, lemma_id, rank) \n" +
+            "\t\t\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
+            "\n\t\t\tend if;\n" +
             "\n" +
             "\t\tend if;\n" +
             "\tend loop;\n" +

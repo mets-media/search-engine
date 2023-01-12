@@ -8,6 +8,7 @@ import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -16,6 +17,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
+import engine.repository.SiteRepository;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Parser;
@@ -134,6 +136,13 @@ public class SiteComponent {
 //                site.setStatus(SiteStatus.INDEXED);
 //                beanAccess.getSiteRepository().save(site);
 //            });
+
+            SiteRepository siteRepository = beanAccess.getSiteRepository();
+            for (Site site : siteRepository.getStatistic()) {
+                siteRepository.save(site);
+            }
+
+
         });
         //========================= ДОБАВИТЬ САЙТ ==========================================
         Button createButton = new Button("Добавить");
@@ -373,6 +382,7 @@ public class SiteComponent {
                     statusTimeTextField,
                     lastErrorTextField);
 
+
             verticalLayout.add(horizontalLayout);
             horizontalLayout.setAlignItems(END);
             horizontalLayout.setWidth("100%");
@@ -385,6 +395,8 @@ public class SiteComponent {
             statusTimeTextField.setWidth("40%");
 
             lastErrorTextField.setWidthFull();
+
+
 
             add(verticalLayout);
         }

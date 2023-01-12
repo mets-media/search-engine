@@ -1,18 +1,14 @@
 package engine;
 
 import engine.config.YAMLConfig;
-import engine.entity.Site;
 import engine.repository.*;
 import engine.service.HtmlParsing;
-import org.apache.catalina.core.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
-
-import java.util.List;
 
 @SpringBootApplication
 public class Application extends SpringBootServletInitializer {
@@ -51,7 +47,7 @@ public class Application extends SpringBootServletInitializer {
                partOfSpeechRepository.initData();
             //----------------------------------------------------
 
-            pageRepository.createTrigger();
+            //pageRepository.createTriggers();
             //Парсинг lemmaString
             pageContainerRepository.createTrigger();
             //Функция парсинга lemmaString

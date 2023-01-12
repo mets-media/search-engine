@@ -79,4 +79,15 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
     @Query(value = "Select delete_site_information(:siteId)", nativeQuery = true)
     Integer deleteSiteInformation(@Param("siteId") Integer siteId);
 
+    @Query(value = "with pages as (select site_id, count(*) page_count from page group by site_id),\n" +
+            "     lemmas as (select site_id, count(*) lemma_count from lemma group by site_id ),\n" +
+            "\t indexes as (select page.site_id, count(*) index_count from index\n" +
+            "                 join page on (index.page_id = page.id)\n" +
+            "                 group by page.site_id)\n" +
+            "\t select id, name, url, pages.site_id, pages.page_count, lemmas.lemma_count, indexes.index_count, status, status_time, last_error from pages\n" +
+            "\t join lemmas on (pages.site_id = lemmas.site_id)\n" +
+            "\t join indexes on (pages.site_id = indexes.site_id)\n" +
+            "\t join site on (pages.site_id = site.id)", nativeQuery = true)
+    List<Site> getStatistic();
+
 }

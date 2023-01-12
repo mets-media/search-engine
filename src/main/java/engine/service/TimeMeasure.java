@@ -27,6 +27,9 @@ public class TimeMeasure {
         } else
             return timeMillis  + " м.сек.";
     }
+    public static String getStringExperienceTime() {
+        return getNormalizedTime(System.currentTimeMillis() - startTime);
+    }
 
     public static void startTimer(String timerName) {
         timers.put(timerName, System.currentTimeMillis());

@@ -29,7 +29,7 @@ public class Lemma {
     @NotNull
     @ColumnDefault("0")
     private Integer frequency;
-    @NotNull
-    @ColumnDefault("0")
-    private Float rank;
+//    @NotNull
+//    @ColumnDefault("0")
+//    private Float rank;
 }

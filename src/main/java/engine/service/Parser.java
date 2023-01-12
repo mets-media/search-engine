@@ -106,36 +106,6 @@ public class Parser extends RecursiveAction {
             }
         });
 
-
-/*
-        //int parallelism = Runtime.getRuntime().availableProcessors();
-        Config config = beanAccess.getConfigRepository().findByKey("tps");
-        try {
-            if (!(config == null))
-                parallelism = Integer.parseInt(config.getValue());
-        } catch (Exception e) {
-            CreateUI.showMessage("Тип свойства 'tps' должен быть Integer",
-                    2000, Notification.Position.MIDDLE);
-        }
-
-        config = beanAccess.getConfigRepository().findByKey("batch");
-        try {
-            if (!(config == null))
-                batchSize = Integer.parseInt(config.getValue());
-        } catch (Exception e) {
-            CreateUI.showMessage("Тип свойства 'batch' должен быть Integer",
-                    2000, Notification.Position.MIDDLE);
-        }
-
-        config = beanAccess.getConfigRepository().findByKey("isPoS");
-        try {
-            if (!(config == null))
-                checkPartOfSpeech = Boolean.parseBoolean(config.getValue());
-        } catch (Exception e) {
-            CreateUI.showMessage("Тип свойства 'isPoS' должен быть true/false!",
-                    2000, Notification.Position.MIDDLE);
-        }
-*/
         activePools.put(siteId, new ForkJoinPool(parallelism,
                 ForkJoinPool.defaultForkJoinWorkerThreadFactory,
                 null, true));
@@ -155,6 +125,7 @@ public class Parser extends RecursiveAction {
                 batchSize,
                 checkPartOfSpeech));
     }
+
 
     public static void start(Site site) {
 
@@ -279,6 +250,29 @@ public class Parser extends RecursiveAction {
         dbWriterHashMap.get(siteId).stopWriter();
     }
 
+    public static Boolean indexingPage(Site site, String path, BeanAccess beanAccess) throws Exception {
+        var code = HtmlParsing.getStatusCode(path);
+        var document = HtmlParsing.getHtmlDocument(path);
+        var content = document.toString();
+
+        if (code == 200) {
+            ConcurrentLinkedQueue<Page> readyPage = new ConcurrentLinkedQueue<>();
+            readyPage.add(new Page(site.getId(), path, code, content));
+
+            DBWriter dbWriter = new DBWriter("DBWriter[One page]",site,beanAccess,
+                    readyPage,1,true);
+            dbWriter.start();
+
+            System.out.println(readyPage.size());
+
+            while (readyPage.size() > 0) {
+                Thread.sleep(2000);
+            }
+            dbWriter.stopWriter();
+            return true;
+        }
+        return false;
+    }
 
     @Override
     protected void compute() {
@@ -412,13 +406,7 @@ public class Parser extends RecursiveAction {
             Notification notification = new Notification("Удалено", 500);
             notification.setPosition(Notification.Position.MIDDLE);
             notification.open();
-            new Thread() {
-                public void run() {
-                    beanAccess.getPageRepository().deleteBySiteId(site.getId());
-                }
-            }.start();
-
-
+            new Thread(() -> beanAccess.getPageRepository().deleteBySiteId(site.getId())).start();
         });
         cancel.addClickListener(clickEvent -> {
             dialog.close();
