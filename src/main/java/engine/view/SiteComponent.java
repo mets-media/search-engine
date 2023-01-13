@@ -343,6 +343,8 @@ public class SiteComponent {
                 site.setStatus(SiteStatus.NEW_SITE);
                 site.setStatusTime(LocalDateTime.now());
                 site.setPageCount(0);
+                site.setIndexCount(0);
+                site.setLemmaCount(0);
                 beanAccess.getSiteRepository().save(site);
 
                 grid.setItems(beanAccess.getSiteRepository().findAll());

@@ -263,7 +263,7 @@ public class Parser extends RecursiveAction {
                     readyPage,1,true);
             dbWriter.start();
 
-            System.out.println(readyPage.size());
+            //System.out.println(readyPage.size());
 
             while (readyPage.size() > 0) {
                 Thread.sleep(2000);
@@ -272,6 +272,32 @@ public class Parser extends RecursiveAction {
             return true;
         }
         return false;
+    }
+
+    public static Boolean insertOrUpdatePage(String path, BeanAccess beanAccess) {
+
+        Site findSite = null;
+        for (Site site : beanAccess.getSiteRepository().findAll()) {
+            if (path.contains(HtmlParsing.getDomainName(site.getUrl()))) {
+                findSite = site;
+                break;
+            }
+        }
+
+        if (!(findSite == null)) {
+            Site finalFindSite = findSite;
+            new Thread(() -> {
+                try {
+                    beanAccess.getPageRepository().deleteByPath(path);
+                    indexingPage(finalFindSite, path, beanAccess);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        } else {
+            return false;
+        }
+        return true;
     }
 
     @Override

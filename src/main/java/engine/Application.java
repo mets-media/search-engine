@@ -22,6 +22,7 @@ public class Application extends SpringBootServletInitializer {
     @Bean
     public CommandLineRunner dataGenerator(ConfigRepository configRepository,
                                            PageRepository pageRepository,
+                                           IndexRepository indexRepository,
                                            PartOfSpeechRepository partOfSpeechRepository,
                                            FieldRepository fieldRepository,
                                            PageContainerRepository pageContainerRepository,
@@ -47,17 +48,20 @@ public class Application extends SpringBootServletInitializer {
                partOfSpeechRepository.initData();
             //----------------------------------------------------
 
-            //pageRepository.createTriggers();
-            //Парсинг lemmaString
+            pageRepository.createTriggers();
+            pageRepository.createFunctionForAllSiteLemmaInfo();
+
             pageContainerRepository.createTrigger();
+
+            siteRepository.createTrigger();
+
+            indexRepository.createForeignKeys();
+
             //Функция парсинга lemmaString
             //pageContainerRepository.createFunction();
-
             //Удаление данных в подчинённых таблицах
-            siteRepository.createTrigger();
             //siteRepository.createDeleteSiteInfoFunction();
 
-            pageRepository.createFunctionForAllSiteLemmaInfo();
         };
     }
 

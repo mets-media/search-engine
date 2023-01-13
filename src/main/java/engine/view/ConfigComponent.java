@@ -36,7 +36,7 @@ public class ConfigComponent {
     public ConfigComponent() {
         mainLayout = CreateUI.getMainLayout();
         List<Button> buttons = createButtons(List.of("Добавить", "Редактировать", "Удалить"));
-        mainLayout.add(CreateUI.getTopLayout("Настройки сканирования.", "xl", buttons));
+        mainLayout.add(CreateUI.getTopLayout("Настройки сканирования", "xl", buttons));
 
         grid = new Grid(Config.class, false);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
@@ -44,7 +44,8 @@ public class ConfigComponent {
 
         grid.addColumn(Config::getKey).setHeader("Key").setAutoWidth(true)
                 .setSortable(true)
-                .setTextAlign(ColumnTextAlign.CENTER);
+                .setTextAlign(ColumnTextAlign.CENTER)
+                        .setVisible(false);
         grid.addColumn(Config::getName).setHeader("Наименование").setSortable(true);
         grid.addColumn(Config::getValue).setHeader("Значение");
 

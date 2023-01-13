@@ -40,8 +40,8 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "AS $BODY$\n" +
             "begin\n" +
             "  delete from keep_link where site_id = old.id;\n" +
-            "  delete from lemma where site_id = old.id;\n" +
             "  delete from index where page_id in (select id from page where site_id = old.id);\n" +
+            "  delete from lemma where site_id = old.id;\n" +
             "  delete from page where site_id = old.id;\n" +
             "  return null;\n" +
             "end\n" +
@@ -57,7 +57,7 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
     @Modifying
     @Transactional
     @Query(value =
-            "CREATE OR REPLACE FUNCTION public.delete_site_information(\n" +
+            "CREATE OR REPLACE FUNCTION delete_site_information(\n" +
             "siteId integer)\n" +
             "RETURNS integer\n" +
             "LANGUAGE 'plpgsql'\n" +
@@ -66,8 +66,8 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "AS $BODY$\n" +
             "begin\n" +
             "delete from keep_link where site_id = siteId;\n" +
-            "delete from lemma where site_id = siteId;\n" +
             "delete from index where page_id in (select id from page where site_id = siteId);\n" +
+            "delete from lemma where site_id = siteId;\n" +
             "delete from page where site_id = siteId;\n" +
             "return siteId;\n" +
             "end;\n" +

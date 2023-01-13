@@ -10,6 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 public interface IndexRepository extends CrudRepository<IndexEntity,Integer> {
+
+
+
     @Query(value = "select count(*) from index\n" +
             "join page on (index.page_id = page.id)\n" +
             "where page.site_id = :siteId", nativeQuery = true)
@@ -33,4 +36,21 @@ public interface IndexRepository extends CrudRepository<IndexEntity,Integer> {
             "CONSTRAINT index_pkey PRIMARY KEY (id)\n" +
             ")", nativeQuery = true)
     void reCreateTable();
+
+    @Modifying
+    @Transactional
+    @Query(value =
+            "    ALTER TABLE IF EXISTS index\n" +
+            "    ADD CONSTRAINT FK_LEMMA_CONSTRAINT FOREIGN KEY (lemma_id)\n" +
+            "    REFERENCES public.lemma (id) MATCH SIMPLE\n" +
+            "    ON UPDATE NO ACTION\n" +
+            "    ON DELETE NO ACTION;\n" +
+            "\n" +
+            "    ALTER TABLE IF EXISTS index\n" +
+            "    ADD CONSTRAINT FK_PAGE_CONSTRAINT FOREIGN KEY (page_id)\n" +
+            "    REFERENCES public.page (id) MATCH SIMPLE\n" +
+            "    ON UPDATE NO ACTION\n" +
+            "    ON DELETE NO ACTION;\n", nativeQuery = true)
+    void createForeignKeys();
+
 }

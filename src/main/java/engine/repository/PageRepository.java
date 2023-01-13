@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Repository
 public interface PageRepository extends JpaRepository<Page, Integer> {
+//public interface PageRepository extends PagingAndSortingRepository<Page, Integer> {
     @Transactional
     void deleteBySiteId(int pageSiteId);
 
@@ -90,56 +92,56 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
     @Modifying
     @Transactional
     @Query(value =
-            "CREATE OR REPLACE FUNCTION insert_page_function()\n" +
-                    "RETURNS trigger\n" +
-                    "LANGUAGE 'plpgsql'\n" +
-                    "COST 100\n" +
-                    "VOLATILE NOT LEAKPROOF\n" +
-                    "AS $BODY$\n" +
-                    "declare siteId integer;\n" +
-                    "declare cnt integer;\n" +
-                    "begin\n" +
-                    "   case tg_table_name\n" +
-                    "       when 'page' then\n" +
-                    "           begin\n" +
-                    "               select page_count from site where id = new.site_id into cnt;\n" +
-                    "               update site set page_count = cnt + 1 where id = new.site_id;\n" +
-                    "           end;\n" +
-                    "       when 'lemma' then\n" +
-                    "           begin\n" +
-                    "               select lemma_count from site where id = new.site_id into cnt;\n" +
-                    "               update site set lemma_count = cnt + 1 where id = new.site_id;\n" +
-                    "           end;\n" +
-                    "       when 'index' then\n" +
-                    "           begin\n" +
-                    "               select site_id from page where id = new.page_id into siteId;\n" +
-                    "               select index_count from site where id = siteid into cnt;\n" +
-                    "               update site set index_count = cnt + 1 where id = siteid;\n" +
-                    "           end;\n" +
-                    "   end case;\n" +
-                    "\n" +
-                    "   return null;\n" +
-                    "end\n" +
-                    "$BODY$;" +
-                    "\n" +
-                    "CREATE OR REPLACE TRIGGER insert_page_trigger\n" +
-                    "    AFTER INSERT\n" +
-                    "    ON public.page\n" +
-                    "    FOR EACH ROW\n" +
-                    "    EXECUTE FUNCTION insert_page_function();" +
-                    "\n" +
-                    "CREATE OR REPLACE TRIGGER insert_lemma_trigger\n" +
-                    "    AFTER INSERT\n" +
-                    "    ON lemma\n" +
-                    "    FOR EACH ROW\n" +
-                    "    EXECUTE FUNCTION insert_page_function();" +
-
-                    "CREATE OR REPLACE TRIGGER insert_index_trigger\n" +
-                    "    AFTER INSERT\n" +
-                    "    ON index\n" +
-                    "    FOR EACH ROW\n" +
-                    "    EXECUTE FUNCTION insert_page_function();" +
-                    "\n" +
+//            "CREATE OR REPLACE FUNCTION insert_page_function()\n" +
+//                    "RETURNS trigger\n" +
+//                    "LANGUAGE 'plpgsql'\n" +
+//                    "COST 100\n" +
+//                    "VOLATILE NOT LEAKPROOF\n" +
+//                    "AS $BODY$\n" +
+//                    "declare siteId integer;\n" +
+//                    "declare cnt integer;\n" +
+//                    "begin\n" +
+//                    "   case tg_table_name\n" +
+//                    "       when 'page' then\n" +
+//                    "           begin\n" +
+//                    "               select page_count from site where id = new.site_id into cnt;\n" +
+//                    "               update site set page_count = cnt + 1 where id = new.site_id;\n" +
+//                    "           end;\n" +
+//                    "       when 'lemma' then\n" +
+//                    "           begin\n" +
+//                    "               select lemma_count from site where id = new.site_id into cnt;\n" +
+//                    "               update site set lemma_count = cnt + 1 where id = new.site_id;\n" +
+//                    "           end;\n" +
+//                    "       when 'index' then\n" +
+//                    "           begin\n" +
+//                    "               select site_id from page where id = new.page_id into siteId;\n" +
+//                    "               select index_count from site where id = siteid into cnt;\n" +
+//                    "               update site set index_count = cnt + 1 where id = siteid;\n" +
+//                    "           end;\n" +
+//                    "   end case;\n" +
+//                    "\n" +
+//                    "   return null;\n" +
+//                    "end\n" +
+//                    "$BODY$;" +
+//                    "\n" +
+//                    "CREATE OR REPLACE TRIGGER insert_page_trigger\n" +
+//                    "    AFTER INSERT\n" +
+//                    "    ON public.page\n" +
+//                    "    FOR EACH ROW\n" +
+//                    "    EXECUTE FUNCTION insert_page_function();" +
+//                    "\n" +
+//                    "CREATE OR REPLACE TRIGGER insert_lemma_trigger\n" +
+//                    "    AFTER INSERT\n" +
+//                    "    ON lemma\n" +
+//                    "    FOR EACH ROW\n" +
+//                    "    EXECUTE FUNCTION insert_page_function();" +
+//
+//                    "CREATE OR REPLACE TRIGGER insert_index_trigger\n" +
+//                    "    AFTER INSERT\n" +
+//                    "    ON index\n" +
+//                    "    FOR EACH ROW\n" +
+//                    "    EXECUTE FUNCTION insert_page_function();" +
+//                    "\n" +
                     "CREATE OR REPLACE FUNCTION public.delete_page_function()\n" +
                     "    RETURNS trigger\n" +
                     "    LANGUAGE 'plpgsql'\n" +
@@ -147,8 +149,9 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
                     "    VOLATILE NOT LEAKPROOF\n" +
                     "AS $BODY$\n" +
                     "begin\n" +
-                    "\tdelete from lemma where id in (Select lemma_id from index where page_id = old.id);\n" +
                     "\tdelete from index where page_id = old.id;\n" +
+                    "\tdelete from lemma where id in (Select lemma_id from index where page_id = old.id);\n" +
+
                     "\n" +
                     "\tupdate site set page_count = (select page_count - 1 from site where id = old.site_id) where id = old.site_id;" +
                     "\n" +

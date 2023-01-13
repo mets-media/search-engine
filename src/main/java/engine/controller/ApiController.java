@@ -1,27 +1,18 @@
 package engine.controller;
 
-import engine.entity.Page;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
-import engine.repository.PageRepository;
-import engine.repository.SiteRepository;
 import engine.service.BeanAccess;
 import engine.service.Parser;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -35,27 +26,21 @@ public class ApiController {
         return "index.html";
     }
 
-    @PostMapping(value ="/indexPage",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> indexPage(@RequestParam String path) {
+    @PostMapping(value = "/indexPage")
+    public ResponseEntity<?> indexPage(@RequestParam String path) {
         beanAccess.getPageRepository().deleteByPath(path);
 
-        return ResponseEntity.ok("{\n" +
-                "'result': true\n" +
-                "}");
+
+        return new ResponseEntity<>(new ResponseOk(), HttpStatus.OK);
 
     }
 
     @GetMapping(value = "/stopIndexing", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> StopIndexing() {
+    public ResponseEntity<?> StopIndexing() {
         List<Site> listSites = beanAccess.getSiteRepository().findAll();
 
         if (!(listSites.get(0).getStatus() == SiteStatus.INDEXING)) {
-            return ResponseEntity.ok("{\n" +
-                    "'result': false,\n" +
-                    "'error': \"Индексация не запущена\"\n" +
-                    "}");
+            return new ResponseEntity<>(new ResponseError("Индексация не запущена"), HttpStatus.OK);
         }
 
         listSites.forEach(site -> {
@@ -69,23 +54,23 @@ public class ApiController {
             }
         });
 
-
-        return ResponseEntity.ok("{\n" +
-                "'result': true\n" +
-                "}");
+        return new ResponseEntity<>(new ResponseOk(), HttpStatus.OK);
     }
 
 
-    @GetMapping(value = "/startIndexing", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> StartIndexing() {
 
+    @GetMapping("/test")
+    public ResponseEntity<?> test(Long id){
+            return new ResponseEntity<>(new ResponseError("Индексация уже запущена!"), HttpStatus.OK);
+    }
+
+
+    @GetMapping(value = "/startIndexing")
+    public ResponseEntity<?> StartIndexing() {
         List<Site> listSites = beanAccess.getSiteRepository().findAll();
 
         if (listSites.get(0).getStatus() == SiteStatus.INDEXING) {
-            return ResponseEntity.ok("{\n" +
-                    "'result': false,\n" +
-                    "'error': \"Индексация уже запущена\"\n" +
-                    "}");
+            return new ResponseEntity<>(new ResponseError("Индексация уже запущена!"), HttpStatus.OK);
         }
 
         beanAccess.getPageRepository().reCreateTable();
@@ -109,10 +94,24 @@ public class ApiController {
             Parser.start(site);
         });
 
-        return ResponseEntity.ok("{\n" +
-                "'result': true\n" +
-                "}");
+        return new ResponseEntity<>(new ResponseOk(), HttpStatus.OK);
+
     }
 
+    @Getter
+    @NoArgsConstructor
+    public static class ResponseOk {
+        private final boolean result = true;
+    }
+
+    @Getter
+    public static class ResponseError {
+        private final boolean result = false;
+        private String error;
+
+        public ResponseError(String error) {
+            this.error = error;
+        }
+    }
 
 }

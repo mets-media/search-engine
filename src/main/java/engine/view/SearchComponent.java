@@ -15,7 +15,6 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.NumberRenderer;
@@ -26,8 +25,6 @@ import engine.entity.Site;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Lemmatization;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
@@ -45,12 +42,11 @@ public class SearchComponent {
     private final HorizontalLayout requestLayout = new HorizontalLayout();
     private final HorizontalLayout gridsLayout = new HorizontalLayout();
     private final Grid<Lemma> lemmaGrid = new Grid<>(Lemma.class, false);
-    private final Grid<PathTable> relevanceGrid = new Grid<>(PathTable.class, false);
+    private final Grid<PathTable> findPageGrid = new Grid<>(PathTable.class, false);
     private final TextField pageCountTextField = new TextField("Страницы");
     private final TextField lemmaCountTextField = new TextField("Леммы");
     private final TextField indexCountTextField = new TextField("Таблица Index");
     private final TextField requestTextField = new TextField("Поисковый запрос");
-    private final TextArea htmlTextArea = new TextArea("Snippet: <b> tag");
 
     private final VerticalLayout detailLayout = new VerticalLayout();
 
@@ -67,17 +63,15 @@ public class SearchComponent {
         requestTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
 
         lemmaGrid.setWidth("40%");
-        relevanceGrid.setWidth("60%");
+        findPageGrid.setWidth("60%");
 
         lemmaGrid.setHeight(250, Unit.PIXELS);
-        relevanceGrid.setHeight(250, Unit.PIXELS);
+        findPageGrid.setHeight(250, Unit.PIXELS);
 
         detailLayout.setVisible(false);
 
         Lemmatization.setDataAccess(beanAccess);
         lemmatizator = Lemmatization.getLemmatizator();
-
-        htmlTextArea.setVisible(false);
     }
 
     public VerticalLayout getMainLayout() {
@@ -117,15 +111,13 @@ public class SearchComponent {
         requestLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         requestLayout.setEnabled(false);
 
-        gridsLayout.add(lemmaGrid, relevanceGrid);
+        gridsLayout.add(lemmaGrid, findPageGrid);
         gridsLayout.setWidthFull();
 
-        htmlTextArea.setWidthFull();
-        htmlTextArea.setReadOnly(true);
 
         return new VerticalLayout(horizontalLayout, requestLayout,
                 gridsLayout,
-                htmlTextArea, fillDetailLayout());
+                getDetailLayout());
     }
 
     private ComboBox<Site> createSiteComboBox() {
@@ -152,7 +144,7 @@ public class SearchComponent {
         siteComboBox.addValueChangeListener(event -> {
 
             lemmaGrid.setItems(new ArrayList<>());
-            relevanceGrid.setItems(new ArrayList<>());
+            findPageGrid.setItems(new ArrayList<>());
             pageIdHashMap.clear();
 
             detailLayout.setVisible(false);
@@ -206,36 +198,35 @@ public class SearchComponent {
         return siteComboBox;
     }
 
-    private void createColumnsRelevanceGrid(TextField relevanceTextField,
-                                            TextField pathTextField,
-                                            TextField titleTextField,
-                                            TextArea snippetTextArea) {
+    private void createColumnsFindPageGrid(TextField relevanceTextField,
+                                           TextField pathTextField,
+                                           TextField titleTextField) {
 
-        relevanceGrid.addThemeVariants(GridVariant.LUMO_COLUMN_BORDERS);
-        relevanceGrid.addThemeVariants(GridVariant.LUMO_COMPACT);
+        findPageGrid.addThemeVariants(GridVariant.LUMO_COLUMN_BORDERS);
+        findPageGrid.addThemeVariants(GridVariant.LUMO_COMPACT);
 
         DecimalFormat decimalFormat = new DecimalFormat("#,###.##");
 
 
-        Grid.Column<PathTable> absRelevanceColumn = relevanceGrid.addColumn(new NumberRenderer<>(PathTable::getAbsRelevance,
+        Grid.Column<PathTable> absRelevanceColumn = findPageGrid.addColumn(new NumberRenderer<>(PathTable::getAbsRelevance,
                         decimalFormat))
                 .setHeader("Абсолютная")
                 .setTextAlign(ColumnTextAlign.CENTER)
                 .setFrozen(true);
 
-        Grid.Column<PathTable> relRelevanceColumn = relevanceGrid.addColumn(new NumberRenderer<>(PathTable::getRelRelevance,
+        Grid.Column<PathTable> relRelevanceColumn = findPageGrid.addColumn(new NumberRenderer<>(PathTable::getRelRelevance,
                         decimalFormat))
                 .setHeader("Относительная")
                 .setTextAlign(ColumnTextAlign.CENTER)
                 .setFrozen(true);
 
-        Grid.Column<PathTable> pathRelevanceColumn = relevanceGrid.addColumn(PathTable::getPath)
+        Grid.Column<PathTable> pathRelevanceColumn = findPageGrid.addColumn(PathTable::getPath)
                 .setHeader("Страница")
                 .setTextAlign(ColumnTextAlign.START)
                 .setWidth("60%").
                 setResizable(true);
 
-        HeaderRow headerRow = relevanceGrid.prependHeaderRow();
+        HeaderRow headerRow = findPageGrid.prependHeaderRow();
 
         Div simpleCell = new Div();
         simpleCell.setText("Релевантность");
@@ -245,12 +236,12 @@ public class SearchComponent {
         //Без detail
         //relevanceGrid.setItemDetailsRenderer(createPageDetailRenderer());
 
-        relevanceGrid.addItemDoubleClickListener(event -> {
+        findPageGrid.addItemDoubleClickListener(event -> {
             String path = event.getItem().getPath();
             StartBrowser.startBrowser(path);
         });
 
-        relevanceGrid.addSelectionListener(selectionEvent -> {
+        findPageGrid.addSelectionListener(selectionEvent -> {
 
             selectionEvent.getFirstSelectedItem().ifPresent(t -> {
 
@@ -258,11 +249,6 @@ public class SearchComponent {
 
                 relevanceTextField.setValue(t.getRelRelevance().toString());
                 pathTextField.setValue(t.getPath());
-
-
-
-                Integer pageId = t.getPageId();
-                //List<Lemma> lemmaList = beanAccess.getLemmaRepository().findByPageId(pageId);
 
                 Optional<Page> page = beanAccess.getPageRepository().findById(t.getPageId());
                 page.ifPresent(p -> {
@@ -272,24 +258,18 @@ public class SearchComponent {
                     String content = p.getContent();
                     int start = content.indexOf("<title>") + 7;
                     int end = content.indexOf("</title>");
-                    titleTextField.setValue(content.substring(start,end));
+                    if (start > 0)
+                        titleTextField.setValue(content.substring(start, end));
+                    else
+                        titleTextField.setValue("");
 
+                    CreateUI.removeComponentById(detailLayout, "snippetGrid");
 
-                    snippetTextArea.setVisible(false);
-
-                    CreateUI.removeComponentById(detailLayout, "snippedGrid");
-
-                    List<String> list = HtmlParsing.getStringsContainsLemma(content,lemmaGrid.getSelectedItems(),lemmatizator);
-
-
-
-                    Grid<String> grid = CreateUI.getStringGrid("Строки контента с найденными леммами:", list);
-                    grid.setId("snippedGrid");
+                    Grid<String> grid = CreateUI.getStringGrid("Строки контента с найденными леммами:",
+                            HtmlParsing.getStringsContainsLemma(content, lemmaGrid.getSelectedItems(), lemmatizator));
+                    grid.setId("snippetGrid");
                     detailLayout.add(grid);
-
-
-//                beanAccess.getPageRepository().findById(t.getPageId()).ifPresent(page -> {
-//                    htmlTextArea.setValue(HtmlParsing.getBoldRussianText(page.getContent()));
+                    detailLayout.setVisible(true);
                 });
             });
         });
@@ -309,7 +289,8 @@ public class SearchComponent {
         //Действие при выборе леммы
         //--------------------------
         lemmaGrid.addSelectionListener(selectionEvent -> {
-            htmlTextArea.clear();
+
+            detailLayout.setVisible(false);
 
             Integer siteId = siteComboBox.getValue().getId();
 
@@ -334,8 +315,8 @@ public class SearchComponent {
             String includeLemma = stringBuilder.toString();
 
             if (includeLemma.isEmpty()) {
-                relevanceGrid.setItems(new ArrayList<>());
-                relevanceGrid.getColumns().get(2).setHeader("Страницы");
+                findPageGrid.setItems(new ArrayList<>());
+                findPageGrid.getColumns().get(2).setHeader("Страницы");
                 return;
             }
             includeLemma = "'" + includeLemma.substring(0, includeLemma.length() - 1) + "'";
@@ -356,16 +337,17 @@ public class SearchComponent {
                 if (siteId == 0)
                     pathTableList = beanAccess.getPathTableRepository()
                             .getResultTableForAllSites(includeLemma);
+                            //.allSitesRequest(includeLemma); неправильно
                 else
                     pathTableList = beanAccess.getPathTableRepository()
                             .getResultTableForSelectedSite(siteId, includeLemma, includePageId);
 
                 //Результаты
-                relevanceGrid.setItems(pathTableList);
-                relevanceGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
+                findPageGrid.setItems(pathTableList);
+                findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
             } else {
-                relevanceGrid.setItems(new ArrayList<>());
-                relevanceGrid.getColumns().get(2).setHeader("Страницы");
+                findPageGrid.setItems(new ArrayList<>());
+                findPageGrid.getColumns().get(2).setHeader("Страницы");
             }
         });
     }
@@ -493,14 +475,14 @@ public class SearchComponent {
         button.setIcon(VaadinIcon.BROWSER.create());
         button.getElement().setProperty("title", "Открыть в браузере");
 
-        button.addClickListener(event ->  {
+        button.addClickListener(event -> {
             grid.getSelectedItems().stream().findFirst()
                     .ifPresent(pathLine -> StartBrowser.startBrowser(pathLine.getPath()));
         });
         return button;
     }
 
-    private VerticalLayout fillDetailLayout() {
+    private VerticalLayout getDetailLayout() {
 
         var relevanceTextField = new TextField("Релевантность");
         var pathTextField = new TextField("Адрес страницы");
@@ -515,18 +497,14 @@ public class SearchComponent {
         titleTextField.setReadOnly(true);
 
         var horizontalLayout = new HorizontalLayout(relevanceTextField,
-                pathTextField, createBrowserButton(relevanceGrid));
+                pathTextField, createBrowserButton(findPageGrid));
         horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         horizontalLayout.setWidth("100%");
 
-        var snippetTextArea = new TextArea("Snippet");
-        snippetTextArea.setWidth("100%");
-        snippetTextArea.setReadOnly(true);
-
-        detailLayout.add(horizontalLayout, titleTextField, snippetTextArea);
+        detailLayout.add(horizontalLayout, titleTextField);
         detailLayout.setWidthFull();
 
-        createColumnsRelevanceGrid(relevanceTextField,pathTextField,titleTextField, snippetTextArea);
+        createColumnsFindPageGrid(relevanceTextField, pathTextField, titleTextField);
 
         return detailLayout;
     }

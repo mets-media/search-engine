@@ -34,6 +34,8 @@ public class PathTableRepository {
 
                     "select * from page_query " +
                     "order by rel desc, path";
+
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
@@ -64,10 +66,5 @@ public class PathTableRepository {
                 .replace(":lemmaIn", lemmas), lemmaMapper);
 
     }
-
-
-
-
-
 
 }

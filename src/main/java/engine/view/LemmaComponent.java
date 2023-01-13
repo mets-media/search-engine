@@ -37,11 +37,13 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static engine.service.HtmlParsing.getRussianWords;
+import static engine.service.Parser.insertOrUpdatePage;
+import static engine.view.CreateUI.removeComponentById;
+import static engine.view.CreateUI.showMessage;
 
 @Getter
 public class LemmaComponent {
     private final VerticalLayout mainLayout;
-    //private final Grid<PartsOfSpeech> gridPartsOfSpeech = new Grid<>();
     private final HashMap<String, VerticalLayout> contentsHashMap = new HashMap<>();
     private final BeanAccess beanAccess;
     private final ComboBox<String> sourceSelectComboBox = new ComboBox<>("Источник:");
@@ -55,28 +57,22 @@ public class LemmaComponent {
         sourceSelectComboBox.setValue("Database");
     }
 
-
     private HorizontalLayout createButtonAndLayout(TextArea textArea) {
         //-------------------------------------------------------------------------------------------------------------
 
-        var splitButton = new Button("Слова, Леммы, Части речи");
+        var splitButton = new Button("Найти [Слова], [Леммы], [Части речи]");
         splitButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         splitButton.addClickListener(event -> {
 
             removeComponentById(contentsHashMap.get("Лемматизатор"), "HorizontalLayoutForGrids");
 
-//            var stringBuilder = new StringBuilder();
             String[] words = getRussianWords(textArea.getValue());
-//            for (String word : words) {
-//                if (!word.isBlank())
-//                    stringBuilder.append("-").append(word).append("\n");
-//            }
 
             var horizontalLayout = new HorizontalLayout();
             horizontalLayout.setWidthFull();
             horizontalLayout.setId("HorizontalLayoutForGrids");
-            horizontalLayout.add(getStringGrid("Слова", Arrays.stream(words).toList()));
+            horizontalLayout.add(CreateUI.getStringGrid("Слова", Arrays.stream(words).toList()));
 
 
             List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
@@ -93,7 +89,7 @@ public class LemmaComponent {
             grid.getColumns().get(2).setVisible(false);
             horizontalLayout.add(grid);
 
-            horizontalLayout.add(getStringGrid("Части речи",
+            horizontalLayout.add(CreateUI.getStringGrid("Части речи",
                     lemmatizator.getLemmaInfo(textArea.getValue()).stream().toList()));
 
             contentsHashMap.get("Лемматизатор").add(horizontalLayout);
@@ -131,18 +127,7 @@ public class LemmaComponent {
         return verticalLayout;
     }
 
-    private void removeComponentById(VerticalLayout container, String deleteId) {
-
-        container.getChildren().forEach(component -> {
-            component.getId().ifPresent(id -> {
-                if (id.equals(deleteId)) {
-                    container.remove(component);
-                }
-            });
-        });
-    }
-
-    private ComboBox<Page> createPageComboBox(TextField researchUrlTextField) {
+    private ComboBox<Page> getPageComboBox(TextField researchUrlTextField) {
         ComboBox<Page> pageComboBox = new ComboBox<>("Поиск страниц по фильтру в базе данных");
         pageComboBox.setClearButtonVisible(true);
 
@@ -196,7 +181,7 @@ public class LemmaComponent {
                 String searchPath = urlTextField.getValue();
                 content = beanAccess.getPageRepository().getContentByPath(searchPath);
                 if (content == null) {
-                    CreateUI.showMessage("Страница отсутствует в базе данных", 2000, Notification.Position.MIDDLE);
+                    showMessage("Страница отсутствует в базе данных", 2000, Notification.Position.MIDDLE);
                     return;
                 }
             } else
@@ -248,7 +233,7 @@ public class LemmaComponent {
         return getLemmaButton;
     }
 
-    private TextField createFilterTextField(ComboBox<Page> pageComboBox) {
+    private TextField getFilterTextField(ComboBox<Page> pageComboBox) {
         TextField filterTextField = new TextField("Фильтр");
         //filterTextField.setPlaceholder("Фильтр");
         filterTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
@@ -262,7 +247,7 @@ public class LemmaComponent {
         return filterTextField;
     }
 
-    private TextField createResearchTextField() {
+    private TextField getResearchTextField() {
         TextField researchUrlTextField = new TextField("Адрес страницы: ");
 
         researchUrlTextField.setPrefixComponent(VaadinIcon.FILE_SEARCH.create());
@@ -274,7 +259,7 @@ public class LemmaComponent {
         return researchUrlTextField;
     }
 
-    private Button createBrowserButton(ComboBox<Page> pageComboBox) {
+    private Button getBrowserButton(ComboBox<Page> pageComboBox) {
         Button button = new Button();
         button.setIcon(VaadinIcon.BROWSER.create());
         button.getElement().setProperty("title", "Открыть в браузере");
@@ -283,67 +268,44 @@ public class LemmaComponent {
         return button;
     }
 
-    private Button createDelPageButton(TextField urlTextField) {
+    private Button getDelPageButton(TextField urlTextField) {
         Button button = new Button();
         button.setIcon(VaadinIcon.DEL_A.create());
         button.getElement().setProperty("title", "Удалить страницу из базы");
 
         button.addClickListener(event -> {
             beanAccess.getPageRepository().deleteByPath(urlTextField.getValue());
-            CreateUI.showMessage("Страница удалена из базы", 1000, Notification.Position.MIDDLE);
+            showMessage("Страница удалена из базы", 1000, Notification.Position.MIDDLE);
             removeComponentById(contentsHashMap.get("Леммы"), "VerticalLayoutForGrids");
         });
         return button;
     }
 
-    private Button createReIndexPageButton(TextField urlTextField) {
+    private Button getReIndexPageButton(TextField urlTextField) {
         Button button = new Button();
         button.setIcon(VaadinIcon.ADD_DOCK.create());
         button.getElement().setProperty("title", "Добавить в базу и проиндексировать");
 
         button.addClickListener(event -> {
 
-            String path = urlTextField.getValue();
-
-            Site findSite = null;
-            for (Site site : beanAccess.getSiteRepository().findAll()) {
-                if (path.contains(HtmlParsing.getDomainName(site.getUrl()))) {
-                    findSite = site;
-                    break;
-                }
-            }
-
-            AtomicBoolean pageInserted = new AtomicBoolean();
-            if (!(findSite == null)) {
-                Site finalFindSite = findSite;
-                new Thread(() -> {
-                    try {
-                        if (Parser.indexingPage(finalFindSite, path, beanAccess))
-                            pageInserted.set(true);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }).start();
-            } else {
-                CreateUI.showMessage("Страница за пределами проиндексированных сайтов!",
+            if (!(insertOrUpdatePage(urlTextField.getValue(), beanAccess))) {
+                showMessage("Страница за пределами проиндексированных сайтов!",
                         2000,
                         Notification.Position.MIDDLE);
             }
-            if (pageInserted.get())
-                CreateUI.showMessage("Страница загружена и проиндексирована!",
-                        2000, Notification.Position.MIDDLE);
+            showMessage("Записываем и индексируем страницу", 2000, Notification.Position.MIDDLE);
         });
         return button;
     }
 
     private VerticalLayout createSearchLemmaComponent() {
 
-        TextField urlTextField = createResearchTextField();
+        TextField urlTextField = getResearchTextField();
         //------------------------------------------------------------------------------------
 
-        ComboBox<Page> pageComboBox = createPageComboBox(urlTextField);
-        TextField filterTextField = createFilterTextField(pageComboBox);
-        Button browserButton = createBrowserButton(pageComboBox);
+        ComboBox<Page> pageComboBox = getPageComboBox(urlTextField);
+        TextField filterTextField = getFilterTextField(pageComboBox);
+        Button browserButton = getBrowserButton(pageComboBox);
 
         HorizontalLayout filterHLayout = new HorizontalLayout(filterTextField, pageComboBox, browserButton);
         filterHLayout.setWidthFull();
@@ -359,7 +321,7 @@ public class LemmaComponent {
         var hLayout = new HorizontalLayout();
         hLayout.setWidthFull();
         hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
-        hLayout.add(urlTextField, createDelPageButton(urlTextField), createReIndexPageButton(urlTextField), sourceSelectComboBox, getLemmaButton);
+        hLayout.add(urlTextField, getDelPageButton(urlTextField), getReIndexPageButton(urlTextField), sourceSelectComboBox, getLemmaButton);
 
         urlTextField.setWidth("50%");
         sourceSelectComboBox.setWidth("25%");
@@ -373,32 +335,6 @@ public class LemmaComponent {
         return verticalLayout;
     }
 
-    private Grid<String> getStringGrid(String caption, List<String> words) {
-        Grid<String> grid = new Grid<>(String.class, false);
-        Grid.Column<String> col1 = grid.addColumn(String::toString)
-                .setHeader(caption)
-                .setTextAlign(ColumnTextAlign.START)
-                .setFooter(createWordsCountFooterText(words));
-
-        grid.setItems(words);
-        return grid;
-    }
-
-    private Grid<String> getStringGridWithHeader(String caption, List<String> words) {
-        Grid<String> grid = new Grid<>(String.class, false);
-        Grid.Column<String> col1 = grid.addColumn(String::toString).setHeader("Имя колонки").setTextAlign(ColumnTextAlign.START);
-        Grid.Column<String> col2 = grid.addColumn(String::toString).setHeader("Word2");
-        col2.setVisible(false);
-        grid.setItems(words);
-
-        HeaderRow headerRow = grid.prependHeaderRow();
-
-        Div simpleCell = new Div();
-        simpleCell.setText(caption);
-        simpleCell.getElement().getStyle().set("text-align", "center");
-        headerRow.join(col1, col2).setComponent(simpleCell);
-        return grid;
-    }
 
     private Grid<Lemmatization.LemmaInfo> createCSSGrid(String cssSelector, Collection<Lemmatization.LemmaInfo> values) {
         DecimalFormat decimalFormat = new DecimalFormat("#,###.##");
@@ -415,7 +351,7 @@ public class LemmaComponent {
         Grid.Column<Lemmatization.LemmaInfo> col3 =
                 grid.addColumn(new NumberRenderer<>(Lemmatization.LemmaInfo::getRank, decimalFormat))
                         .setHeader("Rank");
-                        //.setFooter(createRankSumFooterText(values));
+        //.setFooter(createRankSumFooterText(values));
 
         HeaderRow headerRow = grid.prependHeaderRow();
 
@@ -427,10 +363,6 @@ public class LemmaComponent {
         grid.setItems(values);
 
         return grid;
-    }
-
-    private static String createWordsCountFooterText(List<String> words) {
-        return "Всего: " + words.size();
     }
 
     private static String createLemmaCountFooterText(Collection<Lemmatization.LemmaInfo> listLemmaInfo) {

@@ -108,9 +108,10 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t\t\t\treturning id)\n" +
             "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
             "\n" +
-            "\n\t\t\tif (page_id notnull) then\n" +
+            "\n\t\t\tif (page_id is not null) then\n" +
             "\t\t\t\t\tinsert into INDEX (page_id, lemma_id, rank) \n" +
             "\t\t\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
+
             "\n\t\t\tend if;\n" +
             "\n" +
             "\t\tend if;\n" +
@@ -118,12 +119,12 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\n" +
             "\tdelete from page_container where id = new.id;\n" +
             "\n" +
-            "    RETURN NULL;\n" +
+            "    RETURN NEW;\n" +
             "END;    \n" +
             "$BODY$;\n" +
             "\n" +
             "CREATE or replace TRIGGER page_trigger\n" +
-            "    AFTER INSERT\n" +
+            "    after INSERT\n" +
             "    ON public.page_container\n" +
             "    FOR EACH ROW\n" +
             "    EXECUTE FUNCTION new_page_function();",

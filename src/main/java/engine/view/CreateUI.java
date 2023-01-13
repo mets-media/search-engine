@@ -4,6 +4,8 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -11,9 +13,11 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
+@UtilityClass
 public class CreateUI {
 
     public static VerticalLayout getMainLayout() {
@@ -102,6 +106,8 @@ public class CreateUI {
         Grid<String> grid = new Grid<>(String.class, false);
         Grid.Column<String> col1 = grid.addColumn(String::toString)
                 .setHeader(caption)
+                .setResizable(true)
+                .setAutoWidth(true)
                 .setTextAlign(ColumnTextAlign.START)
                 .setFooter(createWordsCountFooterText(words));
 
@@ -110,7 +116,11 @@ public class CreateUI {
     }
 
     private static String createWordsCountFooterText(List<String> words) {
-        return "Всего: " + words.size();
+        int count = words.size();
+        if (count > 1)
+            return "Всего: " + count;
+        else
+            return "";
     }
 
     public static void removeComponentById(VerticalLayout container, String deleteId) {
@@ -123,5 +133,22 @@ public class CreateUI {
             });
         });
     }
+
+    private Grid<String> getStringGridWithHeader(String caption, String colName, List<String> words) {
+        Grid<String> grid = new Grid<>(String.class, false);
+        Grid.Column<String> col1 = grid.addColumn(String::toString).setHeader(colName).setTextAlign(ColumnTextAlign.START);
+        Grid.Column<String> col2 = grid.addColumn(String::toString).setHeader(colName + "_");
+        col2.setVisible(false);
+        grid.setItems(words);
+
+        HeaderRow headerRow = grid.prependHeaderRow();
+
+        Div simpleCell = new Div();
+        simpleCell.setText(caption);
+        simpleCell.getElement().getStyle().set("text-align", "center");
+        headerRow.join(col1, col2).setComponent(simpleCell);
+        return grid;
+    }
+
 
 }
