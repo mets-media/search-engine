@@ -47,9 +47,8 @@ public class SearchComponent {
     private final TextField lemmaCountTextField = new TextField("Леммы");
     private final TextField indexCountTextField = new TextField("Таблица Index");
     private final TextField requestTextField = new TextField("Поисковый запрос");
-
     private final VerticalLayout detailLayout = new VerticalLayout();
-
+    private Site allSiteObject = new Site();
 
     private final Lemmatization lemmatizator;
 
@@ -133,7 +132,7 @@ public class SearchComponent {
 
         List<Site> siteList = beanAccess.getSiteRepository().getSitesFromPageTable();
 
-        Site allSiteObject = new Site();
+
         allSiteObject.setId(0);
         allSiteObject.setName("*");
         allSiteObject.setUrl("Все сайты");
@@ -159,9 +158,9 @@ public class SearchComponent {
                     for (Site site : beanAccess.getSiteRepository().getStatistic()) {
                         beanAccess.getSiteRepository().save(site);
                     }
-                    int pageCount = 0;
-                    int lemmaCount = 0;
-                    int indexCount = 0;
+
+                    int pageCount = 0; int lemmaCount = 0; int indexCount = 0;
+
                     for (Site site : beanAccess.getSiteRepository().findAll()) {
                         pageCount += site.getPageCount();
                         lemmaCount += site.getLemmaCount();

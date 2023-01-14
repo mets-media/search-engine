@@ -6,10 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Оптимизация расчёта статистики (950 тыс страниц)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/Application.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,13 +103,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00015" summary="Morph dependencies. MultiScan">
-      <created>1668172910228</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1668172910229</updated>
     </task>
     <task id="LOCAL-00016" summary="Изменения в структуре проекта. (temp)">
       <created>1668243455545</created>
@@ -449,7 +440,14 @@
       <option name="project" value="LOCAL" />
       <updated>1672632952382</updated>
     </task>
-    <option name="localTasksCounter" value="64" />
+    <task id="LOCAL-00064" summary="Оптимизация расчёта статистики (950 тыс страниц)">
+      <created>1673704693692</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1673704693692</updated>
+    </task>
+    <option name="localTasksCounter" value="65" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -527,11 +525,6 @@
           <url>file://$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java</url>
           <line>199</line>
           <option name="timeStamp" value="91" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>162</line>
-          <option name="timeStamp" value="107" />
         </line-breakpoint>
         <breakpoint enabled="true" type="java-exception">
           <properties class="org.postgresql.util.PSQLException" package="org.postgresql.util" />

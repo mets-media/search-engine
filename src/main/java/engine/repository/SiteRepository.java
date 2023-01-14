@@ -9,10 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface SiteRepository extends JpaRepository<Site, Integer> {
+
     Optional<Site> getSiteByUrl(String url);
 
     @Query(value = "Select * from Site " +
@@ -20,9 +23,10 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "order by url", nativeQuery = true)
     Page<Site> getSitesFromPageTable(Pageable pageable);
 
-    @Query(value = "Select * from Site " +
-            "where id in (select distinct Site_Id from page) " +
-            "order by url", nativeQuery = true)
+    @Query(value =
+            "Select * from Site \n" +
+            "where id in (select distinct Site_Id from page) \n" +
+            "order by id", nativeQuery = true)
     List<Site> getSitesFromPageTable();
 
     @Modifying
@@ -117,6 +121,32 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
                     "\t end if;\n" +
                     "END$$;",nativeQuery = true)
     void createSequences();
+/*
+    DO $$declare
+    declare record Record;
+    declare page_count_total integer;
+    declare page_count_total integer;
+    declare page_count_total integer;
+    begin
 
+ for record in (with pages as (select site_id, count(*) page_count from page group by site_id),
+    lemmas as (select site_id, count(*) lemma_count from lemma group by site_id ),
+    indexes as (select page.site_id, count(*) index_count from index
+    join page on (index.page_id = page.id)
+    group by page.site_id)
+    select id, name, url, pages.site_id, pages.page_count, lemmas.lemma_count, indexes.index_count, status, status_time, last_error from pages
+    join lemmas on (pages.site_id = lemmas.site_id)
+    join indexes on (pages.site_id = indexes.site_id)
+    join site on (pages.site_id = site.id)
+				)
+    loop
+    update site
+    set page_count = record.page_count,
+            lemma_count= record.lemma_count,
+            index_count = record.index_count
+    where site.id = record.id;
 
+    end loop;
+    end;$$
+*/
 }
