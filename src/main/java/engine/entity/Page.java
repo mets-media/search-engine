@@ -9,6 +9,9 @@ import javax.persistence.*;
 import javax.persistence.Index;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -32,11 +35,14 @@ public class Page implements Serializable {
     private Integer code;
     @Column(columnDefinition = "Text")
     private String content;
-
-//    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    @JoinColumn(name = "siteId")
-//    private Site site;
-
+/*
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.ALL })
+            @JoinTable(name = "index",
+                    joinColumns = { @JoinColumn(name = "pageId") },
+                    inverseJoinColumns = { @JoinColumn(name = "lemmaId") }
+        )
+    Set<Lemma> lemmaList = new HashSet<>();
+*/
     public Page(Integer siteId, String path, Integer code, String content) {
         this.path = path;
         this.siteId = siteId;

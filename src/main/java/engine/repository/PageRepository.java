@@ -92,78 +92,62 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
     @Modifying
     @Transactional
     @Query(value =
-//            "CREATE OR REPLACE FUNCTION insert_page_function()\n" +
-//                    "RETURNS trigger\n" +
-//                    "LANGUAGE 'plpgsql'\n" +
-//                    "COST 100\n" +
-//                    "VOLATILE NOT LEAKPROOF\n" +
-//                    "AS $BODY$\n" +
-//                    "declare siteId integer;\n" +
-//                    "declare cnt integer;\n" +
-//                    "begin\n" +
-//                    "   case tg_table_name\n" +
-//                    "       when 'page' then\n" +
-//                    "           begin\n" +
-//                    "               select page_count from site where id = new.site_id into cnt;\n" +
-//                    "               update site set page_count = cnt + 1 where id = new.site_id;\n" +
-//                    "           end;\n" +
-//                    "       when 'lemma' then\n" +
-//                    "           begin\n" +
-//                    "               select lemma_count from site where id = new.site_id into cnt;\n" +
-//                    "               update site set lemma_count = cnt + 1 where id = new.site_id;\n" +
-//                    "           end;\n" +
-//                    "       when 'index' then\n" +
-//                    "           begin\n" +
-//                    "               select site_id from page where id = new.page_id into siteId;\n" +
-//                    "               select index_count from site where id = siteid into cnt;\n" +
-//                    "               update site set index_count = cnt + 1 where id = siteid;\n" +
-//                    "           end;\n" +
-//                    "   end case;\n" +
-//                    "\n" +
-//                    "   return null;\n" +
-//                    "end\n" +
-//                    "$BODY$;" +
-//                    "\n" +
-//                    "CREATE OR REPLACE TRIGGER insert_page_trigger\n" +
-//                    "    AFTER INSERT\n" +
-//                    "    ON public.page\n" +
-//                    "    FOR EACH ROW\n" +
-//                    "    EXECUTE FUNCTION insert_page_function();" +
-//                    "\n" +
-//                    "CREATE OR REPLACE TRIGGER insert_lemma_trigger\n" +
-//                    "    AFTER INSERT\n" +
-//                    "    ON lemma\n" +
-//                    "    FOR EACH ROW\n" +
-//                    "    EXECUTE FUNCTION insert_page_function();" +
-//
-//                    "CREATE OR REPLACE TRIGGER insert_index_trigger\n" +
-//                    "    AFTER INSERT\n" +
-//                    "    ON index\n" +
-//                    "    FOR EACH ROW\n" +
-//                    "    EXECUTE FUNCTION insert_page_function();" +
-//                    "\n" +
-                    "CREATE OR REPLACE FUNCTION public.delete_page_function()\n" +
-                    "    RETURNS trigger\n" +
-                    "    LANGUAGE 'plpgsql'\n" +
-                    "    COST 100\n" +
-                    "    VOLATILE NOT LEAKPROOF\n" +
-                    "AS $BODY$\n" +
-                    "begin\n" +
-                    "\tdelete from index where page_id = old.id;\n" +
-                    "\tdelete from lemma where id in (Select lemma_id from index where page_id = old.id);\n" +
+            "CREATE OR REPLACE FUNCTION delete_function()\n" +
+            "RETURNS trigger\n" +
+            "LANGUAGE 'plpgsql'\n" +
+            "COST 100\n" +
+            "VOLATILE NOT LEAKPROOF\n" +
+            "AS $BODY$\n" +
+            "declare count bigint;\n" +
+            "begin\n" +
 
-                    "\n" +
-                    "\tupdate site set page_count = (select page_count - 1 from site where id = old.site_id) where id = old.site_id;" +
-                    "\n" +
-                    "\treturn old;\n" +
-                    "end\n" +
-                    "$BODY$;\n" +
+            "\tcase tg_table_name\n" +
+            "\t\twhen 'page' then\n" +
+            "\t\t\tbegin\n" +
+            "\t\t\t\t------- Счётчик удалений -------\n" +
+            "\t\t\t\tselect nextval('page_del_count') into count;\n" +
+            "\t\t\t\t--------------------------------\n" +
+            "\t\t\t\tdelete from index where page_id = old.id;\n" +
+            "\t\t\t\tdelete from lemma where id in (Select lemma_id from index where page_id = old.id);\n" +
+
+            "\t\t\t\tupdate site set page_count = (select page_count - 1 from site where id = old.site_id) where id = old.site_id;\n" +
+            "\t\t\tend;\n" +
+            "\t\twhen 'lemma' then\n" +
+            "\t\t\tbegin\n" +
+            "\t\t\t\tselect nextval('lemma_del_count') into count;\n" +
+            "\t\t\tend;\n" +
+            "\t\twhen 'index' then\n" +
+            "\t\t\tbegin\n" +
+            "\t\t\t\tselect nextval('index_del_count') into count;\n" +
+            "\t\t\tend;\n" +
+            "\t\twhen 'site' then\n" +
+            "\t\t\tbegin\n" +
+            "\t\t\t select count(id) from site into count;\n" +
+            "\t\t\t\tif count = 0 then\n" +
+            "\t\t\t\tALTER SEQUENCE page_id_seq RESTART WITH 1;\n" +
+            "\t\t\t\tALTER SEQUENCE lemma_id_seq RESTART WITH 1;\n" +
+            "\t\t\t\tALTER SEQUENCE index_id_seq RESTART WITH 1;\n" +
+            "\t\t\t\tALTER SEQUENCE page_del_count RESTART WITH 1;\n" +
+            "\t\t\t\tALTER SEQUENCE lemma_del_count RESTART WITH 1;\n" +
+            "\t\t\t\tALTER SEQUENCE index_del_count RESTART WITH 1;\n" +
+            "\t\t\t\tend if;\n" +
+            "\t\t\t\tdelete from keep_link where site_id = old.id;\n" +
+            "\t\t\t\tdelete from index where page_id in (select id from page where site_id = old.id);\n" +
+            "\t\t\t\tdelete from lemma where site_id = old.id;\n" +
+            "\t\t\t\tdelete from page where site_id = old.id;\n" +
+            "\t\t\t\t--return null;\n" +
+            "\t\tend;\n" +
+            "\tend case;\n" +
+
+	        "\treturn old;\n" +
+            "end\n" +
+            "$BODY$;\n" +
                     "\n" +
                     "CREATE OR REPLACE TRIGGER delete_page_trigger\n" +
                     "    before DELETE\n" +
                     "    ON page\n" +
                     "    FOR EACH ROW\n" +
-                    "    EXECUTE FUNCTION delete_page_function();", nativeQuery = true)
+                    "    EXECUTE FUNCTION delete_function();", nativeQuery = true)
     void createTriggers();
 
     @Modifying
@@ -228,5 +212,55 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "end\n" +
             "$BODY$;\n", nativeQuery = true)
     void createFunctionForAllSiteLemmaInfo();
+
+    @Modifying
+    @Transactional
+    @Query(value =
+            "do $$DECLARE\n" +
+            "declare max_id integer;\n" +
+            "begin\n" +
+                    "\tselect max(id) from page into max_id;\n" +
+                    "\tif max_id is null then\n" +
+                    "\t\t--Alter sequence page_id_seq RESTART WITH 1;\n" +
+                    "\t\t--Alter sequence lemma_id_seq RESTART WITH 1;\n" +
+                    "\t\t--Alter sequence index_id_seq RESTART WITH 1;\n" +
+                    "\t\tAlter sequence page_del_count RESTART WITH 1;\n" +
+                    "\t\tAlter sequence lemma_del_count RESTART WITH 1;\n" +
+                    "\t\tAlter sequence index_del_count RESTART WITH 1;\n" +
+                    "\tend if;\n" +
+            "end;$$", nativeQuery = true)
+    void resetSequences();
+
+    @Modifying
+    @Transactional
+    @Query(value =
+            "CREATE OR REPLACE FUNCTION reset_counters()\n" +
+                    "    RETURNS integer\n" +
+                    "    LANGUAGE 'plpgsql'\n" +
+                    "    COST 100\n" +
+                    "    VOLATILE PARALLEL UNSAFE\n" +
+                    "AS $BODY$\n" +
+                    "declare max_id integer;\n" +
+                    "begin\n" +
+                    "\tselect max(id) from page into max_id;\n" +
+                    "\tif max_id is null then\n" +
+                    "\t\t--Alter sequence page_id_seq RESTART WITH 1;\n" +
+                    "\t\t--Alter sequence lemma_id_seq RESTART WITH 1;\n" +
+                    "\t\t--Alter sequence index_id_seq RESTART WITH 1;\n" +
+                    "\t\tAlter sequence page_del_count RESTART WITH 1;\n" +
+                    "\t\tAlter sequence lemma_del_count RESTART WITH 1;\n" +
+                    "\t\tAlter sequence index_del_count RESTART WITH 1;\n" +
+                    "\t\treturn 1;" +
+                    "\tend if;\n" +
+                    "\treturn 0;" +
+                    "end\n" +
+                    "$BODY$;",nativeQuery = true)
+    void createFunctionResetCounters();
+
+    @Modifying
+    @Transactional
+    @Query(value = "select reset_counters();", nativeQuery = true)
+    Integer checkForRestartCounters();
+
 }
 

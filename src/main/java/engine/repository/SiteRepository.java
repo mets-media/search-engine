@@ -32,26 +32,12 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
 
     @Modifying
     @Transactional
-    @Query(value="CREATE OR REPLACE FUNCTION delete_site_function()\n" +
-            "    RETURNS trigger\n" +
-            "    LANGUAGE 'plpgsql'\n" +
-            "    COST 100\n" +
-            "    VOLATILE NOT LEAKPROOF\n" +
-            "AS $BODY$\n" +
-            "begin\n" +
-            "  delete from keep_link where site_id = old.id;\n" +
-            "  delete from index where page_id in (select id from page where site_id = old.id);\n" +
-            "  delete from lemma where site_id = old.id;\n" +
-            "  delete from page where site_id = old.id;\n" +
-            "  return null;\n" +
-            "end\n" +
-            "$BODY$;\n" +
-
+    @Query(value=
             "CREATE OR REPLACE TRIGGER delete_site_trigger\n" +
             "    AFTER DELETE\n" +
             "    ON site\n" +
             "    FOR EACH ROW\n" +
-            "    EXECUTE FUNCTION delete_site_function();",nativeQuery = true)
+            "    EXECUTE FUNCTION delete_function();",nativeQuery = true)
     void createTrigger();
 
     @Modifying
@@ -79,15 +65,58 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
     @Query(value = "Select delete_site_information(:siteId)", nativeQuery = true)
     Integer deleteSiteInformation(@Param("siteId") Integer siteId);
 
-    @Query(value = "with pages as (select site_id, count(*) page_count from page group by site_id),\n" +
+    @Query(value =
+            "with pages as (select site_id, count(*) page_count from page group by site_id),\n" +
             "     lemmas as (select site_id, count(*) lemma_count from lemma group by site_id ),\n" +
-            "\t indexes as (select page.site_id, count(*) index_count from index\n" +
+            "    indexes as (select page.site_id, count(*) index_count from index\n" +
             "                 join page on (index.page_id = page.id)\n" +
             "                 group by page.site_id)\n" +
-            "\t select id, name, url, pages.site_id, pages.page_count, lemmas.lemma_count, indexes.index_count, status, status_time, last_error from pages\n" +
-            "\t join lemmas on (pages.site_id = lemmas.site_id)\n" +
-            "\t join indexes on (pages.site_id = indexes.site_id)\n" +
-            "\t join site on (pages.site_id = site.id)", nativeQuery = true)
+            "    select id, name, url, pages.site_id, pages.page_count, lemmas.lemma_count, indexes.index_count, status, status_time, last_error from pages\n" +
+            "    join lemmas on (pages.site_id = lemmas.site_id)\n" +
+            "    join indexes on (pages.site_id = indexes.site_id)\n" +
+            "    join site on (pages.site_id = site.id)", nativeQuery = true)
     List<Site> getStatistic();
+
+    @Modifying
+    @Transactional
+    @Query(value =
+            "CREATE OR REPLACE FUNCTION get_statistic()\n" +
+            "RETURNS TABLE(page_count integer, lemma_count integer, index_count integer)\n" +
+            "LANGUAGE 'plpgsql'\n" +
+            "COST 100\n" +
+            "VOLATILE PARALLEL UNSAFE\n" +
+            "ROWS 1 \n" +
+            "AS $BODY$\n" +
+            "begin\n" +
+            "page_count = (select last_value from page_id_seq) - (select last_value - 1 from page_del_count);\n" +
+            "lemma_count = (select last_value from lemma_id_seq) - (select last_value - 1 from lemma_del_count) - 1;\n" +
+            "index_count = (select last_value from index_id_seq) - (select last_value - 1 from index_del_count);\n" +
+	        "return next;\n" +
+            "end\n" +
+            "$BODY$;\n", nativeQuery = true)
+    void creteStatisticFunction();
+
+    @Modifying
+    @Transactional
+    @Query(value =
+            "DO $$DECLARE \n" +
+                    "BEGIN\n" +
+                    "\t if (not exists (select start_value from pg_sequences where sequencename = 'page_del_count') ) then\n" +
+                    "\t\t EXECUTE 'CREATE SEQUENCE Page_Del_Count';\n" +
+                    "\t\t select setval('page_del_count', 1);" +
+                    "\t end if;\n" +
+                    "\n" +
+                    "\t if (not exists (select start_value from pg_sequences where sequencename = 'lemma_del_count') ) then\n" +
+                    "\t\t EXECUTE 'CREATE SEQUENCE Lemma_Del_Count';\n" +
+                    "\t\t select setval('lemma_del_count', 1);" +
+                    "\t end if;\n" +
+                    "\n" +
+                    "\t if (not exists (select start_value from pg_sequences where sequencename = 'index_del_count') ) then\n" +
+                    "\t\t EXECUTE 'CREATE SEQUENCE Index_Del_Count';\n" +
+                    "\t\t select setval('index_del_count', 1);" +
+                    "\t end if;\n" +
+                    "END$$;",nativeQuery = true)
+    void createSequences();
+
 
 }

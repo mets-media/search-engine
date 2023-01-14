@@ -186,6 +186,8 @@ public class SiteComponent {
 
                     site.setStatus(SiteStatus.INDEXING);
                     beanAccess.getSiteRepository().save(site);
+                    //Проверка для сброса счётчиков удалений если max(page.id) = 0
+                    beanAccess.getPageRepository().resetSequences();
                     Parser.start(site);
                 }
             });
@@ -342,9 +344,7 @@ public class SiteComponent {
                 site.setUrl(newUrl);
                 site.setStatus(SiteStatus.NEW_SITE);
                 site.setStatusTime(LocalDateTime.now());
-                site.setPageCount(0);
-                site.setIndexCount(0);
-                site.setLemmaCount(0);
+                site.setPageCount(0); site.setIndexCount(0); site.setLemmaCount(0);
                 beanAccess.getSiteRepository().save(site);
 
                 grid.setItems(beanAccess.getSiteRepository().findAll());

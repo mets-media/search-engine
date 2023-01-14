@@ -22,6 +22,7 @@ public class Application extends SpringBootServletInitializer {
     @Bean
     public CommandLineRunner dataGenerator(ConfigRepository configRepository,
                                            PageRepository pageRepository,
+                                           LemmaRepository lemmaRepository,
                                            IndexRepository indexRepository,
                                            PartOfSpeechRepository partOfSpeechRepository,
                                            FieldRepository fieldRepository,
@@ -48,14 +49,22 @@ public class Application extends SpringBootServletInitializer {
                partOfSpeechRepository.initData();
             //----------------------------------------------------
 
-            pageRepository.createTriggers();
-            pageRepository.createFunctionForAllSiteLemmaInfo();
-
-            pageContainerRepository.createTrigger();
-
             siteRepository.createTrigger();
+            pageRepository.createTriggers();
+            lemmaRepository.createLemmaTrigger();
+            indexRepository.createIndexTrigger();
+            //Парсинг
+            pageContainerRepository.createTrigger();
+            //Запрос лемм по всем сайтам
+            pageRepository.createFunctionForAllSiteLemmaInfo();
+            pageRepository.createFunctionResetCounters();
 
+            //@ManyTOMany
             indexRepository.createForeignKeys();
+            //счётчики удалений
+            siteRepository.createSequences();
+
+            siteRepository.creteStatisticFunction();
 
             //Функция парсинга lemmaString
             //pageContainerRepository.createFunction();

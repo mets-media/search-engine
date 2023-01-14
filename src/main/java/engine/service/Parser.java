@@ -1,13 +1,10 @@
 package engine.service;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.server.Command;
 import engine.entity.*;
 import engine.view.CreateUI;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +20,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static java.lang.Thread.sleep;
 
 @Service
 @RequiredArgsConstructor
@@ -69,10 +68,7 @@ public class Parser extends RecursiveAction {
         this.site = site;
     }
 
-    public static void initSite(Site site, String readyLinksFilename, String stopLinksFilename) {
-
-        int siteId = site.getId();
-
+    private static void readConfigVariables() {
         List<Config> configList = beanAccess.getConfigRepository().findAll();
         configList.forEach(configLine -> {
             switch (configLine.getKey()) {
@@ -105,6 +101,12 @@ public class Parser extends RecursiveAction {
                 }
             }
         });
+    }
+    public static void initSite(Site site) {
+
+        int siteId = site.getId();
+
+        readConfigVariables();
 
         activePools.put(siteId, new ForkJoinPool(parallelism,
                 ForkJoinPool.defaultForkJoinWorkerThreadFactory,
@@ -132,11 +134,8 @@ public class Parser extends RecursiveAction {
         String path = site.getUrl();
         String domainName = HtmlParsing.getDomainName(path);
 
-        String readyLinksFilename = "data/" + domainName + "/" + READY_LINKS_FILENAME;
-        String stopLinksFilename = "data/" + domainName + "/" + STOP_LINKS_FILENAME;
-
         //Инициализация статических переменных для класса Parser
-        initSite(site, readyLinksFilename, stopLinksFilename);
+        initSite(site);
 
         var readyLinks = readyLinksHashMap.get(site.getId());
 
@@ -152,7 +151,7 @@ public class Parser extends RecursiveAction {
 
         //beanAccess.getPageRepository().getLinksBySiteId(site)
         Parser parser;
-        if (readyLinks.size() == 0) {
+        if (readyLinks.size() == 0) { //Запуск с нуля
             parser = new Parser(site, path, domainName);
             activePools.get(site.getId()).execute(parser);
 
@@ -162,6 +161,7 @@ public class Parser extends RecursiveAction {
             return;
         }
 
+        //Возобновление сканирования
         ConcurrentSkipListSet<String> stopLinks = inProcessLinksHashMap.get(site.getId());
 
         stopLinks.addAll(beanAccess.getKeepLinkRepository().getPathsBySiteId(site.getId(), LinkStatus.ON_STOP_SCAN_LINK.ordinal()));
@@ -170,6 +170,7 @@ public class Parser extends RecursiveAction {
 
         if (!(stopLinks.size() == 0)) {
             stopLinks.forEach(p -> {
+                //https://lenta.ru/
                 System.out.println("Перезапуск: " + p);
                 activePools.get(site.getId()).execute(new Parser(site, p, domainName));
             });
@@ -266,7 +267,7 @@ public class Parser extends RecursiveAction {
             //System.out.println(readyPage.size());
 
             while (readyPage.size() > 0) {
-                Thread.sleep(2000);
+                sleep(2000);
             }
             dbWriter.stopWriter();
             return true;
@@ -322,7 +323,7 @@ public class Parser extends RecursiveAction {
         else {
             try {
                 if (delay > 0)
-                    Thread.sleep(delay);
+                    sleep(delay);
                 code = HtmlParsing.getStatusCode(path);
                 document = HtmlParsing.getHtmlDocument(path);
                 content = document.toString();
@@ -390,6 +391,12 @@ public class Parser extends RecursiveAction {
 
         //Проверка на окончание загрузки
         if (inProcessLinks.size() == 0) {
+            try {//Ожидание для возможности изменения readyPage - при перезапуске возможны ложные срабатывания
+                sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
             if ((!(code == 200)) &&
                     (readyPages.size() == 0) &&
                     (errorLinks.size() == 1)) { //&&
@@ -401,10 +408,17 @@ public class Parser extends RecursiveAction {
                 System.out.println("Не удалось загрузить стартовую страницу");
 
             } else {
-                site.setStatus(SiteStatus.INDEXED);
-                beanAccess.getSiteRepository().save(site);
-                stop(site);
-                System.out.println(site.getUrl() + " -> Загрузка завершена.");
+                try {
+                    sleep(5000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                if  (inProcessLinks.size() == 0) { //Проверочный вариант
+                    site.setStatus(SiteStatus.INDEXED);
+                    beanAccess.getSiteRepository().save(site);
+                    stop(site);
+                    System.out.println(site.getUrl() + " -> Загрузка завершена.");
+                }
             }
             //siteGrid.setItems(beanAccess.getSiteRepository().findAll());
         }

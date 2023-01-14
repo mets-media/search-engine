@@ -9,8 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public interface IndexRepository extends CrudRepository<IndexEntity,Integer> {
-
+public interface IndexRepository extends CrudRepository<IndexEntity, Integer> {
 
 
     @Query(value = "select count(*) from index\n" +
@@ -19,10 +18,10 @@ public interface IndexRepository extends CrudRepository<IndexEntity,Integer> {
     Integer countBySiteId(@Param("siteId") Integer siteId);
 
     //Integer countBySiteId(Integer siteId);
-    @Query(value="Select Page_Id from Index \n" +
+    @Query(value = "Select Page_Id from Index \n" +
             "join Lemma on Lemma.id = Index.Lemma_Id \n" +
             "where Lemma.Lemma = :lemma \n" +
-            "and Lemma.Site_Id = :siteId",nativeQuery = true)
+            "and Lemma.Site_Id = :siteId", nativeQuery = true)
     List<Integer> findPageIdByLemmaSiteId(@Param("lemma") String lemma, @Param("siteId") Integer siteId);
 
     @Modifying
@@ -40,17 +39,33 @@ public interface IndexRepository extends CrudRepository<IndexEntity,Integer> {
     @Modifying
     @Transactional
     @Query(value =
-            "    ALTER TABLE IF EXISTS index\n" +
-            "    ADD CONSTRAINT FK_LEMMA_CONSTRAINT FOREIGN KEY (lemma_id)\n" +
-            "    REFERENCES public.lemma (id) MATCH SIMPLE\n" +
-            "    ON UPDATE NO ACTION\n" +
-            "    ON DELETE NO ACTION;\n" +
-            "\n" +
-            "    ALTER TABLE IF EXISTS index\n" +
-            "    ADD CONSTRAINT FK_PAGE_CONSTRAINT FOREIGN KEY (page_id)\n" +
-            "    REFERENCES public.page (id) MATCH SIMPLE\n" +
-            "    ON UPDATE NO ACTION\n" +
-            "    ON DELETE NO ACTION;\n", nativeQuery = true)
+            "DO $$DECLARE \n" +
+                    "BEGIN\n" +
+                    "\t if (not exists (select oid from pg_constraint where conname = 'fk_lemma_constraint') ) then\n" +
+                    "\t\t EXECUTE 'ALTER TABLE IF EXISTS index \n" +
+                    "    \t ADD CONSTRAINT FK_LEMMA_CONSTRAINT FOREIGN KEY (lemma_id) \n" +
+                    "\t     REFERENCES public.lemma (id) MATCH SIMPLE \n" +
+                    "    \t ON UPDATE NO ACTION \n" +
+                    "\t     ON DELETE NO ACTION';\n" +
+                    "\t end if;\n" +
+                    "\n" +
+                    "\t if (not exists (select oid from pg_constraint where conname = 'fk_page_constraint') ) then\n" +
+                    "\t\t EXECUTE 'ALTER TABLE IF EXISTS index  \n" +
+                    "            ADD CONSTRAINT FK_PAGE_CONSTRAINT FOREIGN KEY (page_id) \n" +
+                    "            REFERENCES public.page (id) MATCH SIMPLE \n" +
+                    "            ON UPDATE NO ACTION \n" +
+                    "            ON DELETE NO ACTION';\n" +
+                    "\t end if;\n" +
+                    "END$$;", nativeQuery = true)
     void createForeignKeys();
+
+    @Modifying
+    @Transactional
+    @Query(value = "CREATE or replace TRIGGER index_del_trigger\n" +
+            "    AFTER DELETE\n" +
+            "    ON index\n" +
+            "    FOR EACH ROW\n" +
+            "    EXECUTE FUNCTION delete_function();",nativeQuery = true)
+    void createIndexTrigger();
 
 }

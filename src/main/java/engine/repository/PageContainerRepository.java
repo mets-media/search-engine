@@ -73,7 +73,32 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
 
     @Modifying
     @Transactional
-    @Query(value = "CREATE OR REPLACE FUNCTION new_page_function()\n" +
+    @Query(value =
+            "CREATE OR REPLACE FUNCTION inc_del_lemma_counter()\n" +
+            "  RETURNS integer\n" +
+            "  LANGUAGE 'plpgsql'\n" +
+            "  COST 100\n" +
+            "  VOLATILE PARALLEL UNSAFE\n" +
+            "AS $BODY$\n" +
+            "begin\n" +
+            "\tperform nextval('lemma_del_count');\n" +
+            "\treturn 1;\n" +
+            "end\n" +
+            "$BODY$;\n" +
+            "\n" +
+                    "CREATE OR REPLACE FUNCTION inc_del_page_counter()\n" +
+                    "  RETURNS integer\n" +
+                    "  LANGUAGE 'plpgsql'\n" +
+                    "  COST 100\n" +
+                    "  VOLATILE PARALLEL UNSAFE\n" +
+                    "AS $BODY$\n" +
+                    "begin\n" +
+                    "\tperform nextval('page_del_count');\n" +
+                    "\treturn 0;\n" +
+                    "end\n" +
+                    "$BODY$;\n" +
+                    "\n" +
+            "CREATE OR REPLACE FUNCTION parsing_function()\n" +
             "    RETURNS trigger\n" +
             "    LANGUAGE 'plpgsql'\n" +
             "    COST 100\n" +
@@ -89,22 +114,21 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\twith page_insert as (\n" +
             "    insert into PAGE (Site_id, Path, Code, Content)\n" +
             "\tvalues (new.site_id, new.path, new.code, new.content)\n" +
-            "\ton conflict on constraint siteId_path_unique do nothing\n" +
+            "\t--on conflict on constraint siteId_path_unique do nothing\n" +
+            "\ton conflict on constraint siteId_path_unique do update set code = new.code + inc_del_page_counter()\n" +
             "\treturning id)\n" +
             "    select id from page_insert into page_id; \n" +
             "\tfor lemmainfo in select unnest(string_to_array(new.lemmatization,';'))\n" +
             "\tloop\n" +
             "\t    if (length(lemmainfo) > 0) then \t    \n" +
-            "\t \t\tnew_lemma = Split_Part(lemmaInfo,',',1);\n" +
-            "\t  \t\tnew_count = Cast(Split_Part(lemmaInfo,',',2) as Integer);\n" +
+            "\t\t\tnew_lemma = Split_Part(lemmaInfo,',',1);\n" +
+            "\t\t\tnew_count = Cast(Split_Part(lemmaInfo,',',2) as integer);\n" +
             "\t\t\tnew_rank  = Cast(Split_Part(lemmaInfo,',',3) as real);\n" +
             "\t\t\twith lemma_upsert as (\n" +
-            "\t\t\t--insert into LEMMA (Site_Id, Lemma,Frequency, Rank) \n" +
-            "\t\t\t--tvalues (new.site_id, new_lemma, new_count, new_rank) \n" +
             "\t\t\tinsert into LEMMA (Site_Id, Lemma,Frequency) \n" +
             "\t\t\t\tvalues (new.site_id, new_lemma, new_count) \n" +
             "\t\t\t\ton conflict on constraint siteId_lemma_unique \n" +
-            "\t\t\t\tdo update set Frequency = LEMMA.Frequency + 1\n" +
+            "\t\t\t\tdo update set Frequency = LEMMA.Frequency + inc_del_lemma_counter()\n" +
             "\t\t\t\treturning id)\n" +
             "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
             "\n" +
@@ -127,7 +151,7 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "    after INSERT\n" +
             "    ON public.page_container\n" +
             "    FOR EACH ROW\n" +
-            "    EXECUTE FUNCTION new_page_function();",
+            "    EXECUTE FUNCTION parsing_function();",
             nativeQuery = true)
     void createTrigger();
 

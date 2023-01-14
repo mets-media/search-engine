@@ -59,4 +59,14 @@ public interface LemmaRepository extends JpaRepository<Lemma,Integer> {
              nativeQuery = true)
     void reCreateTable();
 
+    @Modifying
+    @Transactional
+    @Query(value =
+            "CREATE or replace TRIGGER lemma_del_trigger\n" +
+            "    AFTER DELETE\n" +
+            "    ON lemma\n" +
+            "    FOR EACH ROW\n" +
+            "    EXECUTE FUNCTION delete_function();",nativeQuery = true)
+    void createLemmaTrigger();
+
 }
