@@ -103,17 +103,17 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
                     "BEGIN\n" +
                     "\t if (not exists (select start_value from pg_sequences where sequencename = 'page_del_count') ) then\n" +
                     "\t\t EXECUTE 'CREATE SEQUENCE Page_Del_Count';\n" +
-                    "\t\t select setval('page_del_count', 1);" +
+                    "\t\t perform setval('page_del_count', 1);" +
                     "\t end if;\n" +
                     "\n" +
                     "\t if (not exists (select start_value from pg_sequences where sequencename = 'lemma_del_count') ) then\n" +
                     "\t\t EXECUTE 'CREATE SEQUENCE Lemma_Del_Count';\n" +
-                    "\t\t select setval('lemma_del_count', 1);" +
+                    "\t\t perform setval('lemma_del_count', 1);" +
                     "\t end if;\n" +
                     "\n" +
                     "\t if (not exists (select start_value from pg_sequences where sequencename = 'index_del_count') ) then\n" +
                     "\t\t EXECUTE 'CREATE SEQUENCE Index_Del_Count';\n" +
-                    "\t\t select setval('index_del_count', 1);" +
+                    "\t\t perform setval('index_del_count', 1);" +
                     "\t end if;\n" +
                     "END$$;",nativeQuery = true)
     void createSequences();

@@ -4,21 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="index - Foreign key -&gt; page_id, lemma__id.">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Оптимизация расчёта статистики (950 тыс страниц)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Application.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/Application.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/ApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/ApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/IndexRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/IndexRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/LemmaRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/LemmaRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageContainerRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageContainerRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PathTableRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PathTableRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/PageService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,6 +105,97 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Morph dependencies. MultiScan">
+      <created>1668172910228</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1668172910229</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Изменения в структуре проекта. (temp)">
+      <created>1668243455545</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1668243455546</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Проверка Лемматизатора">
+      <created>1668459165431</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1668459165432</updated>
+    </task>
+    <task id="LOCAL-00018" summary="Проверка Лемматизатора">
+      <created>1668459251606</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1668459251606</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Проверка Лемматизатора">
+      <created>1668480377169</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1668480377169</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Проверка Лемматизатора">
+      <created>1668893693220</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1668893693221</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Проверка Лемматизатора">
+      <created>1668913372875</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1668913372875</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Проверка Лемматизатора">
+      <created>1668923963005</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1668923963006</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Проверка Лемматизатора">
+      <created>1668924538685</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1668924538685</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Проверка Лемматизатора">
+      <created>1668938816254</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1668938816260</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Проверка Лемматизатора">
+      <created>1669174306924</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1669174306924</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Проверка Lazy loading">
+      <created>1669530536919</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1669530536920</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Проверка Lazy loading">
+      <created>1669568968870</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1669568968871</updated>
     </task>
     <task id="LOCAL-00028" summary="Проверка Lazy loading">
       <created>1669573853010</created>
@@ -367,98 +449,7 @@
       <option name="project" value="LOCAL" />
       <updated>1672632952382</updated>
     </task>
-    <task id="LOCAL-00064" summary="Триггер удаления сайта">
-      <created>1672947768433</created>
-      <option name="number" value="00064" />
-      <option name="presentableId" value="LOCAL-00064" />
-      <option name="project" value="LOCAL" />
-      <updated>1672947768435</updated>
-    </task>
-    <task id="LOCAL-00065" summary="Поиск по всем сайтам">
-      <created>1673289462225</created>
-      <option name="number" value="00065" />
-      <option name="presentableId" value="LOCAL-00065" />
-      <option name="project" value="LOCAL" />
-      <updated>1673289462230</updated>
-    </task>
-    <task id="LOCAL-00066" summary="Вычитание лемм из css[body]">
-      <created>1673293474355</created>
-      <option name="number" value="00066" />
-      <option name="presentableId" value="LOCAL-00066" />
-      <option name="project" value="LOCAL" />
-      <updated>1673293474361</updated>
-    </task>
-    <task id="LOCAL-00067" summary="Фильтр во вкладке Леммы">
-      <created>1673328756860</created>
-      <option name="number" value="00067" />
-      <option name="presentableId" value="LOCAL-00067" />
-      <option name="project" value="LOCAL" />
-      <updated>1673328756861</updated>
-    </task>
-    <task id="LOCAL-00068" summary="Фильтр во вкладке Леммы">
-      <created>1673335446981</created>
-      <option name="number" value="00068" />
-      <option name="presentableId" value="LOCAL-00068" />
-      <option name="project" value="LOCAL" />
-      <updated>1673335446988</updated>
-    </task>
-    <task id="LOCAL-00069" summary="Обновление страницы &quot;Лематизатор&quot;">
-      <created>1673352020331</created>
-      <option name="number" value="00069" />
-      <option name="presentableId" value="LOCAL-00069" />
-      <option name="project" value="LOCAL" />
-      <updated>1673352020333</updated>
-    </task>
-    <task id="LOCAL-00070" summary="Обновление страницы &quot;Лематизатор&quot;&#10;удаление страницы из базы данных">
-      <created>1673416203331</created>
-      <option name="number" value="00070" />
-      <option name="presentableId" value="LOCAL-00070" />
-      <option name="project" value="LOCAL" />
-      <updated>1673416203332</updated>
-    </task>
-    <task id="LOCAL-00071" summary="Страница Поиск. All sites">
-      <created>1673524649663</created>
-      <option name="number" value="00071" />
-      <option name="presentableId" value="LOCAL-00071" />
-      <option name="project" value="LOCAL" />
-      <updated>1673524649666</updated>
-    </task>
-    <task id="LOCAL-00072" summary="Страница Поиск. All sites">
-      <created>1673524753449</created>
-      <option name="number" value="00072" />
-      <option name="presentableId" value="LOCAL-00072" />
-      <option name="project" value="LOCAL" />
-      <updated>1673524753450</updated>
-    </task>
-    <task id="LOCAL-00073" summary="Страница Поиск. All sites">
-      <created>1673525783583</created>
-      <option name="number" value="00073" />
-      <option name="presentableId" value="LOCAL-00073" />
-      <option name="project" value="LOCAL" />
-      <updated>1673525783584</updated>
-    </task>
-    <task id="LOCAL-00074" summary="Поиск по всем сайтам с автогенерацией SQL-запроса в базе данных.">
-      <created>1673538046538</created>
-      <option name="number" value="00074" />
-      <option name="presentableId" value="LOCAL-00074" />
-      <option name="project" value="LOCAL" />
-      <updated>1673538046541</updated>
-    </task>
-    <task id="LOCAL-00075" summary="Строки контента с найденными леммами.">
-      <created>1673550888311</created>
-      <option name="number" value="00075" />
-      <option name="presentableId" value="LOCAL-00075" />
-      <option name="project" value="LOCAL" />
-      <updated>1673550888312</updated>
-    </task>
-    <task id="LOCAL-00076" summary="index - Foreign key -&gt; page_id, lemma__id.">
-      <created>1673630659912</created>
-      <option name="number" value="00076" />
-      <option name="presentableId" value="LOCAL-00076" />
-      <option name="project" value="LOCAL" />
-      <updated>1673630659915</updated>
-    </task>
-    <option name="localTasksCounter" value="77" />
+    <option name="localTasksCounter" value="64" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -489,6 +480,13 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
+    <MESSAGE value="Итоговый проек.SearchEngine. Первый этап." />
+    <MESSAGE value="Итоговый проект. SearchEngine. Первый этап." />
+    <MESSAGE value="SearchEngine. Editing Grid." />
+    <MESSAGE value="adds morph dependencies" />
+    <MESSAGE value="Morph dependencies. Version with HashMap-cash." />
+    <MESSAGE value="Morph dependencies. MultiSelect mode." />
+    <MESSAGE value="Morph dependencies. Start-Stop-Continue downloading" />
     <MESSAGE value="Morph dependencies. MultiScan" />
     <MESSAGE value="Изменения в структуре проекта. (temp)" />
     <MESSAGE value="Проверка Лемматизатора" />
@@ -504,17 +502,8 @@
     <MESSAGE value="SearcComponent refresh" />
     <MESSAGE value="Проверка лемм" />
     <MESSAGE value="Корректировка интерфейса" />
-    <MESSAGE value="Триггер удаления сайта" />
-    <MESSAGE value="Поиск по всем сайтам" />
-    <MESSAGE value="Вычитание лемм из css[body]" />
-    <MESSAGE value="Фильтр во вкладке Леммы" />
-    <MESSAGE value="Обновление страницы &quot;Лематизатор&quot;" />
-    <MESSAGE value="Обновление страницы &quot;Лематизатор&quot;&#10;удаление страницы из базы данных" />
-    <MESSAGE value="Страница Поиск. All sites" />
-    <MESSAGE value="Поиск по всем сайтам с автогенерацией SQL-запроса в базе данных." />
-    <MESSAGE value="Строки контента с найденными леммами." />
-    <MESSAGE value="index - Foreign key -&gt; page_id, lemma__id." />
-    <option name="LAST_COMMIT_MESSAGE" value="index - Foreign key -&gt; page_id, lemma__id." />
+    <MESSAGE value="Оптимизация расчёта статистики (950 тыс страниц)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Оптимизация расчёта статистики (950 тыс страниц)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -540,19 +529,9 @@
           <option name="timeStamp" value="91" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/controller/ApiController.java</url>
-          <line>30</line>
-          <option name="timeStamp" value="163" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>173</line>
-          <option name="timeStamp" value="169" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>392</line>
-          <option name="timeStamp" value="171" />
+          <line>162</line>
+          <option name="timeStamp" value="107" />
         </line-breakpoint>
         <breakpoint enabled="true" type="java-exception">
           <properties class="org.postgresql.util.PSQLException" package="org.postgresql.util" />

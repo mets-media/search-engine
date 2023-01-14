@@ -100,7 +100,6 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "AS $BODY$\n" +
             "declare count bigint;\n" +
             "begin\n" +
-
             "\tcase tg_table_name\n" +
             "\t\twhen 'page' then\n" +
             "\t\t\tbegin\n" +
@@ -109,7 +108,6 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "\t\t\t\t--------------------------------\n" +
             "\t\t\t\tdelete from index where page_id = old.id;\n" +
             "\t\t\t\tdelete from lemma where id in (Select lemma_id from index where page_id = old.id);\n" +
-
             "\t\t\t\tupdate site set page_count = (select page_count - 1 from site where id = old.site_id) where id = old.site_id;\n" +
             "\t\t\tend;\n" +
             "\t\twhen 'lemma' then\n" +
