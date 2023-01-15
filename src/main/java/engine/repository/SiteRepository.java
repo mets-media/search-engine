@@ -107,6 +107,16 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "$BODY$;\n", nativeQuery = true)
     void creteGetCountersFunction();
 
+    @Query(value =
+            "select 0 id, '*' name, 'Все сайты' url,\n" +
+                    "(select last_value from page_id_seq)  - (select last_value - 1 from page_del_count) page_count,\n" +
+                    "(select last_value from lemma_id_seq) - (select last_value - 1 from lemma_del_count) lemma_count,\n" +
+                    "(select last_value from index_id_seq) - (select last_value - 1 from index_del_count) index_count,\n" +
+                    "null status, now() status_time, '' last_error \n" +
+                    "from one_record_table;\n",
+            nativeQuery = true)
+    Site getAllSiteInfo();
+
     @Modifying
     @Transactional
     @Query(value =

@@ -26,6 +26,7 @@ import engine.entity.Site;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Lemmatization;
+import engine.service.TimeMeasure;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
@@ -49,6 +50,8 @@ public class SearchComponent {
     private final TextField indexCountTextField = new TextField("Таблица Index");
     private final TextField requestTextField = new TextField("Поисковый запрос");
     private final VerticalLayout detailLayout = new VerticalLayout();
+
+    private ComboBox<String> selectQueryComboBox;
     private Site allSiteObject = new Site();
 
     private final Lemmatization lemmatizator;
@@ -90,11 +93,14 @@ public class SearchComponent {
             textField.setWidth("15%");
         });
 
+        selectQueryComboBox = UIElement.createComboBox(List.of("Repository.Count","Counters","GetStatistic"));
+
         var horizontalLayout = new HorizontalLayout(
                 getSiteComboBox(),
                 pageCountTextField,
                 lemmaCountTextField,
                 indexCountTextField,
+                selectQueryComboBox,
                 getRefreshButton()
         );
         siteComboBox.setWidthFull();
@@ -124,7 +130,22 @@ public class SearchComponent {
     private Button getRefreshButton() {
         var button = UIElement.createButton("",VaadinIcon.REFRESH, "Обновить информацию");
         button.addClickListener(event -> {
-            //beanAccess.getSiteRepository().getStatistic();
+            TimeMeasure.setStartTime();
+            switch (selectQueryComboBox.getValue()) {
+                case "Counters" -> {
+                    setInfoFromCounters();
+                }
+                case "GetStatistic" -> {
+                    //Внимание!!! - долгий запрос, с записью значений для каждого сайта
+                    setInfoValuesFromGetStatistic();
+                }
+                case "Repository.Count" -> {
+                    //Установка значений путём подсчёта repository.count()
+                    setInfoValuesFromRepositoryCount();
+                }
+            }
+            UIElement.showMessage("Время запроса: " + TimeMeasure.getStringExperienceTime(), 5000, Notification.Position.MIDDLE);
+
         });
         return button;
     }
@@ -153,6 +174,15 @@ public class SearchComponent {
         long pageCount = beanAccess.getPageRepository().count();
         long lemmaCount = beanAccess.getLemmaRepository().count();
         long indexCount = beanAccess.getIndexRepository().count();
+
+        setInfoValues(pageCount,lemmaCount,indexCount);
+    }
+
+    private void setInfoFromCounters() {
+        Site allSite = beanAccess.getSiteRepository().getAllSiteInfo();
+        int pageCount = allSite.getPageCount();
+        int lemmaCount = allSite.getLemmaCount();
+        int indexCount = allSite.getIndexCount();
 
         setInfoValues(pageCount,lemmaCount,indexCount);
     }
@@ -191,11 +221,19 @@ public class SearchComponent {
 
             switch (event.getValue().getName()) {
                 case "*" -> {
+
+                    TimeMeasure.setStartTime();
+                    //Внимание!!! - долгий запрос, с записью значений для каждого сайта
+                    //setInfoValuesFromGetStatistic();
+
                     //Установка значений путём подсчёта repository.count()
                     //setInfoValuesFromRepositoryCount();
 
-                    //Внимание!!! - долгий запрос, с записью значений для каждого сайта
-                    setInfoValuesFromGetStatistic();
+                    //Установк значений по счётчикам удалений
+                    setInfoFromCounters();
+
+                    UIElement.showMessage("Время запроса: " + TimeMeasure.getStringExperienceTime(), 2000, Notification.Position.MIDDLE);
+
                 }
                 default -> {
 /*

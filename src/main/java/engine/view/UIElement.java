@@ -1,6 +1,7 @@
 package engine.view;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
@@ -150,7 +151,6 @@ public class UIElement {
     }
 
 
-
     public static Button createButton(String text, VaadinIcon icon, String title) {
         Button button = new Button(text);
         if (!(icon == null)) button.setIcon(icon.create());
@@ -159,5 +159,11 @@ public class UIElement {
         return button;
     }
 
+    public static ComboBox<String> createComboBox(List<String> items) {
+        ComboBox<String> comboBox = new ComboBox<>();
+        comboBox.setItems(items);
+        comboBox.setValue(items.get(0));
+        return comboBox;
+    }
 
 }
