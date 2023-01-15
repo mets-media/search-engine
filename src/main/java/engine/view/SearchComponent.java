@@ -30,9 +30,13 @@ import engine.service.TimeMeasure;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import javax.swing.text.html.Option;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static engine.service.TimeMeasure.setStartTime;
+import static engine.service.TimeMeasure.timeSpentNotification;
 
 public class SearchComponent {
 
@@ -144,7 +148,7 @@ public class SearchComponent {
                     setInfoValuesFromRepositoryCount();
                 }
             }
-            UIElement.showMessage("Время запроса: " + TimeMeasure.getStringExperienceTime(), 5000, Notification.Position.MIDDLE);
+            UIElement.showMessage("Время запроса: " + TimeMeasure.getStringExperienceTime());
 
         });
         return button;
@@ -179,12 +183,15 @@ public class SearchComponent {
     }
 
     private void setInfoFromCounters() {
-        Site allSite = beanAccess.getSiteRepository().getAllSiteInfo();
-        int pageCount = allSite.getPageCount();
-        int lemmaCount = allSite.getLemmaCount();
-        int indexCount = allSite.getIndexCount();
+        Optional<Site> allSite = beanAccess.getSiteRepository().getAllSiteInfo();
+        allSite.ifPresent(site -> {
+            int pageCount = site.getPageCount();
+            int lemmaCount = site.getLemmaCount();
+            int indexCount = site.getIndexCount();
+            setInfoValues(pageCount,lemmaCount,indexCount);
+        });
 
-        setInfoValues(pageCount,lemmaCount,indexCount);
+
     }
 
     private void setInfoValues(long pageCount, long lemmaCount, long indexCount) {
@@ -232,13 +239,13 @@ public class SearchComponent {
                     //Установк значений по счётчикам удалений
                     setInfoFromCounters();
 
-                    UIElement.showMessage("Время запроса: " + TimeMeasure.getStringExperienceTime(), 2000, Notification.Position.MIDDLE);
+                    UIElement.showMessage("Время запроса: " + TimeMeasure.getStringExperienceTime());
 
                 }
                 default -> {
-/*
-                    int siteId = event.getValue().getId();
 
+                    int siteId = event.getValue().getId();
+/*
                     Integer pageCount = beanAccess.getPageRepository().countBySiteId(siteId);
                     Integer lemmaCount = beanAccess.getLemmaRepository().countBySiteId(siteId);
                     Integer indexCount = beanAccess.getIndexRepository().countBySiteId(siteId);
@@ -334,6 +341,8 @@ public class SearchComponent {
         });
     }
 
+
+
     private void createColumnsLemmaGrid() {
         lemmaGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         UIElement.setAllCheckboxVisibility(lemmaGrid, false);
@@ -354,8 +363,10 @@ public class SearchComponent {
             Integer siteId = siteComboBox.getValue().getId();
 
             //Формирование списков страниц
+            setStartTime();//------------------------------------------------------------------------------------
             selectionEvent.getAllSelectedItems().forEach(lemma -> {
                 String selectedLemma = lemma.getLemma();
+
 
                 List<Integer> pageIdList;
                 if (siteId == 0) //Для всех сайтов
@@ -366,7 +377,14 @@ public class SearchComponent {
                 //Для каждой леммы - свой список страниц (pageId)
                 if (!pageIdHashMap.containsKey(selectedLemma))
                     pageIdHashMap.put(selectedLemma, pageIdList);
+
             });
+            timeSpentNotification(String.format("Списки Page_Id сформированы за "));
+            //----------------------------------------------------------------------------------------------------
+
+            /* Имеем List<PageId> для каждой леммы!
+                Ищем пересечение всех листов
+             */
 
             //Формируем строку со всеми выбранными леммами
             StringBuilder stringBuilder = new StringBuilder();
@@ -378,6 +396,7 @@ public class SearchComponent {
                 findPageGrid.getColumns().get(2).setHeader("Страницы");
                 return;
             }
+            //Все выбранные леммы через запятую
             includeLemma = "'" + includeLemma.substring(0, includeLemma.length() - 1) + "'";
 
             //Retain all pageId - выбираем пересечение страниц для всех лемм
@@ -462,12 +481,10 @@ public class SearchComponent {
 
 
             if (requestStr.isBlank()) {
-                UIElement.showMessage("Запрос не может быть пустым",
-                        2000, Notification.Position.MIDDLE);
+                UIElement.showMessage("Запрос не может быть пустым");
                 return;
             } else if (HtmlParsing.getRussianListString(requestStr).size() == 0) {
-                UIElement.showMessage("Запрос должен содержать русские слова!",
-                        2000, Notification.Position.MIDDLE);
+                UIElement.showMessage("Запрос должен содержать русские слова!");
                 return;
             }
 
@@ -489,8 +506,7 @@ public class SearchComponent {
         HashMap<String, Integer> requestLemmas = lemmatizator.getLemmaHashMap(requestTextField.getValue());
 
         if (requestLemmas.size() == 0) {
-            UIElement.showMessage("Леммы не найдены. Измените запрос.",
-                    2000, Notification.Position.MIDDLE);
+            UIElement.showMessage("Леммы не найдены. Измените запрос.");
             clearGrids();
             return;
         }

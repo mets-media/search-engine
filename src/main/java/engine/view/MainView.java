@@ -4,6 +4,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.Route;
@@ -94,6 +95,21 @@ public class MainView extends AppLayout {
                 Parser.start(site);
             });
         }
+
+        //Продолжительность показа уведомлений
+        beanAccess.getConfigRepository().findByKey("showT").ifPresent(time ->
+                UIElement.setShowMessageTime(Integer.parseInt(time.getValue())));
+        beanAccess.getConfigRepository().findByKey("posMs").ifPresent(position -> {
+            switch (position.getValue()) {
+                case "MIDDLE" -> {
+                    UIElement.setPosition(Notification.Position.MIDDLE);
+                }
+                case "BOTTOM_END" -> {
+                    UIElement.setPosition(Notification.Position.BOTTOM_END);
+                }
+            }
+        });
+
     }
 
     public MainView() {

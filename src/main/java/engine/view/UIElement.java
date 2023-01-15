@@ -15,12 +15,24 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import engine.service.TimeMeasure;
 import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
 @UtilityClass
 public class UIElement {
+    private static int showMessageTime = 2000;
+
+    private static Notification.Position position = Notification.Position.MIDDLE;
+
+    public static void setShowMessageTime(int showMessageTime) {
+        UIElement.showMessageTime = showMessageTime;
+    }
+
+    public static void setPosition(Notification.Position position) {
+        UIElement.position = position;
+    }
 
     public static VerticalLayout getMainLayout() {
         var verticalLayout = new VerticalLayout();
@@ -87,8 +99,8 @@ public class UIElement {
                     );
     }
 
-    public static void showMessage(String text, int duration, Notification.Position position) {
-        Notification notification = new Notification(text, duration);
+    public static void showMessage(String text) {
+        Notification notification = new Notification(text, showMessageTime, position);
         notification.setPosition(position);
         notification.open();
     }
@@ -165,5 +177,6 @@ public class UIElement {
         comboBox.setValue(items.get(0));
         return comboBox;
     }
+
 
 }

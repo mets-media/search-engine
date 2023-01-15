@@ -1,11 +1,16 @@
 package engine.service;
 
-
+import com.vaadin.flow.component.notification.Notification;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static engine.view.UIElement.showMessage;
+
 public class TimeMeasure {
+
+
     private static ConcurrentHashMap<String, Long> timers = new ConcurrentHashMap<>();
     private static long startTime;
+
     public static void setStartTime() {
         startTime = System.currentTimeMillis();
     }
@@ -18,8 +23,7 @@ public class TimeMeasure {
     }
     public static String getNormalizedTime(long timeMillis) {
         if (timeMillis >= 3_600_000) {
-            return (timeMillis / 3_600_000) + " ч. " +  ((timeMillis % 3_600_000) / 60_000) + " мин.";
-       }
+            return (timeMillis / 3_600_000) + " ч. " +  ((timeMillis % 3_600_000) / 60_000) + " мин.";}
         if (timeMillis >= 60_000) {
             return (timeMillis / 60_000) + "." + (timeMillis % 60_000) / 1_000 + " мин.";
         } if (timeMillis >= 1_000) {
@@ -45,4 +49,9 @@ public class TimeMeasure {
     public static void removeTimer(String timerName) {
         timers.remove(timerName);
     }
+
+    public static void timeSpentNotification(String text) {
+        showMessage(text + TimeMeasure.getStringExperienceTime());
+    }
+
 }

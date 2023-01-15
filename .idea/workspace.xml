@@ -4,10 +4,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Оптимизация расчёта статистики (950 тыс страниц)">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="AllSites info from del counters">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/Application.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PathTableRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PathTableRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/TimeMeasure.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/TimeMeasure.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/ConfigComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/ConfigComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/IndexingComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/IndexingComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/MainView.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/UIElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/UIElement.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -104,13 +114,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00016" summary="Изменения в структуре проекта. (temp)">
-      <created>1668243455545</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1668243455546</updated>
     </task>
     <task id="LOCAL-00017" summary="Проверка Лемматизатора">
       <created>1668459165431</created>
@@ -448,7 +451,14 @@
       <option name="project" value="LOCAL" />
       <updated>1673704693692</updated>
     </task>
-    <option name="localTasksCounter" value="65" />
+    <task id="LOCAL-00065" summary="AllSites info from del counters">
+      <created>1673769422273</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1673769422274</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -502,7 +512,8 @@
     <MESSAGE value="Проверка лемм" />
     <MESSAGE value="Корректировка интерфейса" />
     <MESSAGE value="Оптимизация расчёта статистики (950 тыс страниц)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Оптимизация расчёта статистики (950 тыс страниц)" />
+    <MESSAGE value="AllSites info from del counters" />
+    <option name="LAST_COMMIT_MESSAGE" value="AllSites info from del counters" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -526,6 +537,11 @@
           <url>file://$PROJECT_DIR$/src/main/java/engine/views/SiteComponent.java</url>
           <line>199</line>
           <option name="timeStamp" value="91" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java</url>
+          <line>410</line>
+          <option name="timeStamp" value="102" />
         </line-breakpoint>
         <breakpoint enabled="true" type="java-exception">
           <properties class="org.postgresql.util.PSQLException" package="org.postgresql.util" />

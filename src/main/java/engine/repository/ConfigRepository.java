@@ -6,11 +6,15 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 public interface ConfigRepository extends JpaRepository<Config,Integer> {
 
     @Transactional
     @Modifying
     @Query(value = "Insert into Config (Id,Key,Name,Value) values " +
+            "(-7,'posMs','Позиция отображения сообщений','MIDDLE'), " +
+            "(-6,'showT','Время отображения сообщений, м.сек.','5000'), " +
             "(-5,'delay','Пауза при обращении к страницам, м.сек.','0'), " +
             "(-4,'isPoS','Учитывать части речи при индексации','true'), " +
             "(-3,'batch','Размер блока для записи','10'), " +
@@ -18,6 +22,6 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
             "(-1,'tps','Потоков на один сайт (Thread)','8')", nativeQuery = true)
     void initData();
 
-    Config findByKey(String key);
+    Optional<Config> findByKey(String key);
 
 }

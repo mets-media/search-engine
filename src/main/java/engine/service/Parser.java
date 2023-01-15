@@ -79,24 +79,21 @@ public class Parser extends RecursiveAction {
                     try {
                         parallelism = Integer.parseInt(configLine.getValue());
                     } catch (Exception e) {
-                        UIElement.showMessage("Тип свойства 'tps' должен быть Integer",
-                                2000, Notification.Position.MIDDLE);
+                        UIElement.showMessage("Тип свойства 'tps' должен быть Integer");
                     }
                 }
                 case "batch" -> {
                     try {
                         batchSize = Integer.parseInt(configLine.getValue());
                     } catch (Exception e) {
-                        UIElement.showMessage("Тип свойства 'batch' должен быть Integer",
-                                2000, Notification.Position.MIDDLE);
+                        UIElement.showMessage("Тип свойства 'batch' должен быть Integer");
                     }
                 }
                 case "isPoS" -> {
                     try {
                         checkPartOfSpeech = Boolean.parseBoolean(configLine.getValue());
                     } catch (Exception e) {
-                        UIElement.showMessage("Тип свойства 'isPoS' должен быть true/false!",
-                                2000, Notification.Position.MIDDLE);
+                        UIElement.showMessage("Тип свойства 'isPoS' должен быть true/false!");
                     }
                 }
             }
@@ -450,7 +447,7 @@ public class Parser extends RecursiveAction {
         });
         cancel.addClickListener(clickEvent -> {
             dialog.close();
-            UIElement.showMessage("Результаты сохранены", 500, Notification.Position.MIDDLE);
+            UIElement.showMessage("Результаты сохранены");
 
             List<String> links = beanAccess.getPageRepository().getLinksBySiteId(site.getId());
 

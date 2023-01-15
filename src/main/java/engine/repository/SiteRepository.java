@@ -115,7 +115,7 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
                     "null status, now() status_time, '' last_error \n" +
                     "from one_record_table;\n",
             nativeQuery = true)
-    Site getAllSiteInfo();
+    Optional<Site> getAllSiteInfo();
 
     @Modifying
     @Transactional
@@ -138,6 +138,16 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
                     "\t end if;\n" +
                     "END$$;",nativeQuery = true)
     void createSequences();
+
+    @Modifying
+    @Transactional
+    @Query(value ="CREATE TABLE IF NOT EXISTS one_record_table\n" +
+            "(\n" +
+            "    id integer NOT NULL,\n" +
+            "    CONSTRAINT one_record_table_pkey PRIMARY KEY (id)\n" +
+            ");\n" +
+            "insert into one_record_table (id) values (0) on conflict do nothing;\n", nativeQuery = true)
+    void createOneRecordTable();
 /*
 DO $$declare
     declare record Record;

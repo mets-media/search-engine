@@ -49,6 +49,7 @@ public class Application extends SpringBootServletInitializer {
                partOfSpeechRepository.initData();
             //----------------------------------------------------
 
+            siteRepository.createOneRecordTable();
             pageRepository.createTriggers();
             siteRepository.createTrigger();
             lemmaRepository.createLemmaTrigger();

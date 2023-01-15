@@ -30,7 +30,7 @@ public class PathTableRepository {
                     "where page_id in (:includePageId)" +
                     "group by page_id), " +
 
-                    "page_query as (select id page_id, abs, abs / (select max(abs) sum_abs from index_query) rel, path from page " +
+                    "page_query as (select id page_id, abs, abs / (select max(abs) max_abs from index_query) rel, path from page " +
                     "join index_query on (page.id = index_query.page_id)" +
                     "where page.id in (:includePageId)" +
                     ") " +

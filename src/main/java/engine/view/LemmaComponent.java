@@ -178,7 +178,7 @@ public class LemmaComponent {
                 String searchPath = urlTextField.getValue();
                 content = beanAccess.getPageRepository().getContentByPath(searchPath);
                 if (content == null) {
-                    showMessage("Страница отсутствует в базе данных", 2000, Notification.Position.MIDDLE);
+                    showMessage("Страница отсутствует в базе данных");
                     return;
                 }
             } else
@@ -266,7 +266,7 @@ public class LemmaComponent {
         var button= UIElement.createButton("",VaadinIcon.DEL_A,"Удалить страницу из базы");
         button.addClickListener(event -> {
             beanAccess.getPageRepository().deleteByPath(urlTextField.getValue());
-            showMessage("Страница удалена из базы", 1000, Notification.Position.MIDDLE);
+            showMessage("Страница удалена из базы");
             removeComponentById(contentsHashMap.get("Леммы"), "VerticalLayoutForGrids");
         });
         return button;
@@ -277,11 +277,9 @@ public class LemmaComponent {
         button.addClickListener(event -> {
 
             if (!(insertOrUpdatePage(urlTextField.getValue(), beanAccess))) {
-                showMessage("Страница за пределами проиндексированных сайтов!",
-                        2000,
-                        Notification.Position.MIDDLE);
+                showMessage("Страница за пределами проиндексированных сайтов!");
             }
-            showMessage("Записываем и индексируем страницу", 2000, Notification.Position.MIDDLE);
+            showMessage("Записываем и индексируем страницу");
         });
         return button;
     }

@@ -135,8 +135,7 @@ public class IndexingComponent {
                         Optional<Field> field = fieldGrid.getSelectedItems().stream().findFirst();
                         field.ifPresent(f -> {
                             if (f.getId() < 0)
-                                showMessage(f.getName() + " нельзя удалять!",
-                                        2000, Notification.Position.MIDDLE);
+                                showMessage(f.getName() + " нельзя удалять!");
                             else
                                 beanAccess.getFieldRepository().delete(f);
                         });
@@ -172,7 +171,7 @@ public class IndexingComponent {
 
         Button saveButton = new Button("Сохранить", e -> {
             if (textFieldName.isEmpty())
-                showMessage("Введите Наименование", 1000, Notification.Position.MIDDLE);
+                showMessage("Введите Наименование");
             else {
                 if (!(option == null)) {
                     option.setSelector(textFieldKey.getValue());
@@ -181,7 +180,7 @@ public class IndexingComponent {
                     try {
                         beanAccess.getFieldRepository().save(option);
                     } catch (Exception exception) {
-                        showMessage("Ошибка записи", 2000, Notification.Position.MIDDLE);
+                        showMessage("Ошибка записи");
                         return;
                     }
                 } else
@@ -191,7 +190,7 @@ public class IndexingComponent {
                                 textFieldKey.getValue(),
                                 Float.parseFloat(textFieldValue.getValue())));
                     } catch (Exception exception) {
-                        showMessage("Ошибка записи!", 2000, Notification.Position.MIDDLE);
+                        showMessage("Ошибка записи!");
                         return;
                     }
                 fieldGrid.setItems(beanAccess.getFieldRepository().findAll());
