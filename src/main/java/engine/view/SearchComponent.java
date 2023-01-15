@@ -12,6 +12,7 @@ import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -53,9 +54,9 @@ public class SearchComponent {
     private final Lemmatization lemmatizator;
 
     public SearchComponent() {
-        mainLayout = CreateUI.getMainLayout();
-        mainLayout.add(CreateUI.getTopLayout("Система поиска", "xl", null));
-        mainLayout.add(createSearchComponent());
+        mainLayout = UIElement.getMainLayout();
+        mainLayout.add(UIElement.getTopLayout("Система поиска", "xl", null));
+        mainLayout.add(getSearchComponent());
 
         requestLayout.setSizeFull();
         requestTextField.setSizeFull();
@@ -81,7 +82,7 @@ public class SearchComponent {
         SearchComponent.beanAccess = beanAccess;
     }
 
-    private VerticalLayout createSearchComponent() {
+    private VerticalLayout getSearchComponent() {
 
         Collection<TextField> textFieldCollection = Arrays.asList(pageCountTextField, lemmaCountTextField, indexCountTextField);
         textFieldCollection.forEach(textField -> {
@@ -90,10 +91,12 @@ public class SearchComponent {
         });
 
         var horizontalLayout = new HorizontalLayout(
-                createSiteComboBox(),
+                getSiteComboBox(),
                 pageCountTextField,
                 lemmaCountTextField,
-                indexCountTextField);
+                indexCountTextField,
+                getRefreshButton()
+        );
         siteComboBox.setWidthFull();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.END);
         horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
@@ -105,7 +108,7 @@ public class SearchComponent {
 
         requestTextField.setSizeUndefined();
 
-        requestLayout.add(requestTextField, createSearchButton());
+        requestLayout.add(requestTextField, getSearchButton());
         requestLayout.setSizeUndefined();
         requestLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         requestLayout.setEnabled(false);
@@ -118,8 +121,48 @@ public class SearchComponent {
                 gridsLayout,
                 getDetailLayout());
     }
+    private Button getRefreshButton() {
+        var button = UIElement.createButton("",VaadinIcon.REFRESH, "Обновить информацию");
+        button.addClickListener(event -> {
+            //beanAccess.getSiteRepository().getStatistic();
+        });
+        return button;
+    }
 
-    private ComboBox<Site> createSiteComboBox() {
+    private void clearGrids() {
+        lemmaGrid.setItems(new ArrayList<>());
+        findPageGrid.setItems(new ArrayList<>());
+        pageIdHashMap.clear();
+    }
+    private void setInfoValuesFromGetStatistic() {
+        for (Site site : beanAccess.getSiteRepository().getStatistic()) {
+            beanAccess.getSiteRepository().save(site);
+        }
+
+        int pageCount = 0; int lemmaCount = 0; int indexCount = 0;
+
+        for (Site site : beanAccess.getSiteRepository().findAll()) {
+            pageCount += site.getPageCount();
+            lemmaCount += site.getLemmaCount();
+            indexCount += site.getIndexCount();
+        }
+        setInfoValues(pageCount,lemmaCount,indexCount);
+    }
+
+    private void setInfoValuesFromRepositoryCount() {
+        long pageCount = beanAccess.getPageRepository().count();
+        long lemmaCount = beanAccess.getLemmaRepository().count();
+        long indexCount = beanAccess.getIndexRepository().count();
+
+        setInfoValues(pageCount,lemmaCount,indexCount);
+    }
+
+    private void setInfoValues(long pageCount, long lemmaCount, long indexCount) {
+        pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
+        lemmaCountTextField.setValue(new DecimalFormat("#,###").format(lemmaCount));
+        indexCountTextField.setValue(new DecimalFormat("#,###").format(indexCount));
+    }
+    private ComboBox<Site> getSiteComboBox() {
         siteComboBox = new ComboBox<>("Сайт:");
         siteComboBox.setItemLabelGenerator(Site::getUrl);
 
@@ -142,35 +185,17 @@ public class SearchComponent {
 
         siteComboBox.addValueChangeListener(event -> {
 
-            lemmaGrid.setItems(new ArrayList<>());
-            findPageGrid.setItems(new ArrayList<>());
-            pageIdHashMap.clear();
+        clearGrids();
 
             detailLayout.setVisible(false);
 
             switch (event.getValue().getName()) {
                 case "*" -> {
-/*
-                    long pageCount = beanAccess.getPageRepository().count();
-                    long lemmaCount = beanAccess.getLemmaRepository().count();
-                    long indexCount = beanAccess.getIndexRepository().count();
-*/
-                    for (Site site : beanAccess.getSiteRepository().getStatistic()) {
-                        beanAccess.getSiteRepository().save(site);
-                    }
+                    //Установка значений путём подсчёта repository.count()
+                    //setInfoValuesFromRepositoryCount();
 
-                    int pageCount = 0; int lemmaCount = 0; int indexCount = 0;
-
-                    for (Site site : beanAccess.getSiteRepository().findAll()) {
-                        pageCount += site.getPageCount();
-                        lemmaCount += site.getLemmaCount();
-                        indexCount += site.getIndexCount();
-                    }
-
-                    pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
-                    lemmaCountTextField.setValue(new DecimalFormat("#,###").format(lemmaCount));
-                    indexCountTextField.setValue(new DecimalFormat("#,###").format(indexCount));
-
+                    //Внимание!!! - долгий запрос, с записью значений для каждого сайта
+                    setInfoValuesFromGetStatistic();
                 }
                 default -> {
 /*
@@ -185,10 +210,7 @@ public class SearchComponent {
                     Integer lemmaCount = site.getLemmaCount();
                     Integer indexCount = site.getIndexCount();
 
-
-                    pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
-                    lemmaCountTextField.setValue(new DecimalFormat("#,###").format(lemmaCount));
-                    indexCountTextField.setValue(new DecimalFormat("#,###").format(indexCount));
+                    setInfoValues(pageCount,lemmaCount,indexCount);
                 }
             }
             requestLayout.setEnabled(true);
@@ -262,9 +284,9 @@ public class SearchComponent {
                     else
                         titleTextField.setValue("");
 
-                    CreateUI.removeComponentById(detailLayout, "snippetGrid");
+                    UIElement.removeComponentById(detailLayout, "snippetGrid");
 
-                    Grid<String> grid = CreateUI.getStringGrid("Строки контента с найденными леммами:",
+                    Grid<String> grid = UIElement.getStringGrid("Строки контента с найденными леммами:",
                             HtmlParsing.getStringsContainsLemma(content, lemmaGrid.getSelectedItems(), lemmatizator));
                     grid.setId("snippetGrid");
                     detailLayout.add(grid);
@@ -276,7 +298,7 @@ public class SearchComponent {
 
     private void createColumnsLemmaGrid() {
         lemmaGrid.setSelectionMode(Grid.SelectionMode.MULTI);
-        CreateUI.setAllCheckboxVisibility(lemmaGrid, false);
+        UIElement.setAllCheckboxVisibility(lemmaGrid, false);
         lemmaGrid.addColumn(Lemma::getFrequency).setHeader("Частота")
                 .setAutoWidth(true)
                 .setTextAlign(ColumnTextAlign.CENTER);
@@ -336,7 +358,7 @@ public class SearchComponent {
                 if (siteId == 0)
                     pathTableList = beanAccess.getPathTableRepository()
                             .getResultTableForAllSites(includeLemma);
-                            //.allSitesRequest(includeLemma); неправильно
+                    //.allSitesRequest(includeLemma); неправильно
                 else
                     pathTableList = beanAccess.getPathTableRepository()
                             .getResultTableForSelectedSite(siteId, includeLemma, includePageId);
@@ -392,12 +414,27 @@ public class SearchComponent {
         return result;
     }
 
-    private Button createSearchButton() {
-        Button searchButton = new Button("Найти");
-        searchButton.setWidth("10%");
+    private Button getSearchButton() {
+
+        var searchButton = UIElement.createButton("Поиск", VaadinIcon.SEARCH_PLUS, "");
+        searchButton.setWidth("15%");
 
         searchButton.addClickListener(buttonClickEvent -> {
+            String requestStr = requestTextField.getValue();
+
+
+            if (requestStr.isBlank()) {
+                UIElement.showMessage("Запрос не может быть пустым",
+                        2000, Notification.Position.MIDDLE);
+                return;
+            } else if (HtmlParsing.getRussianListString(requestStr).size() == 0) {
+                UIElement.showMessage("Запрос должен содержать русские слова!",
+                        2000, Notification.Position.MIDDLE);
+                return;
+            }
+
             setLemmaGridItems(siteComboBox.getValue().getId());
+
         });
         return searchButton;
     }
@@ -412,6 +449,13 @@ public class SearchComponent {
 
         //Все лемммы из запроса
         HashMap<String, Integer> requestLemmas = lemmatizator.getLemmaHashMap(requestTextField.getValue());
+
+        if (requestLemmas.size() == 0) {
+            UIElement.showMessage("Леммы не найдены. Измените запрос.",
+                    2000, Notification.Position.MIDDLE);
+            clearGrids();
+            return;
+        }
 
         //Integer siteId = siteComboBox.getValue().getId();
         List<String> lemmaList = requestLemmas.keySet().stream().toList();
@@ -470,10 +514,8 @@ public class SearchComponent {
     }
 
     private Button createBrowserButton(Grid<PathTable> grid) {
-        Button button = new Button();
-        button.setIcon(VaadinIcon.BROWSER.create());
-        button.getElement().setProperty("title", "Открыть в браузере");
 
+        var button = UIElement.createButton("", VaadinIcon.BROWSER, "Открыть в браузере");
         button.addClickListener(event -> {
             grid.getSelectedItems().stream().findFirst()
                     .ifPresent(pathLine -> StartBrowser.startBrowser(pathLine.getPath()));

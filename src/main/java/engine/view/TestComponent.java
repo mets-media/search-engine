@@ -5,7 +5,6 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
 import engine.service.BeanAccess;
@@ -20,7 +19,7 @@ public class TestComponent {
     private final VerticalLayout mainLayout;
 
     public TestComponent() {
-        mainLayout = CreateUI.getMainLayout();
+        mainLayout = UIElement.getMainLayout();
 
         var statGrid = createSiteGrid();
 
@@ -33,7 +32,7 @@ public class TestComponent {
         List<Button> listButton = new ArrayList<>();
         listButton.add(button);
 
-        mainLayout.add(CreateUI.getTopLayout("Информация о сайтах", "xl", listButton));
+        mainLayout.add(UIElement.getTopLayout("Информация о сайтах", "xl", listButton));
         mainLayout.add(statGrid);
     }
 

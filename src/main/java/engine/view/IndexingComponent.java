@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static engine.view.CreateUI.showMessage;
+import static engine.view.UIElement.showMessage;
 
 
 public class IndexingComponent {
@@ -54,8 +54,8 @@ public class IndexingComponent {
     private final Grid<PartsOfSpeech> gridPartsOfSpeech = new Grid<>();
 
     public IndexingComponent() {
-        mainLayout = CreateUI.getMainLayout();
-        mainLayout.add(CreateUI.getTopLayout("Настройки индексации", "xl", null));
+        mainLayout = UIElement.getMainLayout();
+        mainLayout.add(UIElement.getTopLayout("Настройки индексации", "xl", null));
         createTabs(List.of("HTML-поля", "Части речи", "Страницы сайта"));
     }
 
@@ -102,7 +102,7 @@ public class IndexingComponent {
                     gridPartsOfSpeech.setItems(beanAccess.getPartOfSpeechRepository().findAll());
                 }
             }
-            CreateUI.hideAllVerticalLayouts(mainLayout);
+            UIElement.hideAllVerticalLayouts(mainLayout);
             contentsHashMap.get(label).setVisible(true);
         });
         contentsHashMap.put("HTML-поля", createHtmlBlocksContent());
@@ -209,7 +209,7 @@ public class IndexingComponent {
         verticalLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
 
         List<Button> buttons = createButtons(List.of("Добавить", "Редактировать", "Удалить"));
-        verticalLayout.add(CreateUI.getTopLayout("Поля на страницах сайтов", "m", buttons), fieldGrid);
+        verticalLayout.add(UIElement.getTopLayout("Поля на страницах сайтов", "m", buttons), fieldGrid);
 
         fieldGrid.addComponentColumn(item -> {
             Checkbox checkbox = new Checkbox();

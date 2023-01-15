@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static engine.view.CreateUI.showMessage;
+import static engine.view.UIElement.showMessage;
 
 @Getter
 public class ConfigComponent {
@@ -34,9 +34,9 @@ public class ConfigComponent {
     private static ConfigRepository configRepository;
 
     public ConfigComponent() {
-        mainLayout = CreateUI.getMainLayout();
+        mainLayout = UIElement.getMainLayout();
         List<Button> buttons = createButtons(List.of("Добавить", "Редактировать", "Удалить"));
-        mainLayout.add(CreateUI.getTopLayout("Настройки сканирования", "xl", buttons));
+        mainLayout.add(UIElement.getTopLayout("Настройки сканирования", "xl", buttons));
 
         grid = new Grid(Config.class, false);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);

@@ -6,7 +6,7 @@ import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import engine.entity.*;
-import engine.view.CreateUI;
+import engine.view.UIElement;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.nodes.Document;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -79,7 +79,7 @@ public class Parser extends RecursiveAction {
                     try {
                         parallelism = Integer.parseInt(configLine.getValue());
                     } catch (Exception e) {
-                        CreateUI.showMessage("Тип свойства 'tps' должен быть Integer",
+                        UIElement.showMessage("Тип свойства 'tps' должен быть Integer",
                                 2000, Notification.Position.MIDDLE);
                     }
                 }
@@ -87,7 +87,7 @@ public class Parser extends RecursiveAction {
                     try {
                         batchSize = Integer.parseInt(configLine.getValue());
                     } catch (Exception e) {
-                        CreateUI.showMessage("Тип свойства 'batch' должен быть Integer",
+                        UIElement.showMessage("Тип свойства 'batch' должен быть Integer",
                                 2000, Notification.Position.MIDDLE);
                     }
                 }
@@ -95,7 +95,7 @@ public class Parser extends RecursiveAction {
                     try {
                         checkPartOfSpeech = Boolean.parseBoolean(configLine.getValue());
                     } catch (Exception e) {
-                        CreateUI.showMessage("Тип свойства 'isPoS' должен быть true/false!",
+                        UIElement.showMessage("Тип свойства 'isPoS' должен быть true/false!",
                                 2000, Notification.Position.MIDDLE);
                     }
                 }
@@ -450,7 +450,7 @@ public class Parser extends RecursiveAction {
         });
         cancel.addClickListener(clickEvent -> {
             dialog.close();
-            CreateUI.showMessage("Результаты сохранены", 500, Notification.Position.MIDDLE);
+            UIElement.showMessage("Результаты сохранены", 500, Notification.Position.MIDDLE);
 
             List<String> links = beanAccess.getPageRepository().getLinksBySiteId(site.getId());
 

@@ -74,29 +74,41 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
     @Modifying
     @Transactional
     @Query(value =
-            "CREATE OR REPLACE FUNCTION inc_del_lemma_counter()\n" +
-            "  RETURNS integer\n" +
-            "  LANGUAGE 'plpgsql'\n" +
-            "  COST 100\n" +
-            "  VOLATILE PARALLEL UNSAFE\n" +
-            "AS $BODY$\n" +
-            "begin\n" +
-            "\tperform nextval('lemma_del_count');\n" +
-            "\treturn 1;\n" +
-            "end\n" +
-            "$BODY$;\n" +
-            "\n" +
-                    "CREATE OR REPLACE FUNCTION inc_del_page_counter()\n" +
-                    "  RETURNS integer\n" +
-                    "  LANGUAGE 'plpgsql'\n" +
-                    "  COST 100\n" +
-                    "  VOLATILE PARALLEL UNSAFE\n" +
+            "CREATE OR REPLACE FUNCTION inc_counter(counterName Text, returnValue integer)\n" +
+                    "    RETURNS integer\n" +
+                    "    LANGUAGE 'plpgsql'\n" +
+                    "    COST 100\n" +
+                    "    VOLATILE PARALLEL UNSAFE\n" +
                     "AS $BODY$\n" +
                     "begin\n" +
-                    "\tperform nextval('page_del_count');\n" +
-                    "\treturn 0;\n" +
+                    "\tperform nextval(text);\n" +
+                    "\treturn returnValue;\t\n" +
                     "end\n" +
                     "$BODY$;\n" +
+                    "\n" +
+//            "CREATE OR REPLACE FUNCTION inc_del_lemma_counter()\n" +
+//            "  RETURNS integer\n" +
+//            "  LANGUAGE 'plpgsql'\n" +
+//            "  COST 100\n" +
+//            "  VOLATILE PARALLEL UNSAFE\n" +
+//            "AS $BODY$\n" +
+//            "begin\n" +
+//            "\tperform nextval('lemma_del_count');\n" +
+//            "\treturn 1;\n" +
+//            "end\n" +
+//            "$BODY$;\n" +
+//            "\n" +
+//                    "CREATE OR REPLACE FUNCTION inc_del_page_counter()\n" +
+//                    "  RETURNS integer\n" +
+//                    "  LANGUAGE 'plpgsql'\n" +
+//                    "  COST 100\n" +
+//                    "  VOLATILE PARALLEL UNSAFE\n" +
+//                    "AS $BODY$\n" +
+//                    "begin\n" +
+//                    "\tperform nextval('page_del_count');\n" +
+//                    "\treturn 0;\n" +
+//                    "end\n" +
+//                    "$BODY$;\n" +
                     "\n" +
             "CREATE OR REPLACE FUNCTION parsing_function()\n" +
             "    RETURNS trigger\n" +
@@ -115,7 +127,8 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "    insert into PAGE (Site_id, Path, Code, Content)\n" +
             "\tvalues (new.site_id, new.path, new.code, new.content)\n" +
             "\t--on conflict on constraint siteId_path_unique do nothing\n" +
-            "\ton conflict on constraint siteId_path_unique do update set code = new.code + inc_del_page_counter()\n" +
+            "\t--on conflict on constraint siteId_path_unique do update set code = new.code + inc_del_page_counter()\n" +
+            "\ton conflict on constraint siteId_path_unique do update set code = new.code + inc_counter('page_del_count',0)\n" +
             "\treturning id)\n" +
             "    select id from page_insert into page_id; \n" +
             "\tfor lemmainfo in select unnest(string_to_array(new.lemmatization,';'))\n" +
@@ -128,7 +141,8 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
             "\t\t\tinsert into LEMMA (Site_Id, Lemma,Frequency) \n" +
             "\t\t\t\tvalues (new.site_id, new_lemma, new_count) \n" +
             "\t\t\t\ton conflict on constraint siteId_lemma_unique \n" +
-            "\t\t\t\tdo update set Frequency = LEMMA.Frequency + inc_del_lemma_counter()\n" +
+            "\t\t\t\t--do update set Frequency = LEMMA.Frequency + inc_del_lemma_counter()\n" +
+            "\t\t\t\tdo update set Frequency = LEMMA.Frequency + inc_counter('lemma_del_count',1)\n" +
             "\t\t\t\treturning id)\n" +
             "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
             "\n" +

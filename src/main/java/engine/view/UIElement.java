@@ -7,6 +7,7 @@ import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -18,7 +19,7 @@ import lombok.experimental.UtilityClass;
 import java.util.List;
 
 @UtilityClass
-public class CreateUI {
+public class UIElement {
 
     public static VerticalLayout getMainLayout() {
         var verticalLayout = new VerticalLayout();
@@ -114,7 +115,21 @@ public class CreateUI {
         grid.setItems(words);
         return grid;
     }
+    private Grid<String> getStringGridWithHeader(String caption, String colName, List<String> words) {
+        Grid<String> grid = new Grid<>(String.class, false);
+        Grid.Column<String> col1 = grid.addColumn(String::toString).setHeader(colName).setTextAlign(ColumnTextAlign.START);
+        Grid.Column<String> col2 = grid.addColumn(String::toString).setHeader(colName + "_");
+        col2.setVisible(false);
+        grid.setItems(words);
 
+        HeaderRow headerRow = grid.prependHeaderRow();
+
+        Div simpleCell = new Div();
+        simpleCell.setText(caption);
+        simpleCell.getElement().getStyle().set("text-align", "center");
+        headerRow.join(col1, col2).setComponent(simpleCell);
+        return grid;
+    }
     private static String createWordsCountFooterText(List<String> words) {
         int count = words.size();
         if (count > 1)
@@ -134,20 +149,14 @@ public class CreateUI {
         });
     }
 
-    private Grid<String> getStringGridWithHeader(String caption, String colName, List<String> words) {
-        Grid<String> grid = new Grid<>(String.class, false);
-        Grid.Column<String> col1 = grid.addColumn(String::toString).setHeader(colName).setTextAlign(ColumnTextAlign.START);
-        Grid.Column<String> col2 = grid.addColumn(String::toString).setHeader(colName + "_");
-        col2.setVisible(false);
-        grid.setItems(words);
 
-        HeaderRow headerRow = grid.prependHeaderRow();
 
-        Div simpleCell = new Div();
-        simpleCell.setText(caption);
-        simpleCell.getElement().getStyle().set("text-align", "center");
-        headerRow.join(col1, col2).setComponent(simpleCell);
-        return grid;
+    public static Button createButton(String text, VaadinIcon icon, String title) {
+        Button button = new Button(text);
+        if (!(icon == null)) button.setIcon(icon.create());
+        button.getElement().setProperty("title", title);
+
+        return button;
     }
 
 

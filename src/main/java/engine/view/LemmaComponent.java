@@ -20,11 +20,9 @@ import com.vaadin.flow.data.renderer.NumberRenderer;
 import engine.entity.Field;
 import engine.entity.Page;
 import engine.entity.PartsOfSpeech;
-import engine.entity.Site;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Lemmatization;
-import engine.service.Parser;
 import lombok.Getter;
 import org.jsoup.nodes.Document;
 import org.springframework.data.domain.PageRequest;
@@ -32,14 +30,13 @@ import org.springframework.data.domain.Sort;
 
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static engine.service.HtmlParsing.getRussianWords;
 import static engine.service.Parser.insertOrUpdatePage;
-import static engine.view.CreateUI.removeComponentById;
-import static engine.view.CreateUI.showMessage;
+import static engine.view.UIElement.removeComponentById;
+import static engine.view.UIElement.showMessage;
 
 @Getter
 public class LemmaComponent {
@@ -50,8 +47,8 @@ public class LemmaComponent {
 
     public LemmaComponent(BeanAccess beanAccess) {
         this.beanAccess = beanAccess;
-        mainLayout = CreateUI.getMainLayout();
-        mainLayout.add(CreateUI.getTopLayout("Лемматизатор", "xl", null));
+        mainLayout = UIElement.getMainLayout();
+        mainLayout.add(UIElement.getTopLayout("Лемматизатор", "xl", null));
         createTabs(List.of("Леммы", "Лемматизатор"));
         sourceSelectComboBox.setItems("Internet", "Database");
         sourceSelectComboBox.setValue("Database");
@@ -72,7 +69,7 @@ public class LemmaComponent {
             var horizontalLayout = new HorizontalLayout();
             horizontalLayout.setWidthFull();
             horizontalLayout.setId("HorizontalLayoutForGrids");
-            horizontalLayout.add(CreateUI.getStringGrid("Слова", Arrays.stream(words).toList()));
+            horizontalLayout.add(UIElement.getStringGrid("Слова", Arrays.stream(words).toList()));
 
 
             List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
@@ -89,7 +86,7 @@ public class LemmaComponent {
             grid.getColumns().get(2).setVisible(false);
             horizontalLayout.add(grid);
 
-            horizontalLayout.add(CreateUI.getStringGrid("Части речи",
+            horizontalLayout.add(UIElement.getStringGrid("Части речи",
                     lemmatizator.getLemmaInfo(textArea.getValue()).stream().toList()));
 
             contentsHashMap.get("Лемматизатор").add(horizontalLayout);
@@ -260,19 +257,13 @@ public class LemmaComponent {
     }
 
     private Button getBrowserButton(ComboBox<Page> pageComboBox) {
-        Button button = new Button();
-        button.setIcon(VaadinIcon.BROWSER.create());
-        button.getElement().setProperty("title", "Открыть в браузере");
-
+        var button= UIElement.createButton("",VaadinIcon.BROWSER,"Открыть в браузере");
         button.addClickListener(event -> StartBrowser.startBrowser(pageComboBox.getValue().getPath()));
         return button;
     }
 
     private Button getDelPageButton(TextField urlTextField) {
-        Button button = new Button();
-        button.setIcon(VaadinIcon.DEL_A.create());
-        button.getElement().setProperty("title", "Удалить страницу из базы");
-
+        var button= UIElement.createButton("",VaadinIcon.DEL_A,"Удалить страницу из базы");
         button.addClickListener(event -> {
             beanAccess.getPageRepository().deleteByPath(urlTextField.getValue());
             showMessage("Страница удалена из базы", 1000, Notification.Position.MIDDLE);
@@ -282,10 +273,7 @@ public class LemmaComponent {
     }
 
     private Button getReIndexPageButton(TextField urlTextField) {
-        Button button = new Button();
-        button.setIcon(VaadinIcon.ADD_DOCK.create());
-        button.getElement().setProperty("title", "Добавить в базу и проиндексировать");
-
+        var button= UIElement.createButton("",VaadinIcon.ADD_DOCK,"Добавить в базу и проиндексировать");
         button.addClickListener(event -> {
 
             if (!(insertOrUpdatePage(urlTextField.getValue(), beanAccess))) {
@@ -405,7 +393,7 @@ public class LemmaComponent {
 
         tabs.addSelectedChangeListener(event -> {
             String label = tabs.getSelectedTab().getLabel();
-            CreateUI.hideAllVerticalLayouts(mainLayout);
+            UIElement.hideAllVerticalLayouts(mainLayout);
 
             VerticalLayout content;
             switch (label) {
@@ -433,7 +421,7 @@ public class LemmaComponent {
         contentsHashMap.put("Леммы", cont);
         mainLayout.add(cont);
 
-        CreateUI.hideAllVerticalLayouts(mainLayout);
+        UIElement.hideAllVerticalLayouts(mainLayout);
 
         VerticalLayout activeComponent = contentsHashMap.get("Леммы");
         activeComponent.setVisible(true);

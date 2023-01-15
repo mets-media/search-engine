@@ -1,24 +1,17 @@
 package engine.service;
 
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.notification.Notification;
 import engine.entity.Page;
 import engine.entity.PartsOfSpeech;
 import engine.entity.Site;
-import engine.view.CreateUI;
-import engine.view.SiteComponent;
-import org.jsoup.nodes.Document;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 
 public class DBWriter extends Thread {

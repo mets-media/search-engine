@@ -102,7 +102,7 @@ public class MainView extends AppLayout {
         title.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
         //Tabs tabs = CreateUI.createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск", "Тест"),
-        Tabs tabs = CreateUI.createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск"),
+        Tabs tabs = UIElement.createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск"),
                 Tabs.Orientation.VERTICAL);
 
         tabs.addSelectedChangeListener(event -> {

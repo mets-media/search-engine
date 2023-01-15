@@ -9,8 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,24 +79,33 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "    join site on (pages.site_id = site.id)", nativeQuery = true)
     List<Site> getStatistic();
 
+
+    /*
+    id integer, name text, url text, page_count integer, lemma_count integer, index_count integer,
+    status bytea, status_time timestamp without time zone, last_error text
+     */
     @Modifying
     @Transactional
     @Query(value =
-            "CREATE OR REPLACE FUNCTION get_statistic()\n" +
-            "RETURNS TABLE(page_count integer, lemma_count integer, index_count integer)\n" +
+            "CREATE OR REPLACE FUNCTION get_counters()\n" +
+            "RETURNS TABLE(id integer, name text, url text, " +
+                    "page_count integer, lemma_count integer, index_count integer, \n" +
+                    "status bytea, status_time timestamp without time zone, last_error text) \n" +
             "LANGUAGE 'plpgsql'\n" +
             "COST 100\n" +
             "VOLATILE PARALLEL UNSAFE\n" +
             "ROWS 1 \n" +
             "AS $BODY$\n" +
-            "begin\n" +
-            "page_count = (select last_value from page_id_seq) - (select last_value - 1 from page_del_count);\n" +
-            "lemma_count = (select last_value from lemma_id_seq) - (select last_value - 1 from lemma_del_count) - 1;\n" +
-            "index_count = (select last_value from index_id_seq) - (select last_value - 1 from index_del_count);\n" +
-	        "return next;\n" +
+            "begin \n" +
+            "\tid = 0; name = '*'; url = 'Все сайты'; status = 'NEW_SITE'; status_time = now(); last_error = '';" +
+            "\n" +
+            "\tpage_count =  (select last_value from page_id_seq)  - (select last_value - 1 from page_del_count);\n" +
+            "\tlemma_count = (select last_value from lemma_id_seq) - (select last_value - 1 from lemma_del_count);\n" +
+            "\tindex_count = (select last_value from index_id_seq) - (select last_value - 1 from index_del_count);\n" +
+	        "\treturn next;\n" +
             "end\n" +
             "$BODY$;\n", nativeQuery = true)
-    void creteStatisticFunction();
+    void creteGetCountersFunction();
 
     @Modifying
     @Transactional
@@ -122,31 +129,52 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
                     "END$$;",nativeQuery = true)
     void createSequences();
 /*
-    DO $$declare
+DO $$declare
     declare record Record;
     declare page_count_total integer;
-    declare page_count_total integer;
-    declare page_count_total integer;
-    begin
+    declare lemma_count_total integer;
+    declare index_count_total integer;
 
- for record in (with pages as (select site_id, count(*) page_count from page group by site_id),
-    lemmas as (select site_id, count(*) lemma_count from lemma group by site_id ),
-    indexes as (select page.site_id, count(*) index_count from index
-    join page on (index.page_id = page.id)
-    group by page.site_id)
-    select id, name, url, pages.site_id, pages.page_count, lemmas.lemma_count, indexes.index_count, status, status_time, last_error from pages
-    join lemmas on (pages.site_id = lemmas.site_id)
-    join indexes on (pages.site_id = indexes.site_id)
-    join site on (pages.site_id = site.id)
-				)
+    declare page_ integer;
+    declare lemma_ integer;
+    declare index_ integer;
+
+begin
+	page_count_total = 0;
+	lemma_count_total = 0;
+	index_count_total = 0;
+
+	for record in
+	(with pages as (select site_id, count(*) page_count from page group by site_id),
+		lemmas as (select site_id, count(*) lemma_count from lemma group by site_id ),
+    	indexes as (select page.site_id, count(*) index_count from index
+    	join page on (index.page_id = page.id)
+    	group by page.site_id)
+    	select id, name, url, pages.site_id, pages.page_count, lemmas.lemma_count, indexes.index_count, status, status_time, last_error from pages
+    	join lemmas on (pages.site_id = lemmas.site_id)
+    	join indexes on (pages.site_id = indexes.site_id)
+    	join site on (pages.site_id = site.id)
+	)
     loop
-    update site
-    set page_count = record.page_count,
+    	update site
+    	set page_count = record.page_count,
             lemma_count= record.lemma_count,
             index_count = record.index_count
-    where site.id = record.id;
+    	where site.id = record.id;
+		page_count_total = page_count_total + record.page_count;
+		lemma_count_total = lemma_count_total + record.lemma_count;
+		index_count_total = index_count_total + record.index_count;
+	end loop;
 
-    end loop;
-    end;$$
+	select last_value - page_count_total from page_id_seq into page_;
+	select last_value - lemma_count_total from lemma_id_seq into lemma_;
+	select last_value - index_count_total from index_id_seq into index_;
+
+	perform setval('page_del_count', page_ + 1);
+	perform setval('lemma_del_count', lemma_ + 1);
+	perform setval('index_del_count', index_ + 1);
+
+
+end;$$
 */
 }

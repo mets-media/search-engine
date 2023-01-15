@@ -8,7 +8,6 @@ import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Label;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -19,15 +18,11 @@ import engine.entity.Site;
 import engine.entity.SiteStatus;
 import engine.repository.SiteRepository;
 import engine.service.BeanAccess;
-import engine.service.HtmlParsing;
 import engine.service.Parser;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,7 +34,7 @@ import java.util.stream.Stream;
 
 import static com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.END;
 import static com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.START;
-import static engine.view.CreateUI.showMessage;
+import static engine.view.UIElement.showMessage;
 
 @Component
 @Getter
@@ -55,14 +50,14 @@ public class SiteComponent {
 
     public SiteComponent() {
 
-        mainLayout = CreateUI.getMainLayout();
-        mainLayout.add(CreateUI.getTopLayout("Сканирование сайтов", "xl", createButtons()));
+        mainLayout = UIElement.getMainLayout();
+        mainLayout.add(UIElement.getTopLayout("Сканирование сайтов", "xl", createButtons()));
         mainLayout.setMinHeight("100%");
 
         grid = new Grid<>(Site.class, false);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
-        CreateUI.setAllCheckboxVisibility(grid, true);
+        UIElement.setAllCheckboxVisibility(grid, true);
 
         //grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 

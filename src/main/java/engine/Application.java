@@ -64,7 +64,7 @@ public class Application extends SpringBootServletInitializer {
             //счётчики удалений
             siteRepository.createSequences();
 
-            siteRepository.creteStatisticFunction();
+            siteRepository.creteGetCountersFunction();
 
             //Функция парсинга lemmaString
             //pageContainerRepository.createFunction();
