@@ -1,5 +1,6 @@
 package engine.repository;
 
+import engine.entity.PathTable;
 import engine.entity.Site;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -148,6 +149,10 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             ");\n" +
             "insert into one_record_table (id) values (0) on conflict do nothing;\n", nativeQuery = true)
     void createOneRecordTable();
+
+    @Query(value = "select * from get_by_lemma_and_site(:lemmas, :siteId)",nativeQuery = true)
+    List<PathTable> getResultByLemmasAndSiteId(@Param("lemmas") String lemmas, @Param("siteId") Integer siteId);
+
 /*
 DO $$declare
     declare record Record;
