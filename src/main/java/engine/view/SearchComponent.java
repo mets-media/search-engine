@@ -53,8 +53,9 @@ public class SearchComponent {
     private final TextField lemmaCountTextField = new TextField("Леммы");
     private final TextField indexCountTextField = new TextField("Таблица Index");
     private final TextField requestTextField = new TextField("Поисковый запрос");
-    private final Checkbox checkbox = new Checkbox("Отображать страницы при выборе леммы");
-    private final Button  showFindPageButton = UIElement.createButton("Показать", VaadinIcon.DOWNLOAD,"");
+    private final TextField findTextField = new TextField();
+
+    private final Button showFindPageButton = UIElement.createButton("Показать", VaadinIcon.DOWNLOAD, "");
     private final VerticalLayout detailLayout = new VerticalLayout();
 
     private ComboBox<String> selectCountersQueryComboBox;
@@ -73,6 +74,7 @@ public class SearchComponent {
         requestLayout.setSizeFull();
         requestTextField.setSizeFull();
         requestTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
+        requestTextField.setClearButtonVisible(true);
 
         lemmaGrid.setWidth("40%");
         findPageGrid.setWidth("60%");
@@ -123,7 +125,7 @@ public class SearchComponent {
 
         requestTextField.setSizeUndefined();
 
-        requestLayout.add(requestTextField, selectGetInfoQueryComboBox, getSearchButton());
+        requestLayout.add(requestTextField, getSearchButton());
         //requestLayout.setSizeUndefined();
         requestLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         requestLayout.setEnabled(false);
@@ -132,10 +134,21 @@ public class SearchComponent {
         gridsLayout.add(lemmaGrid, findPageGrid);
         gridsLayout.setWidthFull();
 
+
+        Checkbox checkbox = new Checkbox("Отображать по запросу");
+        checkbox.setValue(false);
+        checkbox.addValueChangeListener(event -> {
+            showFindPageButton.setEnabled(event.getValue());
+        });
+        findTextField.setWidth("40%");
+        findTextField.setReadOnly(true);
+
+        showFindPageButton.setEnabled(false);
+
         checkBoxAndButtonLayout.setSizeUndefined();
-        checkBoxAndButtonLayout.add(checkbox, showFindPageButton);
+        checkBoxAndButtonLayout.add(findTextField, selectGetInfoQueryComboBox, checkbox, showFindPageButton);
         checkBoxAndButtonLayout.setAlignItems(FlexComponent.Alignment.END);
-        checkbox.setWidthFull();
+        checkBoxAndButtonLayout.setWidthFull();
         checkBoxAndButtonLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         checkBoxAndButtonLayout.setEnabled(false);
 
@@ -364,11 +377,17 @@ public class SearchComponent {
         });
     }
 
-    private void doLemmaSelected(Set<Lemma> selectedLemmas) {
+    private void showFindingPageCount(Integer value, String timeString) {
+        findTextField.setValue("Найдено страниц: " + value + " за ");
+    }
+
+    private void doLemmaSelectEvent(Set<Lemma> selectedLemmas) {
 
         if (selectedLemmas.size() == 0) return;
 
         detailLayout.setVisible(false);
+        checkBoxAndButtonLayout.setEnabled(true);
+
         Integer siteId = siteComboBox.getValue().getId();
 
         TimeMeasure.setStartTime();//----------------------------------------------------------------------------------
@@ -377,7 +396,7 @@ public class SearchComponent {
         //Retain all pageId - выбираем пересечение страниц для всех лемм
         var pageIdRetained = retainAllPageId(pageIdHashMap);
         UIElement.showMessage("Найдено " + pageIdRetained.size() + " страниц");
-        UIElement.showMessage("Время выполнения:" + TimeMeasure.getStringExperienceTime());
+        showFindingPageCount(pageIdRetained.size(), TimeMeasure.getStringExperienceTime());
         return;
 /*
         List<PathTable> pathTableList;
@@ -398,6 +417,58 @@ public class SearchComponent {
 
         */
         //-------------------------------------------------------------------------------------------------------------
+    }
+
+    private void doLemmaSelectEventFirst(Set<Lemma> selectedLemmas) {
+        detailLayout.setVisible(false);
+        checkBoxAndButtonLayout.setEnabled(true);
+
+        Integer siteId = siteComboBox.getValue().getId();
+
+        //Формирование списков страниц
+        setStartTime();//------------------------------------------------------------------------------------
+        selectedLemmas.forEach(lemma -> {
+            String selectedLemma = lemma.getLemma();
+            List<Integer> pageIdList;
+            if (siteId == 0) //Для всех сайтов
+                pageIdList = beanAccess.getPageRepository().getPageIdByLemma(selectedLemma);
+            else //Для выбранного сайта
+                pageIdList = beanAccess.getPageRepository().getPageIdBySiteIdAndLemma(selectedLemma, siteId);
+
+            //Для каждой леммы - свой список страниц (pageId)
+            if (!pageIdHashMap.containsKey(selectedLemma))
+                pageIdHashMap.put(selectedLemma, pageIdList);
+        });
+
+        //timeSpentNotification(String.format("Списки Page_Id сформированы за "));
+        //----------------------------------------------------------------------------------------------------
+
+        if (selectedLemmas.size() == 0) {
+            findPageGrid.setItems(new ArrayList<>());
+            findPageGrid.getColumns().get(2).setHeader("Страницы");
+            return;
+        }
+        //Формируем строку со всеми выбранными леммами
+        String includeLemma = selectedLemmas.stream().map(l -> l.getLemma()).collect(Collectors.joining(",", "'", "'"));
+
+        //Retain all pageId - выбираем пересечение страниц для всех лемм
+        var pageIdRetained = retainAllPageId(pageIdHashMap);
+        showFindingPageCount(pageIdRetained.size(), TimeMeasure.getStringExperienceTime());
+
+        String includePageId = pageIdRetained.stream().map(p -> Integer.toString(p)).collect(Collectors.joining(",", "'", "'"));
+
+        List<PathTable> pathTableList;
+        if (siteId == 0)
+            pathTableList = beanAccess.getPathTableRepository()
+                    .getResultTableForAllSites(includeLemma);
+            //.allSitesRequest(includeLemma); неправильно
+        else
+            pathTableList = beanAccess.getPathTableRepository()
+                    .getResultTableForSelectedSite(siteId, includeLemma, includePageId);
+
+        //Результаты
+        findPageGrid.setItems(pathTableList);
+        findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
     }
 
     private String findPageIntersection(Set<Lemma> lemmas, int siteId) {
@@ -437,82 +508,15 @@ public class SearchComponent {
         //--------------------------
         lemmaGrid.addSelectionListener(selectionEvent -> {
             //Новый вариант
-            if (selectGetInfoQueryComboBox.getValue() != "first variant") {
-                doLemmaSelected(selectionEvent.getAllSelectedItems());
-                detailLayout.setVisible(false);
-                return;
-            }
+            if (Objects.equals(selectGetInfoQueryComboBox.getValue(), "first variant")) {
+                doLemmaSelectEventFirst(selectionEvent.getAllSelectedItems());
+            } else
+                doLemmaSelectEvent(selectionEvent.getAllSelectedItems());
 
+            checkBoxAndButtonLayout.setEnabled(true);
             detailLayout.setVisible(false);
-
-            Integer siteId = siteComboBox.getValue().getId();
-
-            //Формирование списков страниц
-            setStartTime();//------------------------------------------------------------------------------------
-            selectionEvent.getAllSelectedItems().forEach(lemma -> {
-                String selectedLemma = lemma.getLemma();
-
-                List<Integer> pageIdList;
-                if (siteId == 0) //Для всех сайтов
-                    pageIdList = beanAccess.getPageRepository().getPageIdByLemma(selectedLemma);
-                else //Для выбранного сайта
-                    pageIdList = beanAccess.getPageRepository().getPageIdBySiteIdAndLemma(selectedLemma, siteId);
-
-                //Для каждой леммы - свой список страниц (pageId)
-                if (!pageIdHashMap.containsKey(selectedLemma))
-                    pageIdHashMap.put(selectedLemma, pageIdList);
-
-            });
-            timeSpentNotification(String.format("Списки Page_Id сформированы за "));
-            //----------------------------------------------------------------------------------------------------
-
-            // Имеем List<PageId> для каждой леммы!
-            //    Ищем пересечение всех листов
-
-
-            //Формируем строку со всеми выбранными леммами
-            StringBuilder stringBuilder = new StringBuilder();
-            selectionEvent.getAllSelectedItems().forEach(l -> stringBuilder.append(l.getLemma()).append(","));
-            String includeLemma = stringBuilder.toString();
-
-            if (includeLemma.isEmpty()) {
-                findPageGrid.setItems(new ArrayList<>());
-                findPageGrid.getColumns().get(2).setHeader("Страницы");
-                return;
-            }
-            //Все выбранные леммы через запятую
-            includeLemma = "'" + includeLemma.substring(0, includeLemma.length() - 1) + "'";
-
-            //Retain all pageId - выбираем пересечение страниц для всех лемм
-            var pageIdRetained = retainAllPageId(pageIdHashMap);
-
-            stringBuilder.delete(0, stringBuilder.length());
-            pageIdRetained.forEach(pageId -> stringBuilder.append(pageId.toString()).append(","));
-
-            //Строка с общими для всех лемм pageId
-            var includePageId = stringBuilder.toString();
-
-            if (!(includePageId.isBlank())) {
-                includePageId = includePageId.substring(0, includePageId.length() - 1);
-
-                List<PathTable> pathTableList;
-                if (siteId == 0)
-                    pathTableList = beanAccess.getPathTableRepository()
-                            .getResultTableForAllSites(includeLemma);
-                    //.allSitesRequest(includeLemma); неправильно
-                else
-                    pathTableList = beanAccess.getPathTableRepository()
-                            .getResultTableForSelectedSite(siteId, includeLemma, includePageId);
-
-                //Результаты
-                findPageGrid.setItems(pathTableList);
-                findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
-            } else {
-                findPageGrid.setItems(new ArrayList<>());
-                findPageGrid.getColumns().get(2).setHeader("Страницы");
-            }
-
         });
+
     }
 
     private List<String> retainAllSelectedLemmas() {
@@ -573,13 +577,6 @@ public class SearchComponent {
             }
             //Отображаем леммы
             setLemmaGridItems(siteComboBox.getValue().getId());
-
-//            switch (selectGetInfoQueryComboBox.getValue()) {
-//                case "first variant" -> setLemmaGridItems(siteComboBox.getValue().getId());
-//                case "second variant" -> setLemmaGridItems2(siteComboBox.getValue().getId());
-//            }
-
-
         });
         return searchButton;
     }
