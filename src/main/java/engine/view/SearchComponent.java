@@ -35,7 +35,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static engine.service.TimeMeasure.setStartTime;
-import static engine.service.TimeMeasure.timeSpentNotification;
 
 public class SearchComponent {
 
@@ -54,17 +53,14 @@ public class SearchComponent {
     private final TextField indexCountTextField = new TextField("Таблица Index");
     private final TextField requestTextField = new TextField("Поисковый запрос");
     private final TextField findTextField = new TextField();
-
-    private final Button showFindPageButton = UIElement.createButton("Показать", VaadinIcon.DOWNLOAD, "");
+    Checkbox checkboxAuto = new Checkbox("Автом.расчёт");
+    private final Button calcPageButton = UIElement.createButton("Расчёт релевантности", VaadinIcon.DOWNLOAD, "");
     private final VerticalLayout detailLayout = new VerticalLayout();
-
     private ComboBox<String> selectCountersQueryComboBox;
-
     private ComboBox<String> selectGetInfoQueryComboBox;
-
     private Site allSiteObject = new Site();
-
     private final Lemmatization lemmatizator;
+    private String findingPages;
 
     public SearchComponent() {
         mainLayout = UIElement.getMainLayout();
@@ -106,8 +102,7 @@ public class SearchComponent {
 
         selectCountersQueryComboBox = UIElement.createComboBox(List.of("Repository.Count", "Counters", "GetStatistic"));
         selectGetInfoQueryComboBox = UIElement.createComboBox(List.of("first variant", "second variant"));
-
-
+        //--------------      Сайт Страницы Леммы Index     обновить --------------
         var horizontalLayout = new HorizontalLayout(
                 getSiteComboBox(),
                 pageCountTextField,
@@ -125,32 +120,34 @@ public class SearchComponent {
 
         requestTextField.setSizeUndefined();
 
+        //--------------  Текст запроса    Найти леммы ----------------------
         requestLayout.add(requestTextField, getSearchButton());
-        //requestLayout.setSizeUndefined();
         requestLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         requestLayout.setEnabled(false);
 
-
+        //-------------- Grid Леммы  --- Grid Страницы ----------------------
         gridsLayout.add(lemmaGrid, findPageGrid);
         gridsLayout.setWidthFull();
 
 
-        Checkbox checkbox = new Checkbox("Отображать по запросу");
-        checkbox.setValue(false);
-        checkbox.addValueChangeListener(event -> {
-            showFindPageButton.setEnabled(event.getValue());
+        checkboxAuto.setValue(true);
+        checkboxAuto.addValueChangeListener(event -> {
+            calcPageButton.setEnabled(!event.getValue());
         });
-        findTextField.setWidth("40%");
+        findTextField.setWidth("50%");
         findTextField.setReadOnly(true);
 
-        showFindPageButton.setEnabled(false);
+        calcPageButton.setEnabled(false);
+        //---------------- Вибор системы поиск, Расчёт релевантности -------------------------
+        HorizontalLayout hLayout = new HorizontalLayout(selectGetInfoQueryComboBox, calcPageButton);
+        hLayout.setWidth("40%");
 
         checkBoxAndButtonLayout.setSizeUndefined();
-        checkBoxAndButtonLayout.add(findTextField, selectGetInfoQueryComboBox, checkbox, showFindPageButton);
+        checkBoxAndButtonLayout.add(hLayout, checkboxAuto, findTextField);
         checkBoxAndButtonLayout.setAlignItems(FlexComponent.Alignment.END);
         checkBoxAndButtonLayout.setWidthFull();
         checkBoxAndButtonLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
-        checkBoxAndButtonLayout.setEnabled(false);
+        //checkBoxAndButtonLayout.setEnabled(false);
 
 
         var resultLayout = new VerticalLayout(horizontalLayout,
@@ -325,8 +322,9 @@ public class SearchComponent {
         Grid.Column<PathTable> pathRelevanceColumn = findPageGrid.addColumn(PathTable::getPath)
                 .setHeader("Страница")
                 .setTextAlign(ColumnTextAlign.START)
-                .setWidth("60%").
-                setResizable(true);
+                .setWidth("60%")
+                .setAutoWidth(true)
+                .setResizable(true);
 
         HeaderRow headerRow = findPageGrid.prependHeaderRow();
 
@@ -378,29 +376,19 @@ public class SearchComponent {
     }
 
     private void showFindingPageCount(Integer value, String timeString) {
-        findTextField.setValue("Найдено страниц: " + value + " за ");
+        if (value == 0) {
+            findTextField.setValue("Страниц не найдено");
+            return;
+        }
+        String result = "Найдено страниц: " + value;
+        if (!timeString.isBlank())
+            result += "   [ -- " + timeString + " -- ]";
+        findTextField.setValue(result);
     }
 
-    private void doLemmaSelectEvent(Set<Lemma> selectedLemmas) {
-
-        if (selectedLemmas.size() == 0) return;
-
-        detailLayout.setVisible(false);
-        checkBoxAndButtonLayout.setEnabled(true);
-
-        Integer siteId = siteComboBox.getValue().getId();
-
-        TimeMeasure.setStartTime();//----------------------------------------------------------------------------------
-        String pageIntersection = findPageIntersection(selectedLemmas, siteId);
-
-        //Retain all pageId - выбираем пересечение страниц для всех лемм
-        var pageIdRetained = retainAllPageId(pageIdHashMap);
-        UIElement.showMessage("Найдено " + pageIdRetained.size() + " страниц");
-        showFindingPageCount(pageIdRetained.size(), TimeMeasure.getStringExperienceTime());
-        return;
-/*
+    private void getRelevance(Integer siteId, Set<Lemma> selectedLemmas, String pageIntersection) {
         List<PathTable> pathTableList;
-        if (siteId == 0) { // Все сайты -> через генерацию запроса - аботает меньше минуты при 378 млн. индексов
+        if (siteId == 0) { // Все сайты -> через генерацию запроса - работает меньше минуты при 378 млн. индексов
             String lemmas = selectedLemmas.stream()
                     .map(Lemma::getLemma)
                     .collect(Collectors.joining(",", "'", "'"));
@@ -415,8 +403,32 @@ public class SearchComponent {
         findPageGrid.setItems(pathTableList);
         findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
 
-        */
-        //-------------------------------------------------------------------------------------------------------------
+    }
+
+    private void doLemmaSelectEvent(Set<Lemma> selectedLemmas) {
+
+        if (selectedLemmas.size() == 0) {
+            showFindingPageCount(0,"");
+            return;
+        }
+
+        detailLayout.setVisible(false);
+        //checkBoxAndButtonLayout.setEnabled(true);
+
+        Integer siteId = siteComboBox.getValue().getId();
+
+        TimeMeasure.setStartTime();//----------------------------------------------------------------------------------
+        findingPages = findPageIntersection(selectedLemmas, siteId);
+
+        //Retain all pageId - выбираем пересечение страниц для всех лемм
+        var pageIdRetained = retainAllPageId(pageIdHashMap);
+        UIElement.showMessage("Найдено " + pageIdRetained.size() + " страниц");
+        showFindingPageCount(pageIdRetained.size(), TimeMeasure.getStringExperienceTime());
+
+        if (checkboxAuto.getValue()) {
+            getRelevance(siteId, selectedLemmas, findingPages);
+        } else
+            findPageGrid.setItems(new ArrayList<>());
     }
 
     private void doLemmaSelectEventFirst(Set<Lemma> selectedLemmas) {
@@ -440,20 +452,22 @@ public class SearchComponent {
                 pageIdHashMap.put(selectedLemma, pageIdList);
         });
 
-        //timeSpentNotification(String.format("Списки Page_Id сформированы за "));
-        //----------------------------------------------------------------------------------------------------
-
         if (selectedLemmas.size() == 0) {
             findPageGrid.setItems(new ArrayList<>());
             findPageGrid.getColumns().get(2).setHeader("Страницы");
             return;
         }
         //Формируем строку со всеми выбранными леммами
-        String includeLemma = selectedLemmas.stream().map(l -> l.getLemma()).collect(Collectors.joining(",", "'", "'"));
+        String includeLemma = selectedLemmas.stream()
+                .map(Lemma::getLemma)
+                .collect(Collectors.joining(",", "'", "'"));
 
         //Retain all pageId - выбираем пересечение страниц для всех лемм
         var pageIdRetained = retainAllPageId(pageIdHashMap);
+        //----------------------------------------------------------------------------------------------------
         showFindingPageCount(pageIdRetained.size(), TimeMeasure.getStringExperienceTime());
+
+
 
         String includePageId = pageIdRetained.stream().map(p -> Integer.toString(p)).collect(Collectors.joining(",", "'", "'"));
 
@@ -507,14 +521,28 @@ public class SearchComponent {
         //Действие при выборе леммы
         //--------------------------
         lemmaGrid.addSelectionListener(selectionEvent -> {
+
+            //Стираем результаты
+            if (selectionEvent.getAllSelectedItems().size() == 0)
+                findPageGrid.setItems(new ArrayList<>());
+
             //Новый вариант
             if (Objects.equals(selectGetInfoQueryComboBox.getValue(), "first variant")) {
                 doLemmaSelectEventFirst(selectionEvent.getAllSelectedItems());
             } else
                 doLemmaSelectEvent(selectionEvent.getAllSelectedItems());
 
-            checkBoxAndButtonLayout.setEnabled(true);
+            //checkBoxAndButtonLayout.setEnabled(true);
             detailLayout.setVisible(false);
+        });
+
+        calcPageButton.addClickListener(buttonClickEvent -> {
+
+            if (Objects.equals(selectGetInfoQueryComboBox.getValue(), "first variant")) {
+                //doLemmaSelectEventFirst(selectionEvent.getAllSelectedItems());
+            } else
+                getRelevance(siteComboBox.getValue().getId(), lemmaGrid.getSelectedItems(), findingPages);
+
         });
 
     }
@@ -562,8 +590,8 @@ public class SearchComponent {
 
     private Button getSearchButton() {
 
-        var searchButton = UIElement.createButton("Поиск", VaadinIcon.SEARCH_PLUS, "");
-        searchButton.setWidth("15%");
+        var searchButton = UIElement.createButton("Найти леммы", VaadinIcon.SEARCH_PLUS, "");
+        searchButton.setWidth("20%");
 
         searchButton.addClickListener(buttonClickEvent -> {
             String requestStr = requestTextField.getValue();
