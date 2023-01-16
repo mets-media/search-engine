@@ -1,6 +1,7 @@
 package engine.view;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
@@ -14,12 +15,24 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import engine.service.TimeMeasure;
 import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
 @UtilityClass
 public class UIElement {
+    private static int showMessageTime = 2000;
+
+    private static Notification.Position position = Notification.Position.MIDDLE;
+
+    public static void setShowMessageTime(int showMessageTime) {
+        UIElement.showMessageTime = showMessageTime;
+    }
+
+    public static void setPosition(Notification.Position position) {
+        UIElement.position = position;
+    }
 
     public static VerticalLayout getMainLayout() {
         var verticalLayout = new VerticalLayout();
@@ -86,8 +99,8 @@ public class UIElement {
                     );
     }
 
-    public static void showMessage(String text, int duration, Notification.Position position) {
-        Notification notification = new Notification(text, duration);
+    public static void showMessage(String text) {
+        Notification notification = new Notification(text, showMessageTime, position);
         notification.setPosition(position);
         notification.open();
     }
@@ -150,13 +163,19 @@ public class UIElement {
     }
 
 
-
     public static Button createButton(String text, VaadinIcon icon, String title) {
         Button button = new Button(text);
         if (!(icon == null)) button.setIcon(icon.create());
         button.getElement().setProperty("title", title);
 
         return button;
+    }
+
+    public static ComboBox<String> createComboBox(List<String> items) {
+        ComboBox<String> comboBox = new ComboBox<>();
+        comboBox.setItems(items);
+        comboBox.setValue(items.get(0));
+        return comboBox;
     }
 
 

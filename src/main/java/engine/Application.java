@@ -49,6 +49,7 @@ public class Application extends SpringBootServletInitializer {
                partOfSpeechRepository.initData();
             //----------------------------------------------------
 
+            siteRepository.createOneRecordTable();
             pageRepository.createTriggers();
             siteRepository.createTrigger();
             lemmaRepository.createLemmaTrigger();
@@ -58,6 +59,7 @@ public class Application extends SpringBootServletInitializer {
             //Запрос лемм по всем сайтам
             pageRepository.createFunctionForAllSiteLemmaInfo();
             pageRepository.createFunctionResetCounters();
+            pageRepository.createGetPagesFunction();
 
             //@ManyTOMany
             indexRepository.createForeignKeys();

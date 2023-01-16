@@ -19,6 +19,7 @@ import engine.entity.SiteStatus;
 import engine.repository.SiteRepository;
 import engine.service.BeanAccess;
 import engine.service.Parser;
+import engine.service.TimeMeasure;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -49,7 +50,6 @@ public class SiteComponent {
     }
 
     public SiteComponent() {
-
         mainLayout = UIElement.getMainLayout();
         mainLayout.add(UIElement.getTopLayout("Сканирование сайтов", "xl", createButtons()));
         mainLayout.setMinHeight("100%");
@@ -155,7 +155,7 @@ public class SiteComponent {
         deleteButton.addClickListener(buttonClickEvent -> {
             List<Site> sitesForDelete = grid.getSelectedItems().stream().collect(Collectors.toList());
             if (sitesForDelete.isEmpty()) {
-                showMessage("Не выбраны сайты для удаления", 1000, Notification.Position.MIDDLE);
+                showMessage("Не выбраны сайты для удаления");
                 return;
             }
             showDeleteSiteDialog(sitesForDelete);
@@ -328,7 +328,7 @@ public class SiteComponent {
 
         Button saveButton = new Button("Сохранить", e -> {
             if (textFieldUrl.isEmpty())
-                showMessage("URL сайта не может быть пустым!", 1000, Notification.Position.MIDDLE);
+                showMessage("URL сайта не может быть пустым!");
             else {
                 String newUrl = textFieldUrl.getValue();
 

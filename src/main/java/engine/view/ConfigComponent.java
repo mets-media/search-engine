@@ -132,8 +132,7 @@ public class ConfigComponent {
                         Optional<Config> config = grid.getSelectedItems().stream().findFirst();
                         config.ifPresent(c -> {
                             if (c.getId() < 0)
-                                showMessage(c.getName() + "нельзя удалять!",
-                                        2000, Notification.Position.MIDDLE);
+                                showMessage(c.getName() + "нельзя удалять!");
                             else
                                 configRepository.delete(c);
                         });
@@ -182,7 +181,7 @@ public class ConfigComponent {
 
         Button saveButton = new Button("Сохранить", e -> {
             if (textFieldName.isEmpty())
-                showMessage("Введите имя Свойства", 1000, Notification.Position.MIDDLE);
+                showMessage("Введите имя Свойства");
             else {
                 if (!(option == null)) {
                     option.setKey(textFieldKey.getValue());
@@ -191,7 +190,7 @@ public class ConfigComponent {
                     try {
                         configRepository.save(option);
                     } catch (Exception exception) {
-                        showMessage("Key - не уникален. Введите другой!", 2000, Notification.Position.MIDDLE);
+                        showMessage("Key - не уникален. Введите другой!");
                         return;
                     }
                 } else
@@ -200,7 +199,7 @@ public class ConfigComponent {
                                 textFieldName.getValue(),
                                 textFieldValue.getValue()));
                     } catch (Exception exception) {
-                        showMessage("Key - не уникален. Введите другой!", 2000, Notification.Position.MIDDLE);
+                        showMessage("Key - не уникален. Введите другой!");
                         return;
                     }
                 grid.setItems(configRepository.findAll());

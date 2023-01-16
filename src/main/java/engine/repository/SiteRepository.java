@@ -1,5 +1,6 @@
 package engine.repository;
 
+import engine.entity.PathTable;
 import engine.entity.Site;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -107,6 +108,16 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             "$BODY$;\n", nativeQuery = true)
     void creteGetCountersFunction();
 
+    @Query(value =
+            "select 0 id, '*' name, 'Все сайты' url,\n" +
+                    "(select last_value from page_id_seq)  - (select last_value - 1 from page_del_count) page_count,\n" +
+                    "(select last_value from lemma_id_seq) - (select last_value - 1 from lemma_del_count) lemma_count,\n" +
+                    "(select last_value from index_id_seq) - (select last_value - 1 from index_del_count) index_count,\n" +
+                    "null status, now() status_time, '' last_error \n" +
+                    "from one_record_table;\n",
+            nativeQuery = true)
+    Optional<Site> getAllSiteInfo();
+
     @Modifying
     @Transactional
     @Query(value =
@@ -128,6 +139,20 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
                     "\t end if;\n" +
                     "END$$;",nativeQuery = true)
     void createSequences();
+
+    @Modifying
+    @Transactional
+    @Query(value ="CREATE TABLE IF NOT EXISTS one_record_table\n" +
+            "(\n" +
+            "    id integer NOT NULL,\n" +
+            "    CONSTRAINT one_record_table_pkey PRIMARY KEY (id)\n" +
+            ");\n" +
+            "insert into one_record_table (id) values (0) on conflict do nothing;\n", nativeQuery = true)
+    void createOneRecordTable();
+
+    @Query(value = "select * from get_by_lemma_and_site(:lemmas, :siteId)",nativeQuery = true)
+    List<PathTable> getResultByLemmasAndSiteId(@Param("lemmas") String lemmas, @Param("siteId") Integer siteId);
+
 /*
 DO $$declare
     declare record Record;

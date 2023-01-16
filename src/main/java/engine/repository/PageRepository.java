@@ -213,6 +213,54 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
 
     @Modifying
     @Transactional
+    @Query(value = "CREATE OR REPLACE FUNCTION get_pages(\n" +
+            "\tlemma_string text,\n" +
+            "\tpage_string text,\n" +
+            "\tsite_selected integer)\n" +
+            "    RETURNS TABLE(page_id integer, abs double precision, rel double precision, path text) \n" +
+            "    LANGUAGE 'plpgsql'\n" +
+            "    COST 100\n" +
+            "    VOLATILE PARALLEL UNSAFE\n" +
+            "    ROWS 1000\n" +
+            "\n" +
+            "AS $BODY$\n" +
+            "declare rec_page record;\n" +
+            "declare rec_index record;\n" +
+            "declare max_rank float;\n" +
+            "declare lemmas text[];\n" +
+            "\n" +
+            "begin\n" +
+            "\tpage_id = 0;\t\t\t\t\n" +
+            "\t--lemmas = unnest(string_to_array(lemma_string,','));\n" +
+            "\n" +
+            "\tfor rec_page in select id page_id, page.path\n" +
+            "\t\t\t\tfrom page\n" +
+            "\t\t\t\twhere id in (select cast(unnest(string_to_array(page_string,',')) as integer))\n" +
+            "\t\t\t\t--order by page_id\n" +
+            "\tloop\n" +
+            "\t\tabs = 0; rel = 0; max_rank = 0;\n" +
+            "\t\tfor rec_index in select index.rank\n" +
+            "\t\t\t\t\t\t\tfrom index \n" +
+            "\t\t\t\t\t\t\twhere index.page_id = rec_page.page_id\n" +
+            "\t\t\t\t\t\t\t  and index.lemma_id in (select cast(unnest(string_to_array(lemma_string,',')) as integer))\n" +
+            "\t\tloop\n" +
+            "\t\t\tabs = abs + rec_index.rank;\n" +
+            "\t\t\tif max_rank < rec_index.rank then max_rank = rec_index.rank; end if;\n" +
+            "\t\tend loop;\n" +
+            "\t\t\n" +
+            "\t\tpage_id = rec_page.page_id;\n" +
+            "\t\tpath = rec_page.path;\n" +
+            "\t\trel = abs / max_rank;\n" +
+            "\t\treturn next;" +
+            "\t\t\n" +
+            "\tend loop;\n" +
+            "\t\n" +
+            "end\n" +
+            "$BODY$;",nativeQuery = true)
+    void createGetPagesFunction();
+
+    @Modifying
+    @Transactional
     @Query(value =
             "do $$DECLARE\n" +
             "declare max_id integer;\n" +
