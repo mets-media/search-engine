@@ -233,7 +233,7 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "\tpage_id = 0;\t\t\t\t\n" +
             "\t--lemmas = unnest(string_to_array(lemma_string,','));\n" +
             "\n" +
-            "\tfor rec_page in select id page_id, path\n" +
+            "\tfor rec_page in select id page_id, page.path\n" +
             "\t\t\t\tfrom page\n" +
             "\t\t\t\twhere id in (select cast(unnest(string_to_array(page_string,',')) as integer))\n" +
             "\t\t\t\torder by page_id\n" +
@@ -242,7 +242,7 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "\t\tfor rec_index in select index.rank\n" +
             "\t\t\t\t\t\t\tfrom index \n" +
             "\t\t\t\t\t\t\twhere index.page_id = rec_page.page_id\n" +
-            "\t\t\t\t\t\t\t  and index.lemma_id in (select unnest(string_to_array(lemma_string,',')))\n" +
+            "\t\t\t\t\t\t\t  and index.lemma_id in (select cast(unnest(string_to_array(lemma_string,',')) as integer))\n" +
             "\t\tloop\n" +
             "\t\t\tabs = abs + rec_index.rank;\n" +
             "\t\t\tif max_rank < rec_index.rank then max_rank = rec_index.rank; end if;\n" +
@@ -251,6 +251,7 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
             "\t\tpage_id = rec_page.page_id;\n" +
             "\t\tpath = rec_page.path;\n" +
             "\t\trel = abs / max_rank;\n" +
+            "\t\treturn next;" +
             "\t\t\n" +
             "\tend loop;\n" +
             "\t\n" +
