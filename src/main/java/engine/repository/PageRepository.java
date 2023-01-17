@@ -1,6 +1,7 @@
 package engine.repository;
 
 import engine.entity.Page;
+import engine.entity.PathTable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -92,6 +93,7 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
     @Transactional
     @Query(value = "select reset_counters();", nativeQuery = true)
     Integer checkForRestartCounters();
+
 
 }
 

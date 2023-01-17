@@ -15,18 +15,7 @@ import java.util.List;
 
 public interface LemmaRepository extends JpaRepository<Lemma,Integer> {
 
-
-    Integer countBySiteId(Integer siteId);
-
-//    @Query(value="Select * from Lemma Where site_id = :siteId and lemma in (:lemmas)", nativeQuery = true)
-//    List<Lemma> findBySiteIdLemmaIn(@Param("siteId") Integer siteId, @Param("lemmas") List<String> lemmas,  Pageable pageable);
-
     List<Lemma> findBySiteIdAndLemmaIn(Integer siteId, List<String> lemma, Pageable pageable);
-
-
-    @Query(value = "select id from lemma where lemma in (:listLemma) ", nativeQuery = true)
-    List<Integer> getIdByLemmaIn(@Param("listLemma") List<String> listLemma);
-
 
     @Query(value = "select 0 id, sum(frequency) frequency, lemma, sum(rank) rank, -1 site_id \n" +
             "from lemma\n" +

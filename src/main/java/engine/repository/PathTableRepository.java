@@ -5,6 +5,8 @@ import engine.entity.PathTable;
 import engine.mapper.LemmaMapper;
 import engine.mapper.PathTableMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -40,40 +42,53 @@ public class PathTableRepository {
 
                     "select * from page_query \n" +
                     "order by rel desc, path";
+
     public List<PathTable> getResultTableForSelectedSite(Integer siteId, String includeLemma, String includePageId) {
         return jdbcTemplate.query(SQL_REQUEST_RESULT_TABLE_FOR_SELECTED_SITE
                 .replace(":includeLemma", includeLemma)
                 .replace(":siteId", siteId.toString())
                 .replace(":includePageId", includePageId), pathTableMapper);
     }
+
     public List<PathTable> getResultTableForAllSites(String includeLemma) {
         return jdbcTemplate.query("select * from search_lemma_all_sites(:includeLemma)"
                 .replace(":includeLemma", includeLemma), pathTableMapper);
     }
+
     String FIND_LEMMA_IN_ALL_SITES =
             "select 0 id, sum(frequency) frequency, lemma, 0 site_id \n" +
-            "from lemma\n" +
-            "where lemma in (:lemmaIn)\n" +
-            "group by lemma\n" +
-            "order by frequency";
+                    "from lemma\n" +
+                    "where lemma in (:lemmaIn)\n" +
+                    "group by lemma\n" +
+                    "order by frequency";
+
     public List<Lemma> findLemmasInAllSites(String lemmas) {
         return jdbcTemplate.query(FIND_LEMMA_IN_ALL_SITES
                 .replace(":lemmaIn", lemmas), lemmaMapper);
     }
 
-        public List<PathTable> getResultByLemmasAndSiteId(String lemmas, String pageIntersection, Integer siteId) {
-            return jdbcTemplate.query("select * from get_by_lemma_and_site(:lemmas, :pageIntersection, :siteId)"
-                    .replace(":lemmas", lemmas)
-                    .replace(":pageIntersection", pageIntersection)
-                    .replace(":siteId", siteId.toString()), pathTableMapper);
+    public List<PathTable> getResultByLemmasAndSiteId(String lemmas, String pageIntersection, Integer siteId) {
+        return jdbcTemplate.query("select * from get_by_lemma_and_site(:lemmas, :pageIntersection, :siteId)"
+                .replace(":lemmas", lemmas)
+                .replace(":pageIntersection", pageIntersection)
+                .replace(":siteId", siteId.toString()), pathTableMapper);
     }
 
-    public List<PathTable> getResultByGetPage(String lemmas, String pageIntersection, Integer siteId) {
+    public List<PathTable> getResult_Function_GetPage(String lemmas, String pageIntersection, Integer siteId) {
         return jdbcTemplate.query("select * from get_pages(:lemmas, :pageIntersection, :siteId)"
                 .replace(":lemmas", lemmas)
                 .replace(":pageIntersection", pageIntersection)
                 .replace(":siteId", siteId.toString()), pathTableMapper);
-
     }
+
+
+    public List<PathTable> getPaths(String pages) {
+        return jdbcTemplate.query("Select id page_id, path, cast(0 as float) abs, cast(0 as float) rel \n" +
+                "from page \n" +
+                "where id in (:pages)"
+                        .replace(":pages",pages), pathTableMapper);
+    }
+
+
 
 }
