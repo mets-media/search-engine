@@ -26,10 +26,10 @@ import org.springframework.data.domain.Sort;
 
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static engine.service.TimeMeasure.setStartTime;
+import static engine.service.SearchService.listMerge;
 
 public class SearchComponent {
 
@@ -411,35 +411,10 @@ public class SearchComponent {
         setStartTime();
         List<PathTable> pathTableList = findIndexIntersection(selectedLemmas, siteComboBox.getValue().getId());
 
-        //Получить path из базы
-//        for (PathTable pathRecord : pathTableList) {
-//            beanAccess.getPageRepository().findById(pathRecord.getPageId())
-//                    .ifPresent(page-> pathRecord.setPath(page.getPath()));
-//        }
-
-
         //Получаем list<PathTable> с заполненным Path
         List<PathTable> listPaths = beanAccess.getPathTableRepository().getPaths(pathTableList.stream().map(l -> Integer.toString(l.getPageId())).collect(Collectors.joining(",")));
 
-        BiFunction<PathTable,PathTable,PathTable> ADD_PATH_FUNCTION =
-                (p1,p2) -> new PathTable(p1.getPageId(),p1.getAbsRelevance(),p1.getRelRelevance(),p2.getPath());
-
-        HashMap<Integer, PathTable> resultMap = new HashMap<>();
-        pathTableList.stream().map(l -> new AbstractMap.SimpleEntry<Integer, PathTable>(l.getPageId(), l))
-                .forEach(m -> resultMap.put(m.getKey(), m.getValue()));
-
-
-
-        HashMap<Integer, PathTable> pathsMap = new HashMap<>();
-        listPaths.stream().map(l -> new AbstractMap.SimpleEntry<Integer, PathTable>(l.getPageId(), l))
-                .forEach(m -> pathsMap.put(m.getKey(), m.getValue()));
-
-        //resultMap.forEach((k,v) -> pathsMap.merge(k,v,ADD_PATH_FUNCTION));
-        pathsMap.forEach((k,v) -> resultMap.merge(k,v,ADD_PATH_FUNCTION));
-
-
-        //findPageGrid.setItems(pathTableList);
-        findPageGrid.setItems(resultMap.values().stream().sorted(Comparator.comparing(PathTable::getAbsRelevance).reversed()).toList());
+        findPageGrid.setItems(listMerge(pathTableList, listPaths));
         findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
 
         printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());

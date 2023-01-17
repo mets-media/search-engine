@@ -2,12 +2,32 @@ package engine.service;
 
 import engine.entity.IndexEntity;
 import engine.entity.Lemma;
+import engine.entity.PathTable;
 import lombok.experimental.UtilityClass;
 
 import java.util.*;
+import java.util.function.BiFunction;
 
 @UtilityClass
 public class SearchService {
+
+    public static List<PathTable> listMerge(List<PathTable> list1, List<PathTable> list2) {
+
+        BiFunction<PathTable,PathTable,PathTable> ADD_PATH_FUNCTION =
+                (p1,p2) -> new PathTable(p1.getPageId(),p1.getAbsRelevance(),p1.getRelRelevance(),p2.getPath());
+
+        HashMap<Integer, PathTable> list1_Map = new HashMap<>();
+        list1.stream().map(l -> new AbstractMap.SimpleEntry<Integer, PathTable>(l.getPageId(), l))
+                .forEach(m -> list1_Map.put(m.getKey(), m.getValue()));
+
+        HashMap<Integer, PathTable> list2_Map = new HashMap<>();
+        list2.stream().map(l -> new AbstractMap.SimpleEntry<Integer, PathTable>(l.getPageId(), l))
+                .forEach(m -> list2_Map.put(m.getKey(), m.getValue()));
+
+        list2_Map.forEach((k,v) -> list1_Map.merge(k,v,ADD_PATH_FUNCTION));
+
+        return list1_Map.values().stream().sorted(Comparator.comparing(PathTable::getAbsRelevance).reversed()).toList();
+    }
 
     public static List<Integer> retainAllPageId(Set<Lemma> selectedLemmas,
                                           HashMap<String, List<Integer>> hashMap) {
