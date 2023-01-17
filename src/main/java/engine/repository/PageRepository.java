@@ -261,6 +261,65 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
 
     @Modifying
     @Transactional
+    @Query(value = "CREATE OR REPLACE FUNCTION get_by_lemma_and_site(\n" +
+            "\tlemma_string text,\n" +
+            "\tpage_string text,\n" +
+            "\tsite_selected integer)\n" +
+            "    RETURNS TABLE(page_id integer, abs double precision, rel double precision, path text) \n" +
+            "    LANGUAGE 'plpgsql'\n" +
+            "    COST 100\n" +
+            "    VOLATILE PARALLEL UNSAFE\n" +
+            "    ROWS 1000\n" +
+            "\n" +
+            "AS $BODY$\n" +
+            "declare rec record;\n" +
+            "declare cur_page_id integer;\n" +
+            "declare max_rank float;\n" +
+            "declare lemma_site integer;\n" +
+            "begin\n" +
+            "\tpage_id = 0;\n" +
+            "\tabs = 0; rel = 0; max_rank = 0;\n" +
+            "\tfor rec in select lemma_id, index.page_id, index.rank from index\n" +
+            "\t\t\t\t\t\twhere lemma_id in (select id from lemma where lemma in (select unnest(string_to_array(lemma_string,','))))\n" +
+            "\t\t\t\t\t\tand index.page_id in (select cast(unnest(string_to_array(page_string,',')) as integer))\n" +
+            "\t\t\t\t\t\torder by page_id\n" +
+            "\tloop\n" +
+            "\t\tif (rec.page_id != page_id) and (page_id != 0) then\n" +
+            "\t\t\trel = abs / max_rank;\n" +
+            "\t\t\t\n" +
+            "\t\t\tselect page.path from page where id = rec.page_id into path;\n" +
+            "\t\t\t\n" +
+            "\t\t\tselect lemma.site_id from lemma where lemma.id = rec.lemma_id into lemma_site;\n" +
+            "\t\t\t\n" +
+            "\t\t\tif site_selected = 0 then \n" +
+            "\t\t\t\treturn next;\n" +
+            "\t\t\telse\t\n" +
+            "\t\t\t--Вывод если сайт совпадает с заданным\n" +
+            "\t\t\tif (lemma_site = site_selected) then return next; end if;\n" +
+            "\t\t\tend if;\n" +
+            "\t\t\t\n" +
+            "\t\t\tabs = 0; max_rank = 0; rel = 0;\n" +
+            "\t\tend if;\n" +
+            "\t\t\n" +
+            "\t\tpage_id = rec.page_id;\n" +
+            "\t\tabs = abs + rec.rank;\n" +
+            "\t\tif max_rank < rec.rank then max_rank = rec.rank; end if;\n" +
+            "\t\t\n" +
+            "\tend loop;\n" +
+            "\t\n" +
+            "\tif abs > 0 then \n" +
+            "\t\t\trel = abs / max_rank;\n" +
+            "\t\t\tselect page.path from page where id = rec.page_id into path;\n" +
+            "\t\t\treturn next;\n" +
+            "\t\t\tabs = 0; max_rank = 0; rel = 0;\n" +
+            "\tend if;\n" +
+            "end\n" +
+            "$BODY$;", nativeQuery = true)
+    void createGetByLemmaAnfSiteIdFunction();
+
+
+    @Modifying
+    @Transactional
     @Query(value =
             "do $$DECLARE\n" +
             "declare max_id integer;\n" +

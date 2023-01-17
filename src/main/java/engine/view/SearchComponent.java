@@ -374,15 +374,20 @@ public class SearchComponent {
         });
     }
 
-    private void showFindingPageCount(Integer value, String timeString) {
-        if (value == 0) {
-            findTextField.setValue("Страницы не найдены");
-            return;
+    private void printFindingPageCount(Integer value, String timeString) {
+        switch (value) {
+            case 0 -> {
+                findTextField.setValue("Страницы не найдены");
+            }
+            case -1 -> findTextField.setValue("Идёт поиск страниц ...");
+            case -2 -> findTextField.setValue("");
+            default -> {
+                String result = "Найдено страниц: " + value;
+                if (!timeString.isBlank())
+                    result = "   [ -- " + timeString + " -- ]";
+                findTextField.setValue(result);
+            }
         }
-        String result = "Найдено страниц: " + value;
-        if (!timeString.isBlank())
-            result += "   [ -- " + timeString + " -- ]";
-        findTextField.setValue(result);
     }
 
     private void getRelevance(Integer siteId, Set<Lemma> selectedLemmas, String pageIntersection) {
@@ -407,7 +412,7 @@ public class SearchComponent {
     private void doLemmaSelectEventIndexHashMap(Set<Lemma> selectedLemmas) {
         TimeMeasure.setStartTime();
         List<PathTable> pathTableList = findIndexIntersection(selectedLemmas, siteComboBox.getValue().getId());
-        showFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
+        printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
         findPageGrid.setItems(pathTableList);
         findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
     }
@@ -415,7 +420,7 @@ public class SearchComponent {
     private void doLemmaSelectEvent(Set<Lemma> selectedLemmas) {
 
         if (selectedLemmas.size() == 0) {
-            showFindingPageCount(0, "");
+            printFindingPageCount(0, "");
             return;
         }
 
@@ -430,7 +435,7 @@ public class SearchComponent {
         //Retain all pageId - выбираем пересечение страниц для всех лемм
         var pageIdRetained = retainAllPageId(pageIdHashMap);
         UIElement.showMessage("Найдено " + pageIdRetained.size() + " страниц");
-        showFindingPageCount(pageIdRetained.size(), TimeMeasure.getStringExperienceTime());
+        printFindingPageCount(pageIdRetained.size(), TimeMeasure.getStringExperienceTime());
 
         if (checkboxAuto.getValue()) {
             getRelevance(siteId, selectedLemmas, findingPages);
@@ -472,8 +477,7 @@ public class SearchComponent {
         //Retain all pageId - выбираем пересечение страниц для всех лемм
         var pageIdRetained = retainAllPageId(pageIdHashMap);
         //----------------------------------------------------------------------------------------------------
-        showFindingPageCount(pageIdRetained.size(), TimeMeasure.getStringExperienceTime());
-
+        printFindingPageCount(pageIdRetained.size(), TimeMeasure.getStringExperienceTime());
 
         String includePageId = pageIdRetained.stream().map(p -> Integer.toString(p)).collect(Collectors.joining(",", "'", "'"));
 

@@ -60,6 +60,8 @@ public class Application extends SpringBootServletInitializer {
             pageRepository.createFunctionForAllSiteLemmaInfo();
             pageRepository.createFunctionResetCounters();
             pageRepository.createGetPagesFunction();
+            pageRepository.createGetByLemmaAnfSiteIdFunction();
+
 
             //@ManyTOMany
             indexRepository.createForeignKeys();
