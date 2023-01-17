@@ -68,4 +68,15 @@ public interface IndexRepository extends CrudRepository<IndexEntity, Integer> {
             "    EXECUTE FUNCTION delete_function();",nativeQuery = true)
     void createIndexTrigger();
 
+    @Query(value = "Select * from index " +
+            "join Lemma on Lemma.Id = Index.Lemma_Id " +
+            "where Lemma.Lemma = :lemma ", nativeQuery = true)
+    List<IndexEntity> getIndexByLemmaForAllSites(@Param("lemma") String lemma);
+
+    @Query(value = "Select * from index " +
+            "join Lemma on Lemma.Id = Index.Lemma_Id " +
+            "where Lemma.Lemma = :lemma " +
+            "  and site_id = :siteId", nativeQuery = true)
+    List<IndexEntity> getIndexByLemmaForSiteId(@Param("lemma") String lemma, @Param("siteId") int siteId);
+
 }

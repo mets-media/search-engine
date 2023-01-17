@@ -19,10 +19,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.NumberRenderer;
-import engine.entity.Lemma;
-import engine.entity.Page;
-import engine.entity.PathTable;
-import engine.entity.Site;
+import engine.entity.*;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Lemmatization;
@@ -42,6 +39,7 @@ public class SearchComponent {
     private ComboBox<Site> siteComboBox = null;
     private final HashMap<String, List<String>> pagesHashMap = new HashMap<>();
     private final HashMap<String, List<Integer>> pageIdHashMap = new HashMap<>();
+    private final HashMap<String, List<IndexEntity>> hashMapIndex = new HashMap<>();
     private final VerticalLayout mainLayout;
     private final HorizontalLayout requestLayout = new HorizontalLayout();
     private final HorizontalLayout checkBoxAndButtonLayout = new HorizontalLayout();
@@ -101,7 +99,7 @@ public class SearchComponent {
         });
 
         selectCountersQueryComboBox = UIElement.createComboBox(List.of("Repository.Count", "Counters", "GetStatistic"));
-        selectGetInfoQueryComboBox = UIElement.createComboBox(List.of("first variant", "second variant"));
+        selectGetInfoQueryComboBox = UIElement.createComboBox(List.of("first variant", "second variant", "index HashMap"));
         //--------------      Сайт Страницы Леммы Index     обновить --------------
         var horizontalLayout = new HorizontalLayout(
                 getSiteComboBox(),
@@ -256,6 +254,7 @@ public class SearchComponent {
         siteComboBox.addValueChangeListener(event -> {
 
             clearGrids();
+            hashMapIndex.clear();
 
             detailLayout.setVisible(false);
 
@@ -377,7 +376,7 @@ public class SearchComponent {
 
     private void showFindingPageCount(Integer value, String timeString) {
         if (value == 0) {
-            findTextField.setValue("Страниц не найдено");
+            findTextField.setValue("Страницы не найдены");
             return;
         }
         String result = "Найдено страниц: " + value;
@@ -405,10 +404,18 @@ public class SearchComponent {
 
     }
 
+    private void doLemmaSelectEventIndexHashMap(Set<Lemma> selectedLemmas) {
+        TimeMeasure.setStartTime();
+        List<PathTable> pathTableList = findIndexIntersection(selectedLemmas, siteComboBox.getValue().getId());
+        showFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
+        findPageGrid.setItems(pathTableList);
+        findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
+    }
+
     private void doLemmaSelectEvent(Set<Lemma> selectedLemmas) {
 
         if (selectedLemmas.size() == 0) {
-            showFindingPageCount(0,"");
+            showFindingPageCount(0, "");
             return;
         }
 
@@ -468,7 +475,6 @@ public class SearchComponent {
         showFindingPageCount(pageIdRetained.size(), TimeMeasure.getStringExperienceTime());
 
 
-
         String includePageId = pageIdRetained.stream().map(p -> Integer.toString(p)).collect(Collectors.joining(",", "'", "'"));
 
         List<PathTable> pathTableList;
@@ -507,6 +513,97 @@ public class SearchComponent {
         return pageIdRetained.stream().map(Object::toString).collect(Collectors.joining(",", "'", "'"));
     }
 
+    private Set<IndexEntity> removeByPageId(HashMap<String, List<IndexEntity>> hashMapIndex,
+                                            List<Integer> listPageId) {
+
+        Set<IndexEntity> result = new HashSet<>();
+
+        for (String lemma : hashMapIndex.keySet()) {
+
+            List<IndexEntity> indexEntities = hashMapIndex.get(lemma);
+
+            indexEntities.forEach(indexEntity -> {
+                if (listPageId.contains(indexEntity.getPageId()))
+                    result.add(indexEntity);
+            });
+        }
+
+        return result;
+    }
+
+    private List<PathTable> findIndexIntersection(Set<Lemma> lemmas, int siteId) {
+
+        if (lemmas.size() == 0) return new ArrayList<>();
+
+        List<IndexEntity> listIndex;
+        List<PathTable> result = new ArrayList<>();
+
+        for (Lemma lemma : lemmas) {
+            String selectedLemma = lemma.getLemma();
+            if (!hashMapIndex.containsKey(selectedLemma)) {
+                if (siteId == 0)
+                    listIndex = beanAccess.getIndexRepository().getIndexByLemmaForAllSites(selectedLemma);
+                else
+                    listIndex = beanAccess.getIndexRepository().getIndexByLemmaForSiteId(selectedLemma, siteId);
+
+                hashMapIndex.put(selectedLemma, listIndex);
+            }
+        }
+        //PageId
+        HashMap<String, List<Integer>> pageIdHashMap = new HashMap<>();
+
+//        for (Map.Entry<String, List<IndexEntity>> entry : hashMapIndex.entrySet()) {
+//            pageIdHashMap.put(entry.getKey(),
+//                    entry.getValue().stream().map(IndexEntity::getPageId).toList());
+//        }
+
+        //Взять только выбранные леммы
+        for (Lemma lemma : lemmas) {
+            pageIdHashMap.put(lemma.getLemma(),
+                    hashMapIndex.get(lemma.getLemma()).stream().map(IndexEntity::getPageId).toList());
+        }
+
+
+        //Найти пересечение
+        List<Integer> joinPageId = retainAllPageId(pageIdHashMap);
+
+
+        Set<IndexEntity> joinIndex = removeByPageId(hashMapIndex, joinPageId);
+
+        //Собрать PathTable
+        List<IndexEntity> list = joinIndex.stream().sorted(Comparator.comparing(IndexEntity::getPageId)).toList();
+
+        int pageId = 0;
+        float abs = 0;
+        float rel = 0;
+        float max_rank = 0;
+
+        for (IndexEntity indexEntity : list) {
+//            pageId = indexEntity.getPageId();
+//            result.add(new PathTable(pageId, indexEntity.getRank(), 0.0f, Integer.toString(pageId)));
+            int nextPage = indexEntity.getPageId();
+            if (nextPage != pageId) {
+                if (pageId != 0) {
+                    rel = abs / max_rank;
+                    result.add(new PathTable(pageId, abs, rel, Integer.toString(pageId)));
+                }
+                pageId = nextPage;//Новая лемма
+                abs = indexEntity.getRank();
+                max_rank = indexEntity.getRank();
+                rel = 0;
+            } else {
+                if (max_rank < indexEntity.getRank())
+                    max_rank = indexEntity.getRank();
+                abs += indexEntity.getRank();
+            }
+        }
+        if (abs != 0) { //Добавляем последнюю - если она есть
+            result.add(new PathTable(pageId, abs, rel, Integer.toString(pageId)));
+        }
+        result.sort(Comparator.comparing(PathTable::getAbsRelevance).reversed());
+        return result;
+    }
+
     private void createColumnsLemmaGrid() {
         lemmaGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         UIElement.setAllCheckboxVisibility(lemmaGrid, false);
@@ -526,11 +623,13 @@ public class SearchComponent {
             if (selectionEvent.getAllSelectedItems().size() == 0)
                 findPageGrid.setItems(new ArrayList<>());
 
-            //Новый вариант
-            if (Objects.equals(selectGetInfoQueryComboBox.getValue(), "first variant")) {
-                doLemmaSelectEventFirst(selectionEvent.getAllSelectedItems());
-            } else
-                doLemmaSelectEvent(selectionEvent.getAllSelectedItems());
+
+            switch (selectGetInfoQueryComboBox.getValue()) {
+                case "first variant" -> doLemmaSelectEventFirst(selectionEvent.getAllSelectedItems());
+                case "second variant" -> doLemmaSelectEvent(selectionEvent.getAllSelectedItems());
+                default -> doLemmaSelectEventIndexHashMap(selectionEvent.getAllSelectedItems());
+            }
+
 
             //checkBoxAndButtonLayout.setEnabled(true);
             detailLayout.setVisible(false);
@@ -588,6 +687,24 @@ public class SearchComponent {
         return result;
     }
 
+    private List<IndexEntity> retainAllIndexes(Set<Lemma> lemmaSet, HashMap<String, List<IndexEntity>> hashMap) {
+        List<Lemma> sortedLemma = lemmaSet
+                .stream()
+                .sorted(Comparator.comparing(Lemma::getFrequency)).toList();
+
+        if (sortedLemma.size() == 0) return new ArrayList<>();
+
+        String lowFrequencyLemma = sortedLemma.get(0).getLemma();
+
+        List<IndexEntity> result = new ArrayList<>(hashMap.get(lowFrequencyLemma));
+        for (int i = 1; i < sortedLemma.size(); i++) {
+            lowFrequencyLemma = sortedLemma.get(i).getLemma();
+
+            //result.retainAll(hashMap.get(lowFrequencyLemma));
+        }
+        return result;
+    }
+
     private Button getSearchButton() {
 
         var searchButton = UIElement.createButton("Найти леммы", VaadinIcon.SEARCH_PLUS, "");
@@ -618,7 +735,7 @@ public class SearchComponent {
             return;
         }
         String includeLemma = requestLemmas.keySet().stream().collect(Collectors.joining("','", "'", "'"));
-        lemmaGrid.setItems(beanAccess.getPathTableRepository().findLemmasInAllSites(includeLemma));
+        //lemmaGrid.setItems(beanAccess.getPathTableRepository().findLemmasInAllSites(includeLemma));
 
         if (siteId == 0) { //Все сайты
             //Запрос в программе выдаёт неверный результат, тот же запрос в pgAdmin работает правильно

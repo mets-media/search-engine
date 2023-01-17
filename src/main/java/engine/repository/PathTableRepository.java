@@ -49,7 +49,8 @@ public class PathTableRepository {
         return jdbcTemplate.query("select * from search_lemma_all_sites(:includeLemma)"
                 .replace(":includeLemma", includeLemma), pathTableMapper);
     }
-    String FIND_LEMMA_IN_ALL_SITES = "select 0 id, sum(frequency) frequency, lemma, 0 site_id \n" +
+    String FIND_LEMMA_IN_ALL_SITES =
+            "select 0 id, sum(frequency) frequency, lemma, 0 site_id \n" +
             "from lemma\n" +
             "where lemma in (:lemmaIn)\n" +
             "group by lemma\n" +
@@ -64,7 +65,6 @@ public class PathTableRepository {
                     .replace(":lemmas", lemmas)
                     .replace(":pageIntersection", pageIntersection)
                     .replace(":siteId", siteId.toString()), pathTableMapper);
-
     }
 
     public List<PathTable> getResultByGetPage(String lemmas, String pageIntersection, Integer siteId) {
