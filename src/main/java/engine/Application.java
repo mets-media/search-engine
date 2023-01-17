@@ -49,26 +49,27 @@ public class Application extends SpringBootServletInitializer {
                partOfSpeechRepository.initData();
             //----------------------------------------------------
 
-            siteRepository.createOneRecordTable();
-            pageRepository.createTriggers();
-            siteRepository.createTrigger();
+            configRepository.createOneRecordTable();
+
+            configRepository.createTriggers();
+            configRepository.createTrigger();
             lemmaRepository.createLemmaTrigger();
             indexRepository.createIndexTrigger();
             //Парсинг
             pageContainerRepository.createTrigger();
             //Запрос лемм по всем сайтам
-            pageRepository.createFunctionForAllSiteLemmaInfo();
-            pageRepository.createFunctionResetCounters();
-            pageRepository.createGetPagesFunction();
-            pageRepository.createGetByLemmaAnfSiteIdFunction();
+            configRepository.createFunctionForAllSiteLemmaInfo();
+            configRepository.createFunctionResetCounters();
+            configRepository.createGetPagesFunction();
+            configRepository.createGetByLemmaAnfSiteIdFunction();
 
 
             //@ManyTOMany
             indexRepository.createForeignKeys();
             //счётчики удалений
-            siteRepository.createSequences();
+            configRepository.createSequences();
 
-            siteRepository.creteGetCountersFunction();
+            configRepository.creteGetCountersFunction();
 
             //Функция парсинга lemmaString
             //pageContainerRepository.createFunction();

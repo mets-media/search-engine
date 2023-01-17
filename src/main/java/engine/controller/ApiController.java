@@ -78,7 +78,7 @@ public class ApiController {
         beanAccess.getIndexRepository().reCreateTable();
         beanAccess.getKeepLinkRepository().reCreateTable();
         //Сброс всех счётчиков
-        beanAccess.getPageRepository().resetSequences();
+        beanAccess.getConfigRepository().resetSequences();
 
 
         for (Site site : listSites) {

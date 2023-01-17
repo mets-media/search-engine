@@ -176,6 +176,12 @@ public class Parser extends RecursiveAction {
 
             DBWriter dbWriter = dbWriterHashMap.get(site.getId());
             dbWriter.start();
+        } else {
+            //stopLinks = 0 в базе есть одна страница - начальная!
+            beanAccess.getSiteRepository().delete(site);
+            site.setStatus(SiteStatus.INDEXING);
+            beanAccess.getSiteRepository().save(site);
+            Parser.start(site);
         }
 
         System.out.printf("Потоки запущены для сайта: %s\n", site.getUrl());

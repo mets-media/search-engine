@@ -182,7 +182,7 @@ public class SiteComponent {
                     site.setStatus(SiteStatus.INDEXING);
                     beanAccess.getSiteRepository().save(site);
                     //Проверка для сброса счётчиков удалений если max(page.id) = 0
-                    beanAccess.getPageRepository().resetSequences();
+                    beanAccess.getConfigRepository().resetSequences();
                     Parser.start(site);
                 }
             });

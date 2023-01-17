@@ -5,8 +5,6 @@ import engine.entity.PathTable;
 import engine.mapper.LemmaMapper;
 import engine.mapper.PathTableMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -23,21 +21,24 @@ public class PathTableRepository {
     private static final String SQL_REQUEST_RESULT_TABLE_FOR_SELECTED_SITE =
             "with lemma_query as (select unnest(string_to_array(:includeLemma,',')) lemma), " +
 
-                    "lemma_id_query as (select id lemma_id	from lemma " +
-                    "join lemma_query on (lemma.lemma = lemma_query.lemma) " +
-                    "where site_id = :siteId), " +
+                    "lemma_id_query as (select id lemma_id	from lemma \n" +
+                    "join lemma_query on (lemma.lemma = lemma_query.lemma) \n" +
+                    "where site_id = :siteId), \n" +
+                    "\n" +
 
-                    "index_query as (select page_id, sum(rank) abs from index " +
-                    "join lemma_id_query on (index.lemma_id = lemma_id_query.lemma_id) " +
-                    "where page_id in (:includePageId)" +
-                    "group by page_id), " +
+                    "index_query as (select page_id, sum(rank) abs from index \n" +
+                    "join lemma_id_query on (index.lemma_id = lemma_id_query.lemma_id) \n" +
+                    "where page_id in (:includePageId) \n" +
+                    "group by page_id), \n" +
+                    "\n" +
 
-                    "page_query as (select id page_id, abs, abs / (select max(abs) max_abs from index_query) rel, path from page " +
-                    "join index_query on (page.id = index_query.page_id)" +
-                    "where page.id in (:includePageId)" +
-                    ") " +
+                    "page_query as (select id page_id, abs, abs / (select max(abs) max_abs from index_query) rel, path from page \n" +
+                    "join index_query on (page.id = index_query.page_id) \n" +
+                    "where page.id in (:includePageId) \n" +
+                    ") \n" +
+                    "\n" +
 
-                    "select * from page_query " +
+                    "select * from page_query \n" +
                     "order by rel desc, path";
     public List<PathTable> getResultTableForSelectedSite(Integer siteId, String includeLemma, String includePageId) {
         return jdbcTemplate.query(SQL_REQUEST_RESULT_TABLE_FOR_SELECTED_SITE

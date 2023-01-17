@@ -74,41 +74,17 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
     @Modifying
     @Transactional
     @Query(value =
-            "CREATE OR REPLACE FUNCTION inc_counter(counterName Text, returnValue integer)\n" +
+            "CREATE OR REPLACE FUNCTION inc_counter(counter_Name Text, return_Value integer)\n" +
                     "    RETURNS integer\n" +
                     "    LANGUAGE 'plpgsql'\n" +
                     "    COST 100\n" +
                     "    VOLATILE PARALLEL UNSAFE\n" +
                     "AS $BODY$\n" +
                     "begin\n" +
-                    "\tperform nextval(text);\n" +
-                    "\treturn returnValue;\t\n" +
+                    "\tperform nextval(counter_name);\n" +
+                    "\treturn return_Value;\t\n" +
                     "end\n" +
                     "$BODY$;\n" +
-                    "\n" +
-//            "CREATE OR REPLACE FUNCTION inc_del_lemma_counter()\n" +
-//            "  RETURNS integer\n" +
-//            "  LANGUAGE 'plpgsql'\n" +
-//            "  COST 100\n" +
-//            "  VOLATILE PARALLEL UNSAFE\n" +
-//            "AS $BODY$\n" +
-//            "begin\n" +
-//            "\tperform nextval('lemma_del_count');\n" +
-//            "\treturn 1;\n" +
-//            "end\n" +
-//            "$BODY$;\n" +
-//            "\n" +
-//                    "CREATE OR REPLACE FUNCTION inc_del_page_counter()\n" +
-//                    "  RETURNS integer\n" +
-//                    "  LANGUAGE 'plpgsql'\n" +
-//                    "  COST 100\n" +
-//                    "  VOLATILE PARALLEL UNSAFE\n" +
-//                    "AS $BODY$\n" +
-//                    "begin\n" +
-//                    "\tperform nextval('page_del_count');\n" +
-//                    "\treturn 0;\n" +
-//                    "end\n" +
-//                    "$BODY$;\n" +
                     "\n" +
             "CREATE OR REPLACE FUNCTION parsing_function()\n" +
             "    RETURNS trigger\n" +
