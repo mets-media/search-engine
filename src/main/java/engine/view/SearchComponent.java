@@ -97,7 +97,7 @@ public class SearchComponent {
         });
 
         selectCountersQueryComboBox = UIElement.createComboBox(List.of("Repository.Count", "Counters", "GetStatistic"));
-        selectGetInfoQueryComboBox = UIElement.createComboBox(List.of("first variant", "second variant", "index HashMap"));
+        selectGetInfoQueryComboBox = UIElement.createComboBox(List.of("Java HashMap", "PostgreSQL", "second variant"));
         //--------------      Сайт Страницы Леммы Index     обновить --------------
         var horizontalLayout = new HorizontalLayout(
                 getSiteComboBox(),
@@ -117,7 +117,7 @@ public class SearchComponent {
         requestTextField.setSizeUndefined();
 
         //--------------  Текст запроса    Найти леммы ----------------------
-        requestLayout.add(requestTextField, getSearchButton());
+        requestLayout.add(requestTextField, getSearchLemmaButton());
         requestLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         requestLayout.setEnabled(false);
 
@@ -402,22 +402,29 @@ public class SearchComponent {
             pathTableList = beanAccess.getPathTableRepository().getResult_Function_GetPage(lemmasId, stringPages, siteId);
         }
 
+        pathTableList.sort(Comparator.comparing(PathTable::getAbsRelevance).reversed());
         findPageGrid.setItems(pathTableList);
         findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
 
     }
 
-    private void doLemmaSelectEventIndexHashMap(Set<Lemma> selectedLemmas) {
+    private void doLemmaSelectEvent_JavaHashMap(Set<Lemma> selectedLemmas) {
         setStartTime();
+        printFindingPageCount(-1, "");
         List<PathTable> pathTableList = findIndexIntersection(selectedLemmas, siteComboBox.getValue().getId());
 
-        //Получаем list<PathTable> с заполненным Path
-        List<PathTable> listPaths = beanAccess.getPathTableRepository().getPaths(pathTableList.stream().map(l -> Integer.toString(l.getPageId())).collect(Collectors.joining(",")));
+        if (pathTableList.size() != 0) {
+            //Получаем list<PathTable> с заполненным Path
+            List<PathTable> listPaths = beanAccess.getPathTableRepository().getPaths(pathTableList.stream().map(l -> Integer.toString(l.getPageId())).collect(Collectors.joining(",")));
 
-        findPageGrid.setItems(listMerge(pathTableList, listPaths));
-        findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
-
-        printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
+            findPageGrid.setItems(listMerge(pathTableList, listPaths));
+            findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
+            printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
+        } else { //Очищаем Grig
+            findPageGrid.setItems(pathTableList);
+            findPageGrid.getColumns().get(2).setHeader("Страницы " + pathTableList.size());
+            printFindingPageCount(0, TimeMeasure.getStringExperienceTime());
+        }
     }
 
     private void doLemmaSelectEvent(Set<Lemma> selectedLemmas) {
@@ -432,10 +439,12 @@ public class SearchComponent {
         Integer siteId = siteComboBox.getValue().getId();
 
         TimeMeasure.setStartTime();//----------------------------------------------------------------------------------
+        //Запрос в базу для каждой леммыы
         findingPages = findPageIntersection(selectedLemmas, siteId);
 
         //Retain all pageId - выбираем пересечение страниц для всех лемм
         var pageIdRetained = SearchService.retainAllPageId(lemmaGrid.getSelectedItems(), pageIdHashMap);
+
         UIElement.showMessage("Найдено " + pageIdRetained.size() + " страниц");
         printFindingPageCount(pageIdRetained.size(), TimeMeasure.getStringExperienceTime());
 
@@ -445,7 +454,7 @@ public class SearchComponent {
             findPageGrid.setItems(new ArrayList<>());
     }
 
-    private void doLemmaSelectEventFirst(Set<Lemma> selectedLemmas) {
+    private void doLemmaSelectEvenе_PostgreSQL(Set<Lemma> selectedLemmas) {
         if (selectedLemmas.size() == 0) {
             printFindingPageCount(0, "");
             return;
@@ -511,7 +520,7 @@ public class SearchComponent {
             List<Integer> pageIdList = null;
 
             if (!pageIdHashMap.containsKey(selectedLemma)) {
-
+                //Запрашиваем PageId для каждой леммы и сохраняем в List<Integers> -> все в pageIdHashMapы
                 if (siteId == 0) //Для всех сайтов
                     pageIdList = beanAccess.getPageRepository().getPageIdByLemma(selectedLemma);
                 else //Для выбранного сайта
@@ -576,7 +585,6 @@ public class SearchComponent {
         if (lemmas.size() == 0) return new ArrayList<>();
 
         List<IndexEntity> listIndex;
-        //List<PathTable> result = new ArrayList<>();
 
         for (Lemma lemma : lemmas) {
             String selectedLemma = lemma.getLemma();
@@ -626,9 +634,9 @@ public class SearchComponent {
 
 
             switch (selectGetInfoQueryComboBox.getValue()) {
-                case "first variant" -> doLemmaSelectEventFirst(selectionEvent.getAllSelectedItems());
+                case "PostgreSQL" -> doLemmaSelectEvenе_PostgreSQL(selectionEvent.getAllSelectedItems());
                 case "second variant" -> doLemmaSelectEvent(selectionEvent.getAllSelectedItems());
-                default -> doLemmaSelectEventIndexHashMap(selectionEvent.getAllSelectedItems());
+                default -> doLemmaSelectEvent_JavaHashMap(selectionEvent.getAllSelectedItems());
             }
 
 
@@ -638,7 +646,7 @@ public class SearchComponent {
 
         calcPageButton.addClickListener(buttonClickEvent -> {
 
-            if (Objects.equals(selectGetInfoQueryComboBox.getValue(), "first variant")) {
+            if (Objects.equals(selectGetInfoQueryComboBox.getValue(), "PostgreSQL")) {
                 //doLemmaSelectEventFirst(selectionEvent.getAllSelectedItems());
             } else
                 getSearchResults(siteComboBox.getValue().getId(), lemmaGrid.getSelectedItems(), findingPages);
@@ -648,7 +656,7 @@ public class SearchComponent {
     }
 
 
-    private Button getSearchButton() {
+    private Button getSearchLemmaButton() {
 
         var searchButton = UIElement.createButton("Найти леммы", VaadinIcon.SEARCH_PLUS, "");
         searchButton.setWidth("20%");

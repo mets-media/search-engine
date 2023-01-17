@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Merge List&lt;PathTable&gt;">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="listMerge(list1,list2)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -102,13 +101,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00023" summary="Проверка Лемматизатора">
-      <created>1668924538685</created>
-      <option name="number" value="00023" />
-      <option name="presentableId" value="LOCAL-00023" />
-      <option name="project" value="LOCAL" />
-      <updated>1668924538685</updated>
     </task>
     <task id="LOCAL-00024" summary="Проверка Лемматизатора">
       <created>1668938816254</created>
@@ -446,7 +438,14 @@
       <option name="project" value="LOCAL" />
       <updated>1673971698371</updated>
     </task>
-    <option name="localTasksCounter" value="72" />
+    <task id="LOCAL-00072" summary="listMerge(list1,list2)">
+      <created>1673972647710</created>
+      <option name="number" value="00072" />
+      <option name="presentableId" value="LOCAL-00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1673972647713</updated>
+    </task>
+    <option name="localTasksCounter" value="73" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -477,7 +476,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="adds morph dependencies" />
     <MESSAGE value="Morph dependencies. Version with HashMap-cash." />
     <MESSAGE value="Morph dependencies. MultiSelect mode." />
     <MESSAGE value="Morph dependencies. Start-Stop-Continue downloading" />
@@ -502,7 +500,8 @@
     <MESSAGE value="Изменение интерфейса поиска" />
     <MESSAGE value="Оптимизация кода" />
     <MESSAGE value="Merge List&lt;PathTable&gt;" />
-    <option name="LAST_COMMIT_MESSAGE" value="Merge List&lt;PathTable&gt;" />
+    <MESSAGE value="listMerge(list1,list2)" />
+    <option name="LAST_COMMIT_MESSAGE" value="listMerge(list1,list2)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -541,6 +540,11 @@
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
           <line>308</line>
           <option name="timeStamp" value="178" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java</url>
+          <line>584</line>
+          <option name="timeStamp" value="204" />
         </line-breakpoint>
         <breakpoint enabled="true" type="java-exception">
           <properties class="org.postgresql.util.PSQLException" package="org.postgresql.util" />
