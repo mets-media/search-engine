@@ -233,6 +233,7 @@ public class LemmaComponent {
     private TextField getFilterTextField(ComboBox<Page> pageComboBox) {
         TextField filterTextField = new TextField("Фильтр");
         //filterTextField.setPlaceholder("Фильтр");
+        filterTextField.setClearButtonVisible(true);
         filterTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
 
         filterTextField.addValueChangeListener(event -> pageComboBox.setItems(query -> {
@@ -246,6 +247,7 @@ public class LemmaComponent {
 
     private TextField getResearchTextField() {
         TextField researchUrlTextField = new TextField("Адрес страницы: ");
+        researchUrlTextField.setClearButtonVisible(true);
 
         researchUrlTextField.setPrefixComponent(VaadinIcon.FILE_SEARCH.create());
 

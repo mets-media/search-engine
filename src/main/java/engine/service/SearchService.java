@@ -11,6 +11,108 @@ import java.util.function.BiFunction;
 @UtilityClass
 public class SearchService {
 
+    private static BeanAccess beanAccess;
+
+    public static void setBeanAccess(BeanAccess beanAccess) {
+        SearchService.beanAccess = beanAccess;
+    }
+
+
+    public static  List<PathTable> findIndexIntersection(Set<Lemma> lemmas, HashMap<String, List<IndexEntity>> indexHashMap  ,int siteId) {
+
+        if (lemmas.size() == 0) return new ArrayList<>();
+
+        List<IndexEntity> listIndex;
+
+        for (Lemma lemma : lemmas) {
+            String selectedLemma = lemma.getLemma();
+            if (!indexHashMap.containsKey(selectedLemma)) {
+                if (siteId == 0)
+                    listIndex = beanAccess.getIndexRepository().getIndexByLemmaForAllSites(selectedLemma);
+                else
+                    listIndex = beanAccess.getIndexRepository().getIndexByLemmaForSiteId(selectedLemma, siteId);
+
+                indexHashMap.put(selectedLemma, listIndex);
+            }
+        }
+        //PageId
+        HashMap<String, List<Integer>> pageIdHashMap = new HashMap<>();
+
+        //Взять только выбранные леммы
+        for (Lemma lemma : lemmas) {
+            pageIdHashMap.put(lemma.getLemma(),
+                    indexHashMap.get(lemma.getLemma()).stream().map(IndexEntity::getPageId).toList());
+        }
+        //Найти пересечение
+        List<Integer> joinPageId = SearchService.retainAllPageId(lemmas, pageIdHashMap);
+
+        //Вычитаем лишние IndexEntity
+        List<IndexEntity> joinedIndexEntities = SearchService.removeByPageId(indexHashMap, joinPageId);
+
+        return getPathTableList(joinedIndexEntities, lemmas, siteId);
+    }
+
+    public static Integer getSiteIdFromLemmas(int searchLemmaId, Set<Lemma> lemmas) {
+        for (Lemma lemma : lemmas) {
+            if (lemma.getId() == searchLemmaId) return lemma.getSiteId();
+        }
+        return -1;
+    }
+
+    private static List<PathTable> getPathTableList(List<IndexEntity> entities, Set<Lemma> lemmas, int selectedSiteId) {
+
+        List<PathTable> result = new ArrayList<>();
+
+        int pageId = 0;
+        float abs = 0;
+        float rel = 0;
+        float max_rank = 0;
+
+        for (IndexEntity indexEntity : entities) {
+
+            int nextPage = indexEntity.getPageId();
+
+            if ((nextPage != pageId) && (pageId != 0)) {
+                rel = abs / max_rank;
+                //get path
+                int lemmaSiteId = getSiteIdFromLemmas(indexEntity.getLemmaId(), lemmas);
+
+                //Добавляем в результат
+                if ((lemmaSiteId == selectedSiteId) || (selectedSiteId == 0))
+                    result.add(new PathTable(pageId, abs, rel, Integer.toString(pageId)));
+                max_rank = 0;
+                abs = 0;
+                rel = 0;
+            }
+            pageId = indexEntity.getPageId();
+            abs += indexEntity.getRank();
+            if (max_rank < indexEntity.getRank()) max_rank = indexEntity.getRank();
+        }
+        if (abs != 0) { //Добавляем последнюю - если она есть
+            result.add(new PathTable(pageId, abs, rel, Integer.toString(pageId)));
+        }
+        result.sort(Comparator.comparing(PathTable::getAbsRelevance).reversed());
+        return result;
+    }
+
+    public static void fillPageIdHashMap(Set<Lemma> lemmas,
+                                         int siteId,
+                                         HashMap<String, List<Integer>> pageIdHashMap) {
+        lemmas.forEach(lemma -> {
+            String selectedLemma = lemma.getLemma();
+            List<Integer> pageIdList;
+            if (siteId == 0) //Для всех сайтов
+                pageIdList = beanAccess.getPageRepository().getPageIdByLemma(selectedLemma);
+            else //Для выбранного сайта
+                pageIdList = beanAccess.getPageRepository().getPageIdBySiteIdAndLemma(selectedLemma, siteId);
+
+            //Для каждой леммы - свой список страниц (pageId)
+            if (!pageIdHashMap.containsKey(selectedLemma))
+                pageIdHashMap.put(selectedLemma, pageIdList);
+        });
+
+    }
+
     public static List<PathTable> listMerge(List<PathTable> list1, List<PathTable> list2) {
 
         BiFunction<PathTable,PathTable,PathTable> ADD_PATH_FUNCTION =
@@ -32,12 +134,14 @@ public class SearchService {
     public static List<Integer> retainAllPageId(Set<Lemma> selectedLemmas,
                                           HashMap<String, List<Integer>> hashMap) {
 
+        if (selectedLemmas.size() == 0) return new ArrayList<>();
+
         List<Lemma> sortedLemma = selectedLemmas
                 .stream()
                 .sorted(Comparator.comparing(Lemma::getFrequency)).toList();
 
-        if (sortedLemma.size() == 0)
-            return new ArrayList<>();
+//        if (sortedLemma.size() == 0)
+//            return new ArrayList<>();
 
         String lemma = sortedLemma.get(0).getLemma();
 

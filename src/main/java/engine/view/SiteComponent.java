@@ -19,7 +19,6 @@ import engine.entity.SiteStatus;
 import engine.repository.SiteRepository;
 import engine.service.BeanAccess;
 import engine.service.Parser;
-import engine.service.TimeMeasure;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -45,7 +44,7 @@ public class SiteComponent {
     private final VerticalLayout mainLayout;
     private final Grid<Site> grid;
 
-    public static void setDataAccess(BeanAccess beanAccess) {
+    public static void setBeanAccess(BeanAccess beanAccess) {
         SiteComponent.beanAccess = beanAccess;
     }
 

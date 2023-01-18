@@ -13,6 +13,7 @@ import engine.entity.SiteStatus;
 import engine.repository.*;
 import engine.service.BeanAccess;
 import engine.service.Parser;
+import engine.service.SearchService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -62,7 +63,8 @@ public class MainView extends AppLayout {
     @PostConstruct
     private void getSites() {
         beanAccess.setUi(UI.getCurrent());
-        SiteComponent.setDataAccess(beanAccess);
+        SiteComponent.setBeanAccess(beanAccess);
+        SearchService.setBeanAccess(beanAccess);
 
         var listSites = yamlConfig.getSites();
 

@@ -195,7 +195,8 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
 
     @Modifying
     @Transactional
-    @Query(value = "CREATE OR REPLACE FUNCTION search_lemma_all_sites(includelemma text)\n" +
+    //@Query(value = "CREATE OR REPLACE FUNCTION search_lemma_all_sites(includelemma text)\n" +
+    @Query(value = "CREATE OR REPLACE FUNCTION get_pages_generate_stmt(includelemma text)\n" +
             "    RETURNS TABLE(page_id integer, abs double precision, rel double precision, path text) \n" +
             "    LANGUAGE 'plpgsql'\n" +
             "    COST 100\n" +
@@ -241,7 +242,7 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
             "\t\t 'group by index.page_id) ' || chr(10) ||\n" +
             "\t\t 'select page.id, abs, rel, path from page ' || chr(10) ||\n" +
             "\t\t 'join statisticQuery on (statisticQuery.page_id = page.id) ' || chr(10) ||\n" +
-            "\t\t 'order by abs desc, rel asc';\n" +
+            "\t\t 'order by abs desc, rel desc';\n" +
             "\n" +
             "\t\t for result_row in execute(stmt)\n" +
             "\t\t loop\n" +
@@ -336,9 +337,10 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
     @Modifying
     @Transactional
     @Query(value = "CREATE OR REPLACE FUNCTION get_pages(\n" +
-            "\tlemma_string text,\n" +
-            "\tpage_string text,\n" +
-            "\tsite_selected integer)\n" +
+            "\tlemma_id_array text,\n" +
+            "\tpage_Id_array text\n" +
+            ")" +
+            "--\t,site_selected integer)\n" +
             "    RETURNS TABLE(page_id integer, abs double precision, rel double precision, path text) \n" +
             "    LANGUAGE 'plpgsql'\n" +
             "    COST 100\n" +
@@ -357,19 +359,17 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
             "\n" +
             "\tfor rec_page in select id page_id, page.path\n" +
             "\t\t\t\tfrom page\n" +
-            "\t\t\t\twhere id in (select cast(unnest(string_to_array(page_string,',')) as integer))\n" +
+            "\t\t\t\twhere id in (select cast(unnest(string_to_array(page_id_array,',')) as integer))\n" +
             "\t\t\t\t--order by page_id\n" +
             "\tloop\n" +
             "\t\tabs = 0; rel = 0; max_rank = 0;\n" +
-            "\t\tfor rec_index in select index.rank\n" +
-            "\t\t\t\t\t\t\tfrom index \n" +
-            "\t\t\t\t\t\t\twhere index.page_id = rec_page.page_id\n" +
-            "\t\t\t\t\t\t\t  and index.lemma_id in (select cast(unnest(string_to_array(lemma_string,',')) as integer))\n" +
-            "\t\tloop\n" +
-            "\t\t\tabs = abs + rec_index.rank;\n" +
-            "\t\t\tif max_rank < rec_index.rank then max_rank = rec_index.rank; end if;\n" +
-            "\t\tend loop;\n" +
-            "\t\t\n" +
+            "\n" +
+            "\t\tselect sum(rank) abs, max(rank) max_rank \n" +
+            "\t\tfrom index \n" +
+            "\t\twhere index.page_id = rec_page.page_id\n" +
+            "\t\t  and index.lemma_id in (select cast(unnest(string_to_array(lemma_id_array,',')) as integer))\n" +
+            "\t\tinto abs, max_rank;  " +
+            "\n" +
             "\t\tpage_id = rec_page.page_id;\n" +
             "\t\tpath = rec_page.path;\n" +
             "\t\trel = abs / max_rank;\n" +

@@ -5,8 +5,6 @@ import engine.entity.PathTable;
 import engine.mapper.LemmaMapper;
 import engine.mapper.PathTableMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -20,38 +18,32 @@ public class PathTableRepository {
     private PathTableMapper pathTableMapper;
     @Autowired
     private LemmaMapper lemmaMapper;
-    private static final String SQL_REQUEST_RESULT_TABLE_FOR_SELECTED_SITE =
-            "with lemma_query as (select unnest(string_to_array(:includeLemma,',')) lemma), " +
 
-                    "lemma_id_query as (select id lemma_id	from lemma \n" +
-                    "join lemma_query on (lemma.lemma = lemma_query.lemma) \n" +
-                    "where site_id = :siteId), \n" +
+    private static final String SQL_RESULT_TABLE_FOR_SELECTED_SITE =
+            "with lemma_id_query as (select cast(unnest(string_to_array(:lemma_id_array,',')) as integer) lemma_id), " +
                     "\n" +
-
-                    "index_query as (select page_id, sum(rank) abs from index \n" +
+                    "index_query as (select page_id, sum(rank) abs, max(rank) max_abs from index \n" +
                     "join lemma_id_query on (index.lemma_id = lemma_id_query.lemma_id) \n" +
-                    "where page_id in (:includePageId) \n" +
-                    "group by page_id), \n" +
+                    "where index.page_id in (:page_id_array) \n" +
+                    "group by index.page_id), \n" +
                     "\n" +
-
-                    "page_query as (select id page_id, abs, abs / (select max(abs) max_abs from index_query) rel, path from page \n" +
+                    "page_query as (select id page_id, abs, abs / max_abs rel, path from page \n" +
                     "join index_query on (page.id = index_query.page_id) \n" +
-                    "where page.id in (:includePageId) \n" +
-                    ") \n" +
+                    "where page.id in (:page_id_array) \n" +
+                    ")\n" +
                     "\n" +
 
                     "select * from page_query \n" +
-                    "order by rel desc, path";
+                    "order by abs desc, rel desc";
 
-    public List<PathTable> getResultTableForSelectedSite(Integer siteId, String includeLemma, String includePageId) {
-        return jdbcTemplate.query(SQL_REQUEST_RESULT_TABLE_FOR_SELECTED_SITE
-                .replace(":includeLemma", includeLemma)
-                .replace(":siteId", siteId.toString())
-                .replace(":includePageId", includePageId), pathTableMapper);
+    public List<PathTable> getResultTableForSelectedSite(String lemmaIdArray, String pageIdArray) {
+        return jdbcTemplate.query(SQL_RESULT_TABLE_FOR_SELECTED_SITE
+                .replace(":lemma_id_array", lemmaIdArray)
+                .replace(":page_id_array", pageIdArray), pathTableMapper);
     }
 
     public List<PathTable> getResultTableForAllSites(String includeLemma) {
-        return jdbcTemplate.query("select * from search_lemma_all_sites(:includeLemma)"
+        return jdbcTemplate.query("select * from get_pages_generate_stmt(:includeLemma)"
                 .replace(":includeLemma", includeLemma), pathTableMapper);
     }
 
@@ -75,10 +67,12 @@ public class PathTableRepository {
     }
 
     public List<PathTable> getResult_Function_GetPage(String lemmas, String pageIntersection, Integer siteId) {
-        return jdbcTemplate.query("select * from get_pages(:lemmas, :pageIntersection, :siteId)"
+        //return jdbcTemplate.query("select * from get_pages(:lemmas, :pageIntersection, :siteId)"
+        return jdbcTemplate.query("select * from get_pages(:lemmas, :pageIntersection)"
                 .replace(":lemmas", lemmas)
                 .replace(":pageIntersection", pageIntersection)
-                .replace(":siteId", siteId.toString()), pathTableMapper);
+                //.replace(":siteId", siteId.toString()), pathTableMapper);
+                , pathTableMapper);
     }
 
 
