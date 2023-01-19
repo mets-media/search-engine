@@ -49,12 +49,12 @@ public class SearchComponent {
     private final TextField indexCountTextField = new TextField("Таблица Index");
     private final TextField requestTextField = new TextField("Поисковый запрос");
     private final TextField findTextField = new TextField();
-    private final Checkbox checkboxAuto = new Checkbox("Автом.расчёт");
+    private final Checkbox checkboxAuto = new Checkbox("Автом.режим");
     private final Button calcPageButton = UIElement.createButton("Расчёт релевантности", VaadinIcon.DOWNLOAD, "");
     private final VerticalLayout detailLayout = new VerticalLayout();
     private ComboBox<String> selectCountersQueryComboBox;
     private ComboBox<String> selectGetInfoQueryComboBox;
-    private Site allSiteObject = new Site();
+    private final Site allSiteObject = new Site();
     private final Lemmatization lemmatizator;
     private String findingPages;
 
@@ -127,19 +127,18 @@ public class SearchComponent {
 
 
         checkboxAuto.setValue(true);
-        checkboxAuto.addValueChangeListener(event -> {
-            calcPageButton.setEnabled(!event.getValue());
-        });
+        checkboxAuto.addValueChangeListener(event -> calcPageButton.setEnabled(!event.getValue()));
         findTextField.setWidth("50%");
         findTextField.setReadOnly(true);
 
         calcPageButton.setEnabled(false);
-        //---------------- Вибор системы поиск, Расчёт релевантности -------------------------
-        HorizontalLayout hLayout = new HorizontalLayout(selectGetInfoQueryComboBox, calcPageButton);
+        //---------------- Выбор системы поиска, Режим Авто -------------------------
+        var hLayout = new HorizontalLayout(selectGetInfoQueryComboBox, checkboxAuto);
+        hLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         hLayout.setWidth("40%");
 
         checkBoxAndButtonLayout.setSizeUndefined();
-        checkBoxAndButtonLayout.add(hLayout, checkboxAuto, findTextField);
+        checkBoxAndButtonLayout.add(hLayout, calcPageButton, findTextField);
         checkBoxAndButtonLayout.setAlignItems(FlexComponent.Alignment.END);
         checkBoxAndButtonLayout.setWidthFull();
         checkBoxAndButtonLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
@@ -302,8 +301,6 @@ public class SearchComponent {
         findPageGrid.addThemeVariants(GridVariant.LUMO_COMPACT);
 
         DecimalFormat decimalFormat = new DecimalFormat("#,###.##");
-
-
         Grid.Column<PathTable> absRelevanceColumn = findPageGrid.addColumn(new NumberRenderer<>(PathTable::getAbsRelevance,
                         decimalFormat))
                 .setHeader("Абсолютная")
@@ -316,12 +313,18 @@ public class SearchComponent {
                 .setTextAlign(ColumnTextAlign.CENTER)
                 .setFrozen(true);
 
-        Grid.Column<PathTable> pathRelevanceColumn = findPageGrid.addColumn(PathTable::getPath)
+        Grid.Column<PathTable> pathColumn = findPageGrid.addColumn(PathTable::getPath)
                 .setHeader("Страница")
                 .setTextAlign(ColumnTextAlign.START)
                 .setWidth("60%")
                 .setAutoWidth(true)
                 .setResizable(true);
+
+        Grid.Column<PathTable> pageIdColumn = findPageGrid.addColumn(PathTable::getPageId)
+                .setHeader("Страница")
+                .setTextAlign(ColumnTextAlign.START)
+                .setFrozen(true);
+        pageIdColumn.setVisible(false);
 
         HeaderRow headerRow = findPageGrid.prependHeaderRow();
 
@@ -329,6 +332,12 @@ public class SearchComponent {
         simpleCell.setText("Релевантность");
         simpleCell.getElement().getStyle().set("text-align", "center");
         headerRow.join(absRelevanceColumn, relRelevanceColumn).setComponent(simpleCell);
+
+        Div simpleCell_ = new Div();
+        simpleCell_.setText("");
+        simpleCell_.getElement().getStyle().set("text-align", "center");
+        headerRow.join(pathColumn, pageIdColumn).setComponent(simpleCell_);
+
 
         //Без detail
         //relevanceGrid.setItemDetailsRenderer(createPageDetailRenderer());
@@ -379,9 +388,8 @@ public class SearchComponent {
                                 .findByLemmaIn(lemmas).stream().map(Lemma::getId).toList();
 
                         listIndex = beanAccess.getIndexRepository()
-                                .findByPageIdLemmaIdIn(t.getPageId(),listLemmaId);
-                    }
-                    else {//Выбраннный сайт
+                                .findByPageIdLemmaIdIn(t.getPageId(), listLemmaId);
+                    } else {//Выбраннный сайт
                         listLemmaId = lemmaGrid.getSelectedItems().stream()
                                 .map(Lemma::getId)
                                 .collect(Collectors.toList());
@@ -402,19 +410,23 @@ public class SearchComponent {
     }
 
     private void printFindingPageCount(Integer value, String timeString) {
+
+        String result;
         switch (value) {
-            case 0 -> {
-                findTextField.setValue("Страницы не найдены");
-            }
-            case -1 -> findTextField.setValue("Идёт поиск страниц ...");
-            case -2 -> findTextField.setValue("");
+            case 0 -> result = "Страницы не найдены";
+            case -1 -> result = "Идёт поиск страниц ...";
+            case -2 -> result = "";
             default -> {
-                String result = "Найдено страниц: " + value;
-                if (!timeString.isBlank())
+                result = "Найдено страниц: " + value;
+                if (!timeString.isBlank()) {
                     result += "   [ -- " + timeString + " -- ]";
-                findTextField.setValue(result);
+                }
             }
         }
+        //findTextField.setValue(result);
+        findPageGrid.getColumns().get(2).setHeader(result);
+        //findPageGrid.getHeaderRows().get(0).getCell(findPageGrid.getColumns().get(2)).setText(result);
+
     }
 
     private void getSearchResults(Integer siteId, Set<Lemma> selectedLemmas, String pagesId) {
@@ -433,16 +445,18 @@ public class SearchComponent {
 
         pathTableList.sort(Comparator.comparing(PathTable::getAbsRelevance).reversed());
         findPageGrid.setItems(pathTableList);
-        findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
+        printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
 
     }
 
     private void doLemmaSelectEvent_JavaHashMap(Set<Lemma> selectedLemmas) {
+
         /**
          *  - Результаты отдельных запросов по каждой лемме -> HashMap<Лемма, List<IndexEntity>
          *  - Находим пересечениие всех List<IndexEntity>
          *  - Подгружаем Path из таблицы Page для найденного множества IndexEntity
          */
+
         setStartTime();
         printFindingPageCount(-1, "");
         List<PathTable> pathTableList =
@@ -454,40 +468,50 @@ public class SearchComponent {
                     .getPaths(pathTableList.stream()
                             .map(l -> Integer.toString(l.getPageId()))
                             .collect(Collectors.joining(",")));
-
             findPageGrid.setItems(listMerge(pathTableList, listPaths));
-            findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
-            printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
-        } else { //Очищаем Grid
-            findPageGrid.setItems(pathTableList);
-            findPageGrid.getColumns().get(2).setHeader("Страницы " + pathTableList.size());
-            printFindingPageCount(0, TimeMeasure.getStringExperienceTime());
         }
+        printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
+
     }
 
     private void doLemmaSelectEvent(Set<Lemma> selectedLemmas) {
 
-        if (selectedLemmas.size() == 0) {
-            printFindingPageCount(0, "");
-            return;
-        }
         detailLayout.setVisible(false);
 
         Integer siteId = siteComboBox.getValue().getId();
 
         TimeMeasure.setStartTime();//----------------------------------------------------------------------------------
-        /** Заполняет HashMap<String, List<Integer>> pageIdHashMap **/
+        /** Заполняет HashMap<Лемма, List<Integer>> pageIdHashMap **/
         SearchService.fillPageIdHashMap(selectedLemmas, siteId, pageIdHashMap);
-        /** Retain all pageId - выбираем пересечение страниц для всех леммs **/
+        /** Retain all pageId - выбираем пересечение страниц для всех лемм **/
         var pageIdRetained = SearchService.retainAllPageId(selectedLemmas, pageIdHashMap);
         /** Формируем строку с перечислением Page_Id **/
-        String PagesId = pageIdRetained.stream().map(p -> Integer.toString(p))
+        String pagesId = pageIdRetained.stream().map(p -> Integer.toString(p))
+                .collect(Collectors.joining(",", "'", "'"));
+        /** Формируем строку с перечислением Lemma_Id **/
+        String lemmasId = selectedLemmas.stream().map(l -> l.getId().toString())
                 .collect(Collectors.joining(",", "'", "'"));
 
+        /*
         if (checkboxAuto.getValue()) {
-            getSearchResults(siteId, selectedLemmas, PagesId);
+            getSearchResults(siteId, selectedLemmas, pagesId);
         } else
             findPageGrid.setItems(new ArrayList<>());
+*/
+
+        List<PathTable> pathTableList;
+        if (siteId == 0) { // Все сайты
+            pathTableList = beanAccess.getPathTableRepository().getResult_INDEX_PAGE_LEMMA(lemmasId, pagesId, siteId);
+        } else { //Выбранный сайт
+            pathTableList = beanAccess.getPathTableRepository().getResult_GetPage_PAGE_INDEX(lemmasId, pagesId);
+        }
+
+        pathTableList.sort(Comparator.comparing(PathTable::getAbsRelevance).reversed());
+        findPageGrid.setItems(pathTableList);
+        printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
+
+
+
     }
 
     private void doLemmaSelectEvent_PostgreSQL(Set<Lemma> selectedLemmas) {
@@ -495,13 +519,6 @@ public class SearchComponent {
          * - Загружаем PageId для выбранных лемм - HashMap<Лемма, List<Integer>>
          *  -
          */
-
-        if (selectedLemmas.size() == 0) {
-            findPageGrid.setItems(new ArrayList<>());
-            findPageGrid.getColumns().get(2).setHeader("Страницы");
-            printFindingPageCount(0, "");
-            return;
-        }
 
         detailLayout.setVisible(false);
         //checkBoxAndButtonLayout.setEnabled(true);
@@ -516,34 +533,34 @@ public class SearchComponent {
         setStartTime();//------------------------------------------------------------------------------------
 
         String page_id_array = "";
+        String lemma_id_array = "";
         if (siteId != 0) { //Для выбранного сайта формируем две строки - леммы и страницыы
             SearchService.fillPageIdHashMap(selectedLemmas, siteId, pageIdHashMap);
             //Retain all pageId - выбираем пересечение страниц для всех лемм
             var pageIdRetained = SearchService.retainAllPageId(selectedLemmas, pageIdHashMap);
-            page_id_array = pageIdRetained.stream().map(p -> Integer.toString(p)).collect(Collectors.joining(","));
+
+            page_id_array = pageIdRetained.stream().map(p -> Integer.toString(p))
+                    .collect(Collectors.joining(","));
+
+            lemma_id_array = selectedLemmas.stream().map(l -> l.getId().toString())
+                    .collect(Collectors.joining(",", "'", "'"));
         }
         //----------------------------------------------------------------------------------------------------
 
         //if (checkboxAuto.getValue()) ......
 
         List<PathTable> pathTableList;
-        if (siteId == 0) // Генерация запроса - get_page_generate_stmt(:includeLemma)
-            pathTableList = beanAccess.getPathTableRepository()
-                    .getResult_Generate_STMT(includeLemma);
-        else { //Результаты по выбранному сайту - одним запросом со временными таблицами
-            String lemma_id_array = selectedLemmas.stream()
-                    .map(l -> l.getId().toString())
-                    .collect(Collectors.joining(",", "'", "'"));
-
-            pathTableList = beanAccess.getPathTableRepository()
-                    .getResult_Query(lemma_id_array, page_id_array);
+        if (siteId == 0) /** Генерация запроса - get_page_generate_stmt(:includeLemma) **/
+            pathTableList = beanAccess.getPathTableRepository().getResult_Generate_STMT(includeLemma);
+        else { /** Результаты по выбранному сайту - одним запросом **/
+            pathTableList = beanAccess.getPathTableRepository().getResult_Query(lemma_id_array, page_id_array);
         }
 
         printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
 
         //Результаты
         findPageGrid.setItems(pathTableList);
-        findPageGrid.getColumns().get(2).setHeader("Страниц: " + pathTableList.size());
+        printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
     }
 
 
@@ -563,8 +580,12 @@ public class SearchComponent {
         lemmaGrid.addSelectionListener(selectionEvent -> {
 
             //Стираем результаты
-            if (selectionEvent.getAllSelectedItems().size() == 0)
+            if (selectionEvent.getAllSelectedItems().size() == 0) {
                 findPageGrid.setItems(new ArrayList<>());
+                printFindingPageCount(0, "");
+                return;
+
+            }
 
             switch (selectGetInfoQueryComboBox.getValue()) {
                 case "PostgreSQL" -> doLemmaSelectEvent_PostgreSQL(selectionEvent.getAllSelectedItems());
