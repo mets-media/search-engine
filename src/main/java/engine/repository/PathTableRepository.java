@@ -20,69 +20,59 @@ public class PathTableRepository {
     private LemmaMapper lemmaMapper;
 
     private static final String SQL_RESULT_TABLE_FOR_SELECTED_SITE =
-            "with lemma_id_query as (select cast(unnest(string_to_array(:lemma_id_array,',')) as integer) lemma_id), " +
-                    "\n" +
-                    "index_query as (select page_id, sum(rank) abs, max(rank) max_abs from index \n" +
-                    "join lemma_id_query on (index.lemma_id = lemma_id_query.lemma_id) \n" +
-                    "where index.page_id in (:page_id_array) \n" +
-                    "group by index.page_id), \n" +
-                    "\n" +
-                    "page_query as (select id page_id, abs, abs / max_abs rel, path from page \n" +
-                    "join index_query on (page.id = index_query.page_id) \n" +
-                    "where page.id in (:page_id_array) \n" +
-                    ")\n" +
-                    "\n" +
+            """
+                    with lemma_id_query as (select cast(unnest(string_to_array(:lemma_id_array,',')) as integer) lemma_id),\s
+                    index_query as (select page_id, sum(rank) abs, max(rank) max_abs from index\s
+                    join lemma_id_query on (index.lemma_id = lemma_id_query.lemma_id)\s
+                    where index.page_id in (:page_id_array)\s
+                    group by index.page_id),\s
 
-                    "select * from page_query \n" +
-                    "order by abs desc, rel desc";
+                    page_query as (select id page_id, abs, abs / max_abs rel, path from page\s
+                    join index_query on (page.id = index_query.page_id)\s
+                    where page.id in (:page_id_array)\s
+                    )
 
-    public List<PathTable> getResultTableForSelectedSite(String lemmaIdArray, String pageIdArray) {
+                    select * from page_query\s
+                    order by abs desc, rel desc""";
+    public List<PathTable> getResult_Query(String lemmaIdArray, String pageIdArray) {
         return jdbcTemplate.query(SQL_RESULT_TABLE_FOR_SELECTED_SITE
                 .replace(":lemma_id_array", lemmaIdArray)
                 .replace(":page_id_array", pageIdArray), pathTableMapper);
     }
-
-    public List<PathTable> getResultTableForAllSites(String includeLemma) {
+    public List<PathTable> getResult_Generate_STMT(String includeLemma) {
         return jdbcTemplate.query("select * from get_pages_generate_stmt(:includeLemma)"
                 .replace(":includeLemma", includeLemma), pathTableMapper);
     }
-
     String FIND_LEMMA_IN_ALL_SITES =
             "select 0 id, sum(frequency) frequency, lemma, 0 site_id \n" +
                     "from lemma\n" +
                     "where lemma in (:lemmaIn)\n" +
                     "group by lemma\n" +
                     "order by frequency";
-
     public List<Lemma> findLemmasInAllSites(String lemmas) {
         return jdbcTemplate.query(FIND_LEMMA_IN_ALL_SITES
                 .replace(":lemmaIn", lemmas), lemmaMapper);
     }
-
-    public List<PathTable> getResultByLemmasAndSiteId(String lemmas, String pageIntersection, Integer siteId) {
-        return jdbcTemplate.query("select * from get_by_lemma_and_site(:lemmas, :pageIntersection, :siteId)"
+    public List<PathTable> getResult_INDEX_PAGE_LEMMA(String lemmas, String pageIntersection, Integer siteId) {
+        //return jdbcTemplate.query("select * from get_by_lemma_and_site(:lemmas, :pageIntersection, :siteId)"
+        return jdbcTemplate.query("select * from get_pages_index_page_lemma(:lemmas, :pageIntersection, :siteId)"
                 .replace(":lemmas", lemmas)
                 .replace(":pageIntersection", pageIntersection)
                 .replace(":siteId", siteId.toString()), pathTableMapper);
     }
 
-    public List<PathTable> getResult_Function_GetPage(String lemmas, String pageIntersection, Integer siteId) {
-        //return jdbcTemplate.query("select * from get_pages(:lemmas, :pageIntersection, :siteId)"
-        return jdbcTemplate.query("select * from get_pages(:lemmas, :pageIntersection)"
+
+    public List<PathTable> getResult_GetPage_PAGE_INDEX(String lemmas, String pageIntersection) {
+        //return jdbcTemplate.query("select * from get_pages(:lemmas, :pageIntersection)"
+        return jdbcTemplate.query("select * from get_pages_page_index(:lemmas, :pageIntersection)"
                 .replace(":lemmas", lemmas)
                 .replace(":pageIntersection", pageIntersection)
-                //.replace(":siteId", siteId.toString()), pathTableMapper);
                 , pathTableMapper);
     }
-
-
     public List<PathTable> getPaths(String pages) {
         return jdbcTemplate.query("Select id page_id, path, cast(0 as float) abs, cast(0 as float) rel \n" +
                 "from page \n" +
                 "where id in (:pages)"
                         .replace(":pages",pages), pathTableMapper);
     }
-
-
-
 }

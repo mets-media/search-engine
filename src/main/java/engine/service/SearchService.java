@@ -18,7 +18,9 @@ public class SearchService {
     }
 
 
-    public static  List<PathTable> findIndexIntersection(Set<Lemma> lemmas, HashMap<String, List<IndexEntity>> indexHashMap  ,int siteId) {
+    public static  List<PathTable> findIndexIntersection(Set<Lemma> lemmas,
+                                                         HashMap<String, List<IndexEntity>> indexHashMap,
+                                                         int siteId) {
 
         if (lemmas.size() == 0) return new ArrayList<>();
 
@@ -49,7 +51,7 @@ public class SearchService {
         //Вычитаем лишние IndexEntity
         List<IndexEntity> joinedIndexEntities = SearchService.removeByPageId(indexHashMap, joinPageId);
 
-        return getPathTableList(joinedIndexEntities, lemmas, siteId);
+        return calcRelevanceForEachPage(joinedIndexEntities, lemmas, siteId);
     }
 
     public static Integer getSiteIdFromLemmas(int searchLemmaId, Set<Lemma> lemmas) {
@@ -59,7 +61,7 @@ public class SearchService {
         return -1;
     }
 
-    private static List<PathTable> getPathTableList(List<IndexEntity> entities, Set<Lemma> lemmas, int selectedSiteId) {
+    private static List<PathTable> calcRelevanceForEachPage(List<IndexEntity> entities, Set<Lemma> lemmas, int selectedSiteId) {
 
         List<PathTable> result = new ArrayList<>();
 
@@ -89,6 +91,7 @@ public class SearchService {
             if (max_rank < indexEntity.getRank()) max_rank = indexEntity.getRank();
         }
         if (abs != 0) { //Добавляем последнюю - если она есть
+            rel = abs / max_rank;
             result.add(new PathTable(pageId, abs, rel, Integer.toString(pageId)));
         }
         result.sort(Comparator.comparing(PathTable::getAbsRelevance).reversed());
@@ -114,9 +117,13 @@ public class SearchService {
     }
 
     public static List<PathTable> listMerge(List<PathTable> list1, List<PathTable> list2) {
-
+        /**
+         * Суммирование List1 List2
+         */
+        //-----------------------------------------------------------------------------------------------------
         BiFunction<PathTable,PathTable,PathTable> ADD_PATH_FUNCTION =
-                (p1,p2) -> new PathTable(p1.getPageId(),p1.getAbsRelevance(),p1.getRelRelevance(),p2.getPath());
+                (p1,p2) -> new PathTable(p1.getPageId(), p1.getAbsRelevance(), p1.getRelRelevance(), p2.getPath());
+        //-----------------------------------------------------------------------------------------------------
 
         HashMap<Integer, PathTable> list1_Map = new HashMap<>();
         list1.stream().map(l -> new AbstractMap.SimpleEntry<Integer, PathTable>(l.getPageId(), l))
@@ -138,10 +145,7 @@ public class SearchService {
 
         List<Lemma> sortedLemma = selectedLemmas
                 .stream()
-                .sorted(Comparator.comparing(Lemma::getFrequency)).toList();
-
-//        if (sortedLemma.size() == 0)
-//            return new ArrayList<>();
+                .sorted(Comparator.comparing(Lemma::getFrequency).reversed()).toList();
 
         String lemma = sortedLemma.get(0).getLemma();
 

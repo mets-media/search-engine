@@ -36,6 +36,15 @@ spring:
     username: postgres
     password: test
     driverClassName: org.postgresql.Driver
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: debug
+        type:
+          descriptor:
+            sql:
+              BasicBinder: trace
 sites:
   - url: https://www.lenta.ru
     name: Лента.ру

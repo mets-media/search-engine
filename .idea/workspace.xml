@@ -7,15 +7,17 @@
     <option name="rewriteBookmarkType" value="true" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Три варианта поиска">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Исправлен расчёт релевантности страниц">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Application.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/IndexRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/IndexRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/LemmaRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/LemmaRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PathTableRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PathTableRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/MainView.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -110,13 +112,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00025" summary="Проверка Лемматизатора">
-      <created>1669174306924</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1669174306924</updated>
     </task>
     <task id="LOCAL-00026" summary="Проверка Lazy loading">
       <created>1669530536919</created>
@@ -454,7 +449,14 @@
       <option name="project" value="LOCAL" />
       <updated>1673976551192</updated>
     </task>
-    <option name="localTasksCounter" value="74" />
+    <task id="LOCAL-00074" summary="SearchService">
+      <created>1674032925324</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1674032925325</updated>
+    </task>
+    <option name="localTasksCounter" value="75" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -485,8 +487,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="Morph dependencies. MultiSelect mode." />
-    <MESSAGE value="Morph dependencies. Start-Stop-Continue downloading" />
     <MESSAGE value="Morph dependencies. MultiScan" />
     <MESSAGE value="Изменения в структуре проекта. (temp)" />
     <MESSAGE value="Проверка Лемматизатора" />
@@ -510,7 +510,9 @@
     <MESSAGE value="Merge List&lt;PathTable&gt;" />
     <MESSAGE value="listMerge(list1,list2)" />
     <MESSAGE value="Три варианта поиска" />
-    <option name="LAST_COMMIT_MESSAGE" value="Три варианта поиска" />
+    <MESSAGE value="SearchService" />
+    <MESSAGE value="Исправлен расчёт релевантности страниц" />
+    <option name="LAST_COMMIT_MESSAGE" value="Исправлен расчёт релевантности страниц" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

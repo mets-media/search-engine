@@ -1,7 +1,6 @@
 package engine.service;
 
 import engine.entity.Lemma;
-import lombok.Setter;
 import lombok.experimental.UtilityClass;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -102,12 +101,11 @@ public class HtmlParsing {
 
     public static synchronized Document getHtmlDocument(String url) throws Exception {
 
-        Document document = Jsoup.connect(url)
+        return Jsoup.connect(url)
                 .userAgent(userAgent)
                 .referrer(referrer)
                 //.ignoreContentType(true)
                 .get();
-        return document;
 
     }
 
@@ -137,15 +135,14 @@ public class HtmlParsing {
     }
 
     public static Document getHtmlDocumentFromFile(Path filePath) {
-        String htmlString = null;
+        String htmlString;
         try {
             htmlString = Files.readString(filePath);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
-        Document document = Jsoup.parseBodyFragment(htmlString);
-        return document;
+        return Jsoup.parseBodyFragment(htmlString);
     }
 
     public static Elements getElements(Document htmlDocument, String cssQuery) {
@@ -194,24 +191,22 @@ public class HtmlParsing {
 
         //Pattern pattern = Pattern.compile("\\Wtitle\\W");
 
-        document.getAllElements().forEach(element -> {
-            element.attributes().forEach(attr -> {
-                if (!(attr.getValue() == null))
-                    if (attr.getValue().contains("title")) {
-                        //if (pattern.matcher(attr.getValue()).find()) {
-                        String[] strings = element.toString().split(">");
+        document.getAllElements().forEach(element -> element.attributes().forEach(attr -> {
+            if (!(attr.getValue() == null))
+                if (attr.getValue().contains("title")) {
+                    //if (pattern.matcher(attr.getValue()).find()) {
+                    String[] strings = element.toString().split(">");
 
-                        String titleString = element.toString();
+                    String titleString = element.toString();
 //                        if (strings.length >= 2) {
 //                            titleString = strings[1].substring(0, strings[1].indexOf("<")).trim();
 //                        }
 
-                        if (!titleString.isBlank())
-                            titles.add(titleString + '\n');
+                    if (!titleString.isBlank())
+                        titles.add(titleString + '\n');
 
-                    }
-            });
-        });
+                }
+        }));
         return titles;
     }
 
@@ -295,7 +290,7 @@ public class HtmlParsing {
         return result;
     }
 
-    public static List<String> getStringsContainsLemma(String content, Set<Lemma> searchLemmaList, Lemmatization lemmatizator) {
+    public static List<String> getHTMLStringsContainsLemma(String content, Set<Lemma> searchLemmaList, Lemmatization lemmatizator) {
         List<String> result = new ArrayList<>();
         var list = getRussianListString(content);
         for (String s : list) {

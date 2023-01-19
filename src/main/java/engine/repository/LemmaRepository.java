@@ -1,14 +1,11 @@
 package engine.repository;
 
 import engine.entity.Lemma;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -16,13 +13,14 @@ import java.util.List;
 public interface LemmaRepository extends JpaRepository<Lemma,Integer> {
 
     List<Lemma> findBySiteIdAndLemmaIn(Integer siteId, List<String> lemma, Pageable pageable);
+    List<Lemma> findByLemmaIn(List<String> lemmas);
 
-    @Query(value = "select 0 id, sum(frequency) frequency, lemma, sum(rank) rank, -1 site_id \n" +
+    @Query(value = "select 0 id, sum(frequency) frequency, lemma, sum(rank) rank, 0 site_id \n" +
             "from lemma\n" +
             "where lemma in (:lemmaIn)\n" +
             "group by lemma\n" +
             "order by frequency", nativeQuery = true)
-    List<Lemma> findByLemmaIn(@Param("lemmaIn") List<String> lemmaIn);
+    List<Lemma> getAllLemmaByLemmaNameIn(@Param("lemmaIn") List<String> lemmaIn);
 
 
     @Query(value=
