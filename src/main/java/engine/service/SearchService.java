@@ -3,6 +3,7 @@ package engine.service;
 import engine.entity.IndexEntity;
 import engine.entity.Lemma;
 import engine.entity.PathTable;
+import lombok.AllArgsConstructor;
 import lombok.experimental.UtilityClass;
 
 import java.util.*;
@@ -13,9 +14,25 @@ import java.util.stream.Collectors;
 public class SearchService {
 
     private static BeanAccess beanAccess;
+    private static HashMap<String, SQLQuery> sqlContent;
 
+    @AllArgsConstructor
+    public static class SQLQuery {
+        private String name;
+        private String sql;
+    }
     public static void setBeanAccess(BeanAccess beanAccess) {
         SearchService.beanAccess = beanAccess;
+    }
+
+    public static String getGeneratedSQL(Set<Lemma> selectedLemmas) {
+        /** Генерация запроса - get_page_generate_stmt(:lemmaNames)
+         * Для запроса нужны только имена лемм  **/
+        String lemmaNames = selectedLemmas.stream().map(Lemma::getLemma)
+                .collect(Collectors.joining(",", "'", "'"));
+
+        return SearchService.getSQLByName("allSitesGenerateStmt")
+                .replace(":lemmaNames", lemmaNames);
     }
 
     public static List<Integer> getCommonPages(Set<Lemma> selectedLemmas,
@@ -236,6 +253,62 @@ public class SearchService {
         }
         Collections.sort(result);
         return result;
+    }
+
+    public static void createSqlContent() {
+        sqlContent = new HashMap<>();
+
+        String name = "oneSiteQuery";
+        String sql = """
+                    with lemma_id_query as (select cast(unnest(string_to_array(':lemmaIdArray',',')) as integer) lemma_id),\s
+                    index_query as (select page_id, sum(rank) abs, max(rank) max_abs from index\s
+                    join lemma_id_query on (index.lemma_id = lemma_id_query.lemma_id)\s
+                    where index.page_id in (:pageIdArray)\s
+                    group by index.page_id),\s
+
+                    page_query as (select id page_id, abs, abs / max_abs rel, path from page\s
+                    join index_query on (page.id = index_query.page_id)\s
+                    where page.id in (:pageIdArray)\s
+                    )
+
+                    select * from page_query\s
+                    order by abs desc, rel desc
+                """;
+
+        sqlContent.put(name, new SQLQuery(name,sql));
+
+        name = "allSitesGenerateStmt";
+        sql = "select * from get_pages_generate_stmt(:lemmaNames)";
+        sqlContent.put(name, new SQLQuery(name,sql));
+
+        name = "findLemmasInAllSites";
+        sql = """
+                    select 0 id, sum(frequency) frequency, lemma, 0 site_id\s
+                    from lemma
+                    where lemma in (:lemmaIn)
+                    group by lemma
+                    order by frequency""";
+        sqlContent.put(name, new SQLQuery(name,sql));
+
+        name = "getResult_INDEX_PAGE_LEMMA";
+        sql = "select * from get_pages_index_page_lemma(':lemmaIdArray', ':pageIdArray', :siteId) " +
+              "order by abs desc";
+        sqlContent.put(name, new SQLQuery(name,sql));
+
+        name = "getResult_GetPage_PAGE_INDEX";
+        sql = "select * from get_pages_page_index(':lemmaIdArray', ':pageIdArray') " +
+                "order by abs desc, rel";
+        sqlContent.put(name, new SQLQuery(name,sql));
+
+        name = "getPaths";
+        sql = "Select id page_id, path, cast(0 as float) abs, cast(0 as float) rel \n" +
+                "from page \n" +
+                "where id in (:pageIdArray)";
+        sqlContent.put(name, new SQLQuery(name,sql));
+    }
+
+    public static String getSQLByName(String nameSQLQuery) {
+        return sqlContent.get(nameSQLQuery).sql;
     }
 
 }
