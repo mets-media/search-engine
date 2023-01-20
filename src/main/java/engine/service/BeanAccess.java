@@ -37,7 +37,7 @@ public class BeanAccess {
     @Autowired
     PartOfSpeechRepository partOfSpeechRepository;
     @Autowired
-    PathTableRepository pathTableRepository;
+    ImplRepository implRepository;
     @Autowired
     PageContainerRepository pageContainerRepository;
     @Autowired

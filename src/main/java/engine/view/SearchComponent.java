@@ -34,7 +34,6 @@ public class SearchComponent {
 
     private static BeanAccess beanAccess;
     private ComboBox<Site> siteComboBox = null;
-    //private final HashMap<String, List<String>> pagesHashMap = new HashMap<>();
     private final HashMap<String, List<Integer>> pageIdHashMap = new HashMap<>();
     private final HashMap<String, List<IndexEntity>> indexHashMap = new HashMap<>();
     private final VerticalLayout mainLayout;
@@ -55,9 +54,6 @@ public class SearchComponent {
     private ComboBox<String> selectGetInfoQueryComboBox;
     private final Site allSiteObject = new Site();
     private final Lemmatization lemmatizator;
-//    private String pageIdArray;
-//    private String lemmaIdArray;
-
     private String resultSQL = "";
 
     public SearchComponent() {
@@ -67,6 +63,7 @@ public class SearchComponent {
 
         requestLayout.setSizeFull();
         requestTextField.setSizeFull();
+        requestTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
         requestTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
         requestTextField.setClearButtonVisible(true);
 
@@ -99,6 +96,7 @@ public class SearchComponent {
         });
 
         selectCountersQueryComboBox = UIElement.createComboBox(List.of("Repository.Count", "Counters", "GetStatistic"));
+        selectCountersQueryComboBox.setVisible(false);
         selectGetInfoQueryComboBox = UIElement.createComboBox(List.of("PostgreSQL", "Java HashMap", "Statement gen."));
         selectGetInfoQueryComboBox.addValueChangeListener(event -> {
             resultSQL = "Empty";
@@ -388,7 +386,7 @@ public class SearchComponent {
 
 
                     UIElement.removeComponentById(detailLayout, "indexGrid");
-
+/*
                     //отображение index
                     List<IndexEntity> listIndex;
                     List<Integer> listLemmaId;
@@ -408,12 +406,13 @@ public class SearchComponent {
                         listIndex = beanAccess.getIndexRepository()
                                 .findByPageIdLemmaIdIn(t.getPageId(), listLemmaId);
                     }
+
                     Grid<IndexEntity> gridIndex = new Grid<>(IndexEntity.class, true);
                     gridIndex.setItems(listIndex);
                     gridIndex.setId("indexGrid");
-
-
                     detailLayout.add(grid, gridIndex);
+*/
+                    detailLayout.add(grid);
                     detailLayout.setVisible(true);
                 });
             });
@@ -444,7 +443,7 @@ public class SearchComponent {
 
     //private List<PathTable> getSearchResults(Integer siteId, Set<Lemma> selectedLemmas, String pagesId) {
     private List<PathTable> getSearchResults() {
-        List<PathTable> pathTableList = beanAccess.getPathTableRepository().execQuery(resultSQL);
+        List<PathTable> pathTableList = beanAccess.getImplRepository().findPathTableItems(resultSQL);
 
         findPageGrid.setItems(pathTableList);
         printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
@@ -476,8 +475,8 @@ public class SearchComponent {
             String pageIdArray = pathTableList.stream()
                     .map(l -> Integer.toString(l.getPageId()))
                     .collect(Collectors.joining(","));
-            List<PathTable> listPaths = beanAccess.getPathTableRepository()
-                    .execQuery(SearchService.getSQLByName("getPaths")
+            List<PathTable> listPaths = beanAccess.getImplRepository()
+                    .findPathTableItems(SearchService.getSQLByName("getPaths")
                             .replace(":pageIdArray", pageIdArray));
             return listMerge(pathTableList, listPaths);
         }
@@ -524,7 +523,7 @@ public class SearchComponent {
 
         //pathTableList.sort(Comparator.comparing(PathTable::getAbsRelevance).reversed());
 
-        return beanAccess.getPathTableRepository().execQuery(resultSQL);
+        return beanAccess.getImplRepository().findPathTableItems(resultSQL);
     }
 
     private List<PathTable> doLemmaSelectEvent_PostgreSQL(Set<Lemma> selectedLemmas, int siteId) {
@@ -559,7 +558,7 @@ public class SearchComponent {
             return new ArrayList<>();
         }
 
-        pathTableList = beanAccess.getPathTableRepository().execQuery(resultSQL);
+        pathTableList = beanAccess.getImplRepository().findPathTableItems(resultSQL);
 
         printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
 
@@ -669,7 +668,7 @@ public class SearchComponent {
             //Причина неизвестна - БАГ!!!
 
             //Реализовал через jdbcTemplate
-            lemmaGrid.setItems(beanAccess.getPathTableRepository().findLemmasInAllSites(includeLemma));
+            lemmaGrid.setItems(beanAccess.getImplRepository().findLemmasInAllSites(includeLemma));
         } else  //Выбранный сайт
             lemmaGrid.setItems(query -> beanAccess.getLemmaRepository()
                     .findBySiteIdAndLemmaIn(

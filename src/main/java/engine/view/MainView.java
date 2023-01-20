@@ -46,7 +46,7 @@ public class MainView extends AppLayout {
     @Autowired
     PartOfSpeechRepository partOfSpeechRepository;
     @Autowired
-    PathTableRepository pathTableRepository;
+    ImplRepository implRepository;
     @Autowired
     PageContainerRepository pageContainerRepository;
     @Autowired
