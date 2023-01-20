@@ -20,7 +20,7 @@ public interface LemmaRepository extends JpaRepository<Lemma,Integer> {
             "where lemma in (:lemmaIn)\n" +
             "group by lemma\n" +
             "order by frequency", nativeQuery = true)
-    List<Lemma> getAllLemmaByLemmaNameIn(@Param("lemmaIn") List<String> lemmaIn);
+    List<Lemma> findLemmaByLemmaNameIn(@Param("lemmaIn") List<String> lemmaIn);
 
 
     @Query(value=

@@ -71,6 +71,5 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
     @Query(value = "select reset_counters();", nativeQuery = true)
     Integer checkForRestartCounters();
 
-
 }
 

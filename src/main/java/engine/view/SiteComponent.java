@@ -112,10 +112,6 @@ public class SiteComponent {
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         mainLayout.add(grid);
-
-
-
-
     }
 
     private List<Button> createButtons() {
@@ -126,15 +122,18 @@ public class SiteComponent {
         buttons.add(testButton);
         testButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         testButton.addClickListener(event -> {
-//            grid.getSelectedItems().forEach(site -> {
-//                site.setStatus(SiteStatus.INDEXED);
-//                beanAccess.getSiteRepository().save(site);
-//            });
+            grid.getSelectedItems().forEach(site -> {
+                if (site.getId() == 4) {
+                    site.setStatus(SiteStatus.NEW_SITE);
+                    beanAccess.getSiteRepository().save(site);
+                }
 
-            SiteRepository siteRepository = beanAccess.getSiteRepository();
-            for (Site site : siteRepository.getStatistic()) {
-                siteRepository.save(site);
-            }
+            });
+
+//            SiteRepository siteRepository = beanAccess.getSiteRepository();
+//            for (Site site : siteRepository.getStatistic()) {
+//                siteRepository.save(site);
+//            }
 
 
         });

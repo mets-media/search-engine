@@ -71,6 +71,7 @@ public class Application extends SpringBootServletInitializer {
 
             configRepository.creteGetCountersFunction();
 
+
             //Функция парсинга lemmaString
             //pageContainerRepository.createFunction();
             //Удаление данных в подчинённых таблицах

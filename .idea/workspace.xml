@@ -7,10 +7,20 @@
     <option name="rewriteBookmarkType" value="true" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Оптимизация">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Оптимизация кода">
+      <change afterPath="$PROJECT_DIR$/src/main/java/engine/entity/SQLContent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/engine/repository/SQLContentRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/Application.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/PathTable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/PathTable.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/LemmaRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/LemmaRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PathTableRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PathTableRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/import.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,8 +31,8 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Enum" />
-        <option value="Interface" />
         <option value="Class" />
+        <option value="Interface" />
       </list>
     </option>
   </component>
@@ -105,6 +115,48 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Проверка Лемматизатора">
+      <created>1668913372875</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1668913372875</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Проверка Лемматизатора">
+      <created>1668923963005</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1668923963006</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Проверка Лемматизатора">
+      <created>1668924538685</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1668924538685</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Проверка Лемматизатора">
+      <created>1668938816254</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1668938816260</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Проверка Лемматизатора">
+      <created>1669174306924</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1669174306924</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Проверка Lazy loading">
+      <created>1669530536919</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1669530536920</updated>
     </task>
     <task id="LOCAL-00027" summary="Проверка Lazy loading">
       <created>1669568968870</created>
@@ -407,49 +459,7 @@
       <option name="project" value="LOCAL" />
       <updated>1673883277547</updated>
     </task>
-    <task id="LOCAL-00070" summary="Оптимизация кода">
-      <created>1673951436158</created>
-      <option name="number" value="00070" />
-      <option name="presentableId" value="LOCAL-00070" />
-      <option name="project" value="LOCAL" />
-      <updated>1673951436159</updated>
-    </task>
-    <task id="LOCAL-00071" summary="Merge List&lt;PathTable&gt;">
-      <created>1673971698370</created>
-      <option name="number" value="00071" />
-      <option name="presentableId" value="LOCAL-00071" />
-      <option name="project" value="LOCAL" />
-      <updated>1673971698371</updated>
-    </task>
-    <task id="LOCAL-00072" summary="listMerge(list1,list2)">
-      <created>1673972647710</created>
-      <option name="number" value="00072" />
-      <option name="presentableId" value="LOCAL-00072" />
-      <option name="project" value="LOCAL" />
-      <updated>1673972647713</updated>
-    </task>
-    <task id="LOCAL-00073" summary="Три варианта поиска">
-      <created>1673976551191</created>
-      <option name="number" value="00073" />
-      <option name="presentableId" value="LOCAL-00073" />
-      <option name="project" value="LOCAL" />
-      <updated>1673976551192</updated>
-    </task>
-    <task id="LOCAL-00074" summary="SearchService">
-      <created>1674032925324</created>
-      <option name="number" value="00074" />
-      <option name="presentableId" value="LOCAL-00074" />
-      <option name="project" value="LOCAL" />
-      <updated>1674032925325</updated>
-    </task>
-    <task id="LOCAL-00075" summary="Оптимизация">
-      <created>1674098081883</created>
-      <option name="number" value="00075" />
-      <option name="presentableId" value="LOCAL-00075" />
-      <option name="project" value="LOCAL" />
-      <updated>1674098081889</updated>
-    </task>
-    <option name="localTasksCounter" value="76" />
+    <option name="localTasksCounter" value="70" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -480,6 +490,11 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
+    <MESSAGE value="SearchEngine. Editing Grid." />
+    <MESSAGE value="adds morph dependencies" />
+    <MESSAGE value="Morph dependencies. Version with HashMap-cash." />
+    <MESSAGE value="Morph dependencies. MultiSelect mode." />
+    <MESSAGE value="Morph dependencies. Start-Stop-Continue downloading" />
     <MESSAGE value="Morph dependencies. MultiScan" />
     <MESSAGE value="Изменения в структуре проекта. (temp)" />
     <MESSAGE value="Проверка Лемматизатора" />
@@ -489,6 +504,7 @@
     <MESSAGE value="Система поиска. Snipped &lt;b&gt;" />
     <MESSAGE value="Application.yaml" />
     <MESSAGE value="dbWriter - отдельным потоком" />
+    <MESSAGE value="Оптимизация" />
     <MESSAGE value="Мсключения при записи в базу данных" />
     <MESSAGE value="Оптимизация записи в базу данных" />
     <MESSAGE value="SearcComponent refresh" />
@@ -499,13 +515,7 @@
     <MESSAGE value="Оптимизация запросов" />
     <MESSAGE value="Изменение интерфейса поиска" />
     <MESSAGE value="Оптимизация кода" />
-    <MESSAGE value="Merge List&lt;PathTable&gt;" />
-    <MESSAGE value="listMerge(list1,list2)" />
-    <MESSAGE value="Три варианта поиска" />
-    <MESSAGE value="SearchService" />
-    <MESSAGE value="Исправлен расчёт релевантности страниц" />
-    <MESSAGE value="Оптимизация" />
-    <option name="LAST_COMMIT_MESSAGE" value="Оптимизация" />
+    <option name="LAST_COMMIT_MESSAGE" value="Оптимизация кода" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -532,28 +542,24 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>150</line>
-          <option name="timeStamp" value="175" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
           <line>183</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>308</line>
-          <option name="timeStamp" value="178" />
+          <line>406</line>
+          <option name="timeStamp" value="182" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java</url>
-          <line>504</line>
-          <option name="timeStamp" value="210" />
+          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
+          <line>247</line>
+          <option name="timeStamp" value="183" />
         </line-breakpoint>
-        <breakpoint enabled="true" type="java-exception">
-          <properties class="org.postgresql.util.PSQLException" package="org.postgresql.util" />
-          <option name="timeStamp" value="101" />
-        </breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
+          <line>396</line>
+          <option name="timeStamp" value="184" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>

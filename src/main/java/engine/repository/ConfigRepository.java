@@ -261,7 +261,6 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
 
     @Modifying
     @Transactional
-    //@Query(value = "CREATE OR REPLACE FUNCTION get_by_lemma_and_site(\n" +
     @Query(value =
             """
                     CREATE OR REPLACE FUNCTION get_pages_index_page_lemma(
@@ -341,7 +340,6 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
     void resetSequences();
     @Modifying
     @Transactional
-    //@Query(value = "CREATE OR REPLACE FUNCTION get_pages(\n" +
     @Query(value = """
             CREATE OR REPLACE FUNCTION get_pages_page_index(
             \tlemma_id_array text,

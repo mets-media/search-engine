@@ -7,6 +7,7 @@ import lombok.experimental.UtilityClass;
 
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public class SearchService {
@@ -17,11 +18,26 @@ public class SearchService {
         SearchService.beanAccess = beanAccess;
     }
 
+    public static List<Integer> getCommonPages(Set<Lemma> selectedLemmas,
+                                               int siteId, HashMap<String,
+                                               List<Integer>> pageIdHashMap) {
+        /** Заполняем HashMap<Лемма, List<Integer>> pageIdHashMap **/
+        fillPageIdHashMap(selectedLemmas, siteId, pageIdHashMap);
+        /** Retain all pageId - находим пересечение страниц для всех лемм **/
+        return  retainAllPageId(selectedLemmas, pageIdHashMap);
+    }
 
+    public static String getLemmaIdString(Set<Lemma> selectedLemmas, int siteId) {
+        /** Формируем строку с перечислением Lemma_Id **/
+        if (siteId == 0) //Леммы для всех сайтов
+            return SearchService.getLemmaIdByLemmaNames(selectedLemmas.stream().map(Lemma::getLemma).toList());
+        else //Леммы для выбранного сайта
+            return selectedLemmas.stream().map(l -> l.getId().toString())
+                .collect(Collectors.joining(","));
+    };
     public static  List<PathTable> findIndexIntersection(Set<Lemma> lemmas,
                                                          HashMap<String, List<IndexEntity>> indexHashMap,
                                                          int siteId) {
-
         if (lemmas.size() == 0) return new ArrayList<>();
 
         List<IndexEntity> listIndex;
@@ -98,6 +114,12 @@ public class SearchService {
         return result;
     }
 
+    public static String getLemmaIdByLemmaNames(List<String> lemmaNames) {
+        return beanAccess.getLemmaRepository()
+                .findByLemmaIn(lemmaNames)
+                .stream().map(l->l.getId().toString())
+                .collect(Collectors.joining(","));
+    }
     public static void fillPageIdHashMap(Set<Lemma> lemmas,
                                          int siteId,
                                          HashMap<String, List<Integer>> pageIdHashMap) {
