@@ -128,6 +128,7 @@ public class UIElement {
         grid.setItems(words);
         return grid;
     }
+
     private Grid<String> getStringGridWithHeader(String caption, String colName, List<String> words) {
         Grid<String> grid = new Grid<>(String.class, false);
         Grid.Column<String> col1 = grid.addColumn(String::toString).setHeader(colName).setTextAlign(ColumnTextAlign.START);
@@ -143,6 +144,7 @@ public class UIElement {
         headerRow.join(col1, col2).setComponent(simpleCell);
         return grid;
     }
+
     private static String createWordsCountFooterText(List<String> words) {
         int count = words.size();
         if (count > 1)
@@ -176,6 +178,30 @@ public class UIElement {
         comboBox.setItems(items);
         comboBox.setValue(items.get(0));
         return comboBox;
+    }
+
+
+    public VerticalLayout getVerticalLayoutWithSideBySideGrids(List<Grid> gridList, String id) {
+        VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.setId(id);
+        verticalLayout.setWidthFull();
+        HorizontalLayout horizontalLayout = new HorizontalLayout();
+        horizontalLayout.setWidthFull();
+        int i = 0;
+        while (i < gridList.size()) {
+            Grid grid = gridList.get(i);
+            horizontalLayout.add(grid);
+            grid.setWidth("50%");
+            i++;
+            if ((i & 1) == 0) {
+                verticalLayout.add(horizontalLayout);
+                horizontalLayout = new HorizontalLayout();
+                horizontalLayout.setWidthFull();
+            }
+            if ((i & 1) == 0)
+                verticalLayout.add(horizontalLayout);
+        }
+        return verticalLayout;
     }
 
 

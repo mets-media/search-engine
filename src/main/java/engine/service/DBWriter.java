@@ -45,14 +45,13 @@ public class DBWriter extends Thread {
 
     @Override
     public void run() {
-
         run = true;
         System.out.println("Запуск dbWriter " + getName());
 
         while (run) {//===========================================================================================
             while (readyPage.size() == 0)
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }

@@ -25,9 +25,6 @@ public class HtmlParsing {
     private static String referrer;
     private static Integer timeout;
     private static Integer delay;
-
-    private static int saveFilesCount = 0;
-
     public static void setUserAgent(String userAgent) {HtmlParsing.userAgent = userAgent;}
     public static void setReferrer(String referrer) {HtmlParsing.referrer = referrer;}
     public static void setTimeout(Integer timeout) {HtmlParsing.timeout = timeout;}
@@ -53,7 +50,6 @@ public class HtmlParsing {
 
         InputStream inputStream = new URL(urlFile).openStream();
         Files.copy(inputStream, Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
-        saveFilesCount++;
         System.out.printf("\nЗаписан файл: %s", filePath);
     }
 
@@ -90,6 +86,21 @@ public class HtmlParsing {
             Connection.Response response = Jsoup.connect(url)
                     .userAgent(userAgent)
                     .timeout(timeout)
+                    .execute();
+            return response.statusCode();
+
+        } catch (IOException e) {
+            //return getStatusFromExceptionString(e.toString());
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Integer getStatusCode(String url, int readTimeout) {
+
+        try {
+            Connection.Response response = Jsoup.connect(url)
+                    .userAgent(userAgent)
+                    .timeout(readTimeout)
                     .execute();
             return response.statusCode();
 

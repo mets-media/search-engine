@@ -1,7 +1,9 @@
 package engine.repository;
 
+import engine.entity.KeepLink;
 import engine.entity.Lemma;
 import engine.entity.PathTable;
+import engine.mapper.KeepLinkMapper;
 import engine.mapper.LemmaMapper;
 import engine.mapper.PathTableMapper;
 import engine.service.SearchService;
@@ -21,6 +23,8 @@ public class ImplRepository {
     private PathTableMapper pathTableMapper;
     @Autowired
     private LemmaMapper lemmaMapper;
+    @Autowired
+    private KeepLinkMapper keepLinkMapper;
 
     @PostConstruct
     private void createSQLContent() {
@@ -39,5 +43,21 @@ public class ImplRepository {
     public List<Lemma> findLemmasInAllSites(String lemmas) {
         return jdbcTemplate.query(SearchService.getSQLByName("findLemmasInAllSites")
                 .replace(":lemmaIn", lemmas), lemmaMapper);
+    }
+
+    public List<KeepLink> getErrorNames(int siteId, int status) {
+        return jdbcTemplate.query("""
+                Select 0 id, code, 1 site_id, status,
+                case
+                 when code = -1 then 'Длина URL более 255 символов'
+                 when code = -2 then 'Timeout при загрузке страницы'
+                 else 'код ошибки ' || code
+                end path
+                 from Keep_Link
+                where site_id = :siteId
+                  and status = :status
+                group by code, status"""
+                .replace(":siteId", Integer.toString(siteId))
+                .replace(":status", Integer.toString(status)), keepLinkMapper);
     }
 }

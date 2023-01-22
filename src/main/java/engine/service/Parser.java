@@ -31,12 +31,8 @@ public class Parser extends RecursiveAction {
     private String content;
     private Integer code;
     private String domainName;
-
-    //private static Grid<Site> siteGrid;
+    private static int timeout;
     private static BeanAccess beanAccess;
-    public final static String READY_LINKS_FILENAME = "links.txt";
-    public final static String STOP_LINKS_FILENAME = "Stoplinks.txt";
-    public final static String ERROR_LINKS_FILENAME = "Error_Links.txt";
     private static final HashMap<Integer, ForkJoinPool> activePools = new HashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentSkipListSet<String>> readyLinksHashMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, ConcurrentLinkedQueue<Page>> pageHashMap = new ConcurrentHashMap<>();
@@ -72,6 +68,13 @@ public class Parser extends RecursiveAction {
         List<Config> configList = beanAccess.getConfigRepository().findAll();
         configList.forEach(configLine -> {
             switch (configLine.getKey()) {
+                case "T.out" -> {
+                    try {
+                        timeout = Integer.parseInt(configLine.getValue());
+                    } catch (Exception e) {
+                        UIElement.showMessage("Тип свойства 'Timeout' должен быть Integer");
+                    }
+                }
                 case "delay" -> {
                     delay = Integer.parseInt(configLine.getValue());
                 }
@@ -99,6 +102,7 @@ public class Parser extends RecursiveAction {
             }
         });
     }
+
     public static void initSite(Site site) {
 
         int siteId = site.getId();
@@ -255,7 +259,7 @@ public class Parser extends RecursiveAction {
     }
 
     public static Boolean indexingPage(Site site, String path, BeanAccess beanAccess) throws Exception {
-        var code = HtmlParsing.getStatusCode(path);
+        var code = HtmlParsing.getStatusCode(path, 10000);
         var document = HtmlParsing.getHtmlDocument(path);
         var content = document.toString();
 
@@ -263,8 +267,8 @@ public class Parser extends RecursiveAction {
             ConcurrentLinkedQueue<Page> readyPage = new ConcurrentLinkedQueue<>();
             readyPage.add(new Page(site.getId(), path, code, content));
 
-            DBWriter dbWriter = new DBWriter("DBWriter[One page]",site,beanAccess,
-                    readyPage,1,true);
+            DBWriter dbWriter = new DBWriter("DBWriter[One page]", site, beanAccess,
+                    readyPage, 1, true);
             dbWriter.start();
 
             //System.out.println(readyPage.size());
@@ -293,7 +297,9 @@ public class Parser extends RecursiveAction {
             new Thread(() -> {
                 try {
                     beanAccess.getPageRepository().deleteByPath(path);
-                    indexingPage(finalFindSite, path, beanAccess);
+                    if (indexingPage(finalFindSite, path, beanAccess)) {
+                        beanAccess.getKeepLinkRepository().deleteByPath(path);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -302,6 +308,10 @@ public class Parser extends RecursiveAction {
             return false;
         }
         return true;
+    }
+
+    public void saveErrorLink() {
+        //beanAccess.getKeepLinkRepository().
     }
 
     @Override
@@ -330,17 +340,23 @@ public class Parser extends RecursiveAction {
                 code = HtmlParsing.getStatusCode(path);
                 document = HtmlParsing.getHtmlDocument(path);
                 content = document.toString();
+
             } catch (Exception e) {
                 //throw new RuntimeException(e);
                 //e.printStackTrace();
                 code = HtmlParsing.getStatusFromExceptionString(e.toString());
                 errorLinks.put(path, code);
+                new Thread(() -> {/** записываем ссылку с кодом ошибки **/
+                    beanAccess.getKeepLinkRepository()
+                            .save(new KeepLink(siteId, code, LinkStatus.ERROR_LINK.ordinal(), path));
+                }).start();
             }
             if (code == 200) {
                 readyLinks.add(path);
                 Page page = new Page(site.getId(), path, code, content);
                 readyPages.add(page);
-                //System.out.printf("%s -> readyLinks: %d, inProcessLinks: %d\n", domainName, readyLinks.size(), inProcessLinks.size());
+                //System.out.printf("%s -> readyLinks: %d, inProcessLinks: %d\n",
+                // domainName, readyLinks.size(), inProcessLinks.size());
                 totalCountLinks.addAndGet(1L);
             }
         }
@@ -416,7 +432,7 @@ public class Parser extends RecursiveAction {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                if  (inProcessLinks.size() == 0) { //Проверочный вариант
+                if (inProcessLinks.size() == 0) { //Проверочный вариант
                     site.setStatus(SiteStatus.INDEXED);
                     beanAccess.getSiteRepository().save(site);
                     stop(site);

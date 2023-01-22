@@ -8,6 +8,7 @@ import lombok.experimental.UtilityClass;
 
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @UtilityClass
@@ -165,8 +166,15 @@ public class SearchService {
         //-----------------------------------------------------------------------------------------------------
 
         HashMap<Integer, PathTable> list1_Map = new HashMap<>();
+
         list1.stream().map(l -> new AbstractMap.SimpleEntry<Integer, PathTable>(l.getPageId(), l))
                 .forEach(m -> list1_Map.put(m.getKey(), m.getValue()));
+
+       // list1.stream().collect(Collectors.toMap(PathTable::getPageId, Function.identity(), (oldItem, newItem) -> newItem));
+
+        //list1.stream().collect(Collectors.toMap(item -> item.getPageId(), item -> item, (oldItem, newItem) -> newItem));
+
+
 
         HashMap<Integer, PathTable> list2_Map = new HashMap<>();
         list2.stream().map(l -> new AbstractMap.SimpleEntry<Integer, PathTable>(l.getPageId(), l))

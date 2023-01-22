@@ -9,7 +9,6 @@ import java.sql.SQLException;
 
 @Component
 public class PathTableMapper implements RowMapper<PathTable> {
-
     @Override
     public PathTable mapRow(ResultSet rs, int rowNum) throws SQLException {
         PathTable pathTable = new PathTable();

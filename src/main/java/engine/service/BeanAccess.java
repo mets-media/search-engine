@@ -5,6 +5,7 @@ import engine.config.YAMLConfig;
 import engine.repository.*;
 import engine.view.SiteComponent;
 import lombok.Getter;
+import org.apache.catalina.core.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
