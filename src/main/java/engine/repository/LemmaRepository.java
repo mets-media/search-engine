@@ -22,7 +22,6 @@ public interface LemmaRepository extends JpaRepository<Lemma,Integer> {
             "order by frequency", nativeQuery = true)
     List<Lemma> findLemmaByLemmaNameIn(@Param("lemmaIn") List<String> lemmaIn);
 
-
     @Query(value=
             //"with page_lemma_count as (select lemma_id, count(*) lemma_count, sum(lemma.rank) rank from index \n" +
             "with page_lemma_count as (select lemma_id, count(*) lemma_count, sum(index.rank) rank from index \n" +

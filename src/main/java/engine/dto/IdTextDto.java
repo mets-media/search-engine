@@ -1,6 +1,4 @@
 package engine.dto;
 
-
-public record IdTextDto(Integer id, String text){
-
+public record IdTextDto(Integer id, String text) {
 }

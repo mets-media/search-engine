@@ -25,17 +25,18 @@ public class ImplRepository {
     private LemmaMapper lemmaMapper;
     @Autowired
     private KeepLinkMapper keepLinkMapper;
-
     @PostConstruct
     private void createSQLContent() {
         SearchService.createSqlContent();
     }
+
     public List<PathTable> findPathTableItems(String sqlQuery, Pageable pageable) {
         sqlQuery += "\noffset :offset limit :limit";
         return jdbcTemplate.query(
                 sqlQuery.replace(":offset", Long.toString(pageable.getOffset()))
                         .replace(":limit", Long.toString(pageable.getPageSize())), pathTableMapper);
     }
+
     public List<PathTable> findPathTableItems(String sqlQuery) {
         return jdbcTemplate.query(sqlQuery, pathTableMapper);
     }
@@ -45,19 +46,4 @@ public class ImplRepository {
                 .replace(":lemmaIn", lemmas), lemmaMapper);
     }
 
-    public List<KeepLink> getErrorNames(int siteId, int status) {
-        return jdbcTemplate.query("""
-                Select 0 id, code, 1 site_id, status,
-                case
-                 when code = -1 then 'Длина URL более 255 символов'
-                 when code = -2 then 'Timeout при загрузке страницы'
-                 else 'код ошибки ' || code
-                end path
-                 from Keep_Link
-                where site_id = :siteId
-                  and status = :status
-                group by code, status"""
-                .replace(":siteId", Integer.toString(siteId))
-                .replace(":status", Integer.toString(status)), keepLinkMapper);
-    }
 }

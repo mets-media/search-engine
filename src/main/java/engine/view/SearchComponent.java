@@ -189,7 +189,7 @@ public class SearchComponent {
         pageIdHashMap.clear();
     }
 
-    private void setInfoValuesFromGetStatistic() {
+    public void setInfoValuesFromGetStatistic() {
         for (Site site : beanAccess.getSiteRepository().getStatistic()) {
             beanAccess.getSiteRepository().save(site);
         }
@@ -215,7 +215,7 @@ public class SearchComponent {
     }
 
     private void setInfoFromCounters() {
-        Optional<Site> allSite = beanAccess.getSiteRepository().getAllSiteInfo();
+        Optional<Site> allSite = beanAccess.getSiteRepository().getAllSiteCountersInfo();
         allSite.ifPresent(site -> {
             int pageCount = site.getPageCount();
             int lemmaCount = site.getLemmaCount();
@@ -441,7 +441,6 @@ public class SearchComponent {
         //lemmaGrid.setEnabled(true);
     }
 
-    //private List<PathTable> getSearchResults(Integer siteId, Set<Lemma> selectedLemmas, String pagesId) {
     private List<PathTable> getSearchResults() {
         List<PathTable> pathTableList = beanAccess.getImplRepository().findPathTableItems(resultSQL);
 

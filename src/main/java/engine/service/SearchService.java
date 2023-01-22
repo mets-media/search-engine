@@ -48,7 +48,7 @@ public class SearchService {
     public static String getLemmaIdString(Set<Lemma> selectedLemmas, int siteId) {
         /** Формируем строку с перечислением Lemma_Id **/
         if (siteId == 0) //Леммы для всех сайтов
-            return SearchService.getLemmaIdByLemmaNames(selectedLemmas.stream().map(Lemma::getLemma).toList());
+            return SearchService.getLemmaIdArrayByLemmaNames(selectedLemmas.stream().map(Lemma::getLemma).toList());
         else //Леммы для выбранного сайта
             return selectedLemmas.stream().map(l -> l.getId().toString())
                 .collect(Collectors.joining(","));
@@ -132,7 +132,7 @@ public class SearchService {
         return result;
     }
 
-    public static String getLemmaIdByLemmaNames(List<String> lemmaNames) {
+    public static String getLemmaIdArrayByLemmaNames(List<String> lemmaNames) {
         return beanAccess.getLemmaRepository()
                 .findByLemmaIn(lemmaNames)
                 .stream().map(l->l.getId().toString())
@@ -160,6 +160,7 @@ public class SearchService {
         /**
          * Суммирование List1 List2
          */
+
         //-----------------------------------------------------------------------------------------------------
         BiFunction<PathTable,PathTable,PathTable> ADD_PATH_FUNCTION =
                 (p1,p2) -> new PathTable(p1.getPageId(), p1.getAbsRelevance(), p1.getRelRelevance(), p2.getPath());
@@ -170,18 +171,30 @@ public class SearchService {
         list1.stream().map(l -> new AbstractMap.SimpleEntry<Integer, PathTable>(l.getPageId(), l))
                 .forEach(m -> list1_Map.put(m.getKey(), m.getValue()));
 
-       // list1.stream().collect(Collectors.toMap(PathTable::getPageId, Function.identity(), (oldItem, newItem) -> newItem));
-
-        //list1.stream().collect(Collectors.toMap(item -> item.getPageId(), item -> item, (oldItem, newItem) -> newItem));
-
-
-
         HashMap<Integer, PathTable> list2_Map = new HashMap<>();
         list2.stream().map(l -> new AbstractMap.SimpleEntry<Integer, PathTable>(l.getPageId(), l))
                 .forEach(m -> list2_Map.put(m.getKey(), m.getValue()));
 
         list2_Map.forEach((k,v) -> list1_Map.merge(k,v,ADD_PATH_FUNCTION));
 
+
+        //Новый вариант создания map
+        // list1.stream().collect(Collectors.toMap(PathTable::getPageId, Function.identity(), (oldItem, newItem) -> newItem));
+        // list1.stream().collect(Collectors.toMap(item -> item.getPageId(), item -> item, (oldItem, newItem) -> newItem));
+
+
+/*
+        Map<Integer, PathTable> list1_Map = list1.stream()
+                .collect(Collectors.toMap(PathTable::getPageId, Function.identity()));
+
+        Map<Integer, PathTable> list2_Map = list1.stream()
+                .collect(Collectors.toMap(PathTable::getPageId,Function.identity()));
+
+//        list2_Map.forEach((k,v) -> list1_Map.merge(k,v,
+//                (p1,p2) -> new PathTable(p1.getPageId(), p1.getAbsRelevance(), p1.getRelRelevance(), p2.getPath())));
+
+        list2_Map.forEach((k,v) -> list1_Map.merge(k,v,ADD_PATH_FUNCTION));
+*/
         return list1_Map.values().stream().sorted(Comparator.comparing(PathTable::getAbsRelevance).reversed()).toList();
     }
 
@@ -237,7 +250,7 @@ public class SearchService {
         for (int i = 1; i < sortedLemma.size(); i++) {
             lowFrequencyLemma = sortedLemma.get(i).getLemma();
 
-            //result.retainAll(hashMap.get(lowFrequencyLemma));
+            result.retainAll(hashMap.get(lowFrequencyLemma));
         }
         return result;
     }
@@ -268,18 +281,18 @@ public class SearchService {
 
         String name = "oneSiteQuery";
         String sql = """
-                    with lemma_id_query as (select cast(unnest(string_to_array(':lemmaIdArray',',')) as integer) lemma_id),\s
-                    index_query as (select page_id, sum(rank) abs, max(rank) max_abs from index\s
-                    join lemma_id_query on (index.lemma_id = lemma_id_query.lemma_id)\s
-                    where index.page_id in (:pageIdArray)\s
-                    group by index.page_id),\s
+                    with lemma_id_query as (select cast(unnest(string_to_array(':lemmaIdArray',',')) as integer) lemma_id), 
+                    index_query as (select page_id, sum(rank) abs, max(rank) max_abs from index 
+                    join lemma_id_query on (index.lemma_id = lemma_id_query.lemma_id) 
+                    where index.page_id in (:pageIdArray) 
+                    group by index.page_id), 
 
-                    page_query as (select id page_id, abs, abs / max_abs rel, path from page\s
-                    join index_query on (page.id = index_query.page_id)\s
-                    where page.id in (:pageIdArray)\s
+                    page_query as (select id page_id, abs, abs / max_abs rel, path from page 
+                    join index_query on (page.id = index_query.page_id) 
+                    where page.id in (:pageIdArray) 
                     )
 
-                    select * from page_query\s
+                    select * from page_query 
                     order by abs desc, rel desc
                 """;
 
@@ -291,7 +304,7 @@ public class SearchService {
 
         name = "findLemmasInAllSites";
         sql = """
-                    select 0 id, sum(frequency) frequency, lemma, 0 site_id\s
+                    select 0 id, sum(frequency) frequency, lemma, 0 site_id 
                     from lemma
                     where lemma in (:lemmaIn)
                     group by lemma
@@ -309,9 +322,10 @@ public class SearchService {
         sqlContent.put(name, new SQLQuery(name,sql));
 
         name = "getPaths";
-        sql = "Select id page_id, path, cast(0 as float) abs, cast(0 as float) rel \n" +
-                "from page \n" +
-                "where id in (:pageIdArray)";
+        sql = """
+                Select id page_id, path, cast(0 as float) abs, cast(0 as float) rel 
+                from page 
+                where id in (:pageIdArray)""";
         sqlContent.put(name, new SQLQuery(name,sql));
     }
 

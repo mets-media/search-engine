@@ -42,23 +42,23 @@ public interface IndexRepository extends CrudRepository<IndexEntity, Integer> {
     @Transactional
     @Query(value =
             """
-                    DO $$DECLARE\s
+                    DO $$DECLARE 
                     BEGIN
-                    \t if (not exists (select oid from pg_constraint where conname = 'fk_lemma_constraint') ) then
-                    \t\t EXECUTE 'ALTER TABLE IF EXISTS index\s
-                        \t ADD CONSTRAINT FK_LEMMA_CONSTRAINT FOREIGN KEY (lemma_id)\s
-                    \t     REFERENCES public.lemma (id) MATCH SIMPLE\s
-                        \t ON UPDATE NO ACTION\s
-                    \t     ON DELETE NO ACTION';
-                    \t end if;
+                      if (not exists (select oid from pg_constraint where conname = 'fk_lemma_constraint') ) then
+                       EXECUTE 'ALTER TABLE IF EXISTS index 
+                          ADD CONSTRAINT FK_LEMMA_CONSTRAINT FOREIGN KEY (lemma_id) 
+                          REFERENCES public.lemma (id) MATCH SIMPLE 
+                          ON UPDATE NO ACTION 
+                          ON DELETE NO ACTION';
+                      end if;
 
-                    \t if (not exists (select oid from pg_constraint where conname = 'fk_page_constraint') ) then
-                    \t\t EXECUTE 'ALTER TABLE IF EXISTS index \s
-                                ADD CONSTRAINT FK_PAGE_CONSTRAINT FOREIGN KEY (page_id)\s
-                                REFERENCES public.page (id) MATCH SIMPLE\s
-                                ON UPDATE NO ACTION\s
+                      if (not exists (select oid from pg_constraint where conname = 'fk_page_constraint') ) then
+                         EXECUTE 'ALTER TABLE IF EXISTS index 
+                                ADD CONSTRAINT FK_PAGE_CONSTRAINT FOREIGN KEY (page_id) 
+                                REFERENCES public.page (id) MATCH SIMPLE 
+                                ON UPDATE NO ACTION 
                                 ON DELETE NO ACTION';
-                    \t end if;
+                       end if;
                     END$$;""", nativeQuery = true)
     void createForeignKeys();
 

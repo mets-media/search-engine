@@ -52,16 +52,16 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
     @Transactional
     @Query(value = """
             drop table Page;
-            create table page\s
-            (id  serial not null,\s
-             code int4 not null,\s
-             content Text,\s
-             path Text not null,\s
-             site_id int4 not null,\s
+            create table page
+            (id  serial not null,
+             code int4 not null,
+             content Text,
+             path Text not null,
+             site_id int4 not null,
              primary key (id));
-            \s
+            
              create index siteId_idx on page (site_id);
-            \s
+            
              alter table page add constraint siteId_path_unique unique (site_id, path);""",
             nativeQuery = true)
     void reCreateTable();

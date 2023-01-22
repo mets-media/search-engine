@@ -15,6 +15,7 @@ import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
 import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
 import com.vaadin.flow.component.grid.dnd.GridDropMode;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -281,10 +282,12 @@ public class IndexingComponent {
     }
 
     private ComboBox<IdTextDto> createErrorComboBox() {
-        ComboBox<IdTextDto> comboBox = new ComboBox<>("Тип ошибки");
+        ComboBox<IdTextDto> comboBox = new ComboBox<>("Тип ошибок");
         comboBox.setItemLabelGenerator(IdTextDto::text);
 
         comboBox.addValueChangeListener(event -> {
+            if (errorComboBox.getValue() == null) return;
+
             int siteId = siteComboBox.getValue().getId();
             int code = event.getValue().id();
 
@@ -298,11 +301,25 @@ public class IndexingComponent {
 
             dataViewError = errorGrid.setItems(list);
 
-            errorGrid.getColumns().get(0).setHeader(errorComboBox.getValue().text());
-            errorGrid.getHeaderRows().get(0).getCell(errorGrid.getColumns().get(0))
-                    .setText("Страницы с ошибками " + " [ " + list.size() + " стр.]");
+            //errorGrid.getColumns().get(0).setHeader(errorComboBox.getValue().text());
+//            errorGrid.getHeaderRows().get(0).getCell(errorGrid.getColumns().get(0))
+//                    .setText("Страницы с ошибками " + " [ " + list.size() + " стр.]");
+
+            setColumnText(errorGrid, 0, errorComboBox.getValue().text());
+            setHeaderText(errorGrid, 0, 0,
+                    "Страницы с ошибками " + " [ " + list.size() + " стр.]");
         });
         return comboBox;
+    }
+
+    private void setColumnText(Grid<KeepLink> grid, int colIndex, String text) {
+        errorGrid.getColumns().get(colIndex).setHeader(text);
+    }
+
+    private void setHeaderText(Grid<KeepLink> grid, int headerIndex, int colIndex, String text) {
+        grid.getHeaderRows().get(0).getCell(grid.getColumns().get(0))
+                .setText(text);
+
     }
 
     private void handleDragStartPage(GridDragStartEvent<Page> e) {
@@ -320,12 +337,25 @@ public class IndexingComponent {
             draggedkeepLinkList = errorGrid.getSelectedItems().stream().toList();
         else
             draggedKeepLinkItem = e.getDraggedItems().get(0);
-
     }
 
     private void handleDragEndKeepLink(GridDragEndEvent<KeepLink> e) {
         draggedKeepLinkItem = null;
         draggedkeepLinkList = null;
+
+        setHeaderText(errorGrid, 0, 0, "Страницы с ошибками " + " [ " + dataViewError.getItemCount() + " стр.]");
+    }
+
+    private Button createRefreshButton() {
+        var button = UIElement.createButton("", VaadinIcon.REFRESH, "Обновить информацию");
+
+        button.addClickListener(event -> {
+            Site site = siteComboBox.getValue();
+            if (site != null)
+                siteSelect(site);
+        });
+
+        return button;
     }
 
     private void dragAndDropGrids() {
@@ -343,14 +373,13 @@ public class IndexingComponent {
         pageGrid.setRowsDraggable(false);
         pageGrid.addDragStartListener(this::handleDragStartPage);
         pageGrid.addDropListener(e -> {
-            //dataView1.removeItem(draggedItem);
-            //dataView2.addItem(draggedItem);
             if (draggedkeepLinkList != null) {/** Запись выбранных KeepLink */
+                showMessage("Страниц для записи: " + draggedkeepLinkList.size());
                 for (KeepLink keepLink : draggedkeepLinkList) {
                     if (!(insertOrUpdatePage(keepLink.getPath(), beanAccess))) {
                         showMessage("Страница за пределами проиндексированных сайтов! " + keepLink.getPath());
                     }
-                    showMessage(("Записываем и индексируем страницу: ").concat(keepLink.getPath()));
+                    //showMessage(("Записываем и индексируем страницу: ").concat(keepLink.getPath()));
                     dataViewError.removeItem(keepLink);
                 }
             } else {
@@ -366,6 +395,33 @@ public class IndexingComponent {
 
     }
 
+    private void siteSelect(Site site) {
+        Integer pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
+        site.setPageCount(pageCount);
+
+        //pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
+
+        pageGrid.getHeaderRows().get(0).getCell(pageGrid.getColumns().get(0))
+                .setText("Индексированные страницы [ " + new DecimalFormat("#,###")
+                        .format(pageCount) + " стр.]");
+
+        dataViewPage = pageGrid.setItems(query -> beanAccess.getPageRepository()
+                .findBySiteId(
+                        site.getId(),
+                        PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path")))
+                .stream());
+
+        List<IdTextDto> list = beanAccess.getKeepLinkRepository()
+                .getDistinctErrors(site.getId(), LinkStatus.ERROR_LINK.ordinal());
+
+        errorComboBox.clear();
+        //errorGrid.setItems(new ArrayList<KeepLink>());
+
+        list.add(0, new IdTextDto(0, "Все ошибки"));
+        errorComboBox.setItems(list);
+        errorComboBox.setValue(list.get(0));
+    }
+
     private ComboBox<Site> createSiteComboBox() {
 
         ComboBox<Site> siteComboBox = new ComboBox<>("Сайт:");
@@ -378,12 +434,11 @@ public class IndexingComponent {
         });
         //==================================================================================
         siteComboBox.addValueChangeListener(event -> {
-//            cssSelectorComboBox.clear();
-//            cssSelectorTextArea.clear();
-//            cssSelectorTextArea.setReadOnly(true);
 
             Site site = event.getValue();
 
+            siteSelect(site);
+/*
             Integer pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
             site.setPageCount(pageCount);
 
@@ -399,26 +454,16 @@ public class IndexingComponent {
                             PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path")))
                     .stream());
 
-//            dataViewError = errorGrid.setItems(query ->
-//                    beanAccess.getKeepLinkRepository().findBySiteId(site.getId(),
-//                                    PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("code")))
-//                            .stream());
-
-            //dataViewError = errorGrid.setItems(beanAccess.getKeepLinkRepository().findBySiteId(site.getId()));
-
             List<IdTextDto> list = beanAccess.getKeepLinkRepository()
                     .getDistinctErrors(site.getId(), LinkStatus.ERROR_LINK.ordinal());
 
-//            List<KeepLink> list = beanAccess.getImplRepository()
-//                    .getErrorNames(site.getId(),LinkStatus.ERROR_LINK.ordinal());
-
-//            List<IdTextDto> list = beanAccess.getKeepLinkRepository()
-//                    .getDistinctErrorCode(site.getId(),LinkStatus.ERROR_LINK.ordinal());
+            errorComboBox.clear();
+            //errorGrid.setItems(new ArrayList<KeepLink>());
 
             list.add(0, new IdTextDto(0, "Все ошибки"));
             errorComboBox.setItems(list);
             errorComboBox.setValue(list.get(0));
-
+*/
         });//===============================================================================
 
         siteComboBox.setWidth("50%");
@@ -480,7 +525,7 @@ public class IndexingComponent {
         siteComboBox.setWidth("50%");
         errorComboBox.setWidth("50%");
 
-        var horizontalLayout = new HorizontalLayout(siteComboBox, errorComboBox);
+        var horizontalLayout = new HorizontalLayout(siteComboBox, createRefreshButton(), errorComboBox);
         horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
         horizontalLayout.setSizeFull();
 

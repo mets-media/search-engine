@@ -25,9 +25,6 @@ public interface KeepLinkRepository extends JpaRepository<KeepLink, Integer> {
     @Modifying
     void deleteByPath(String path);
 
-    List<KeepLink> findBySiteId(Integer siteId);
-    List<KeepLink> findBySiteId(Integer siteId, Pageable pageable);
-
     List<KeepLink> findBySiteIdAndCodeAndStatus(int siteId, int code, int status);
 
     List<KeepLink> findBySiteIdAndStatus(int siteId, int status);
@@ -47,29 +44,18 @@ public interface KeepLinkRepository extends JpaRepository<KeepLink, Integer> {
               and site_id = :siteId""")
     List<IdTextDto> getDistinctErrors(@Param("siteId") Integer siteId, @Param("status")Integer status);
 
-    @Query(value = """
-            Select distinct
-             case
-               when code is null then 'null'
-               else cast(code as varchar(3))
-             end code
-            from Keep_Link
-            where site_id = :siteId
-              and status = :status
-            order by code""", nativeQuery = true)
-    List<String> getDistinctCodeBySiteId(@Param("siteId") int siteId, @Param("status") int status);
-
     @Transactional
     @Modifying
-    @Query(value = "drop table keep_link;\n" +
-            "CREATE TABLE IF NOT EXISTS public.keep_link\n" +
-            "(id  serial not null, \n" +
-            "code integer,\n" +
-            "path text NOT NULL,\n" +
-            "site_id integer NOT NULL,\n" +
-            "status integer,\n" +
-            "CONSTRAINT keep_link_pkey PRIMARY KEY (id)\n" +
-            ")", nativeQuery = true)
+    @Query(value = """
+            drop table keep_link;
+            CREATE TABLE IF NOT EXISTS public.keep_link
+            (id  serial not null,
+            code integer,
+            path text NOT NULL,
+            site_id integer NOT NULL,
+            status integer,
+            CONSTRAINT keep_link_pkey PRIMARY KEY (id)
+            )""", nativeQuery = true)
     void reCreateTable();
 
 
