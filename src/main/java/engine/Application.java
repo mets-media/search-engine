@@ -1,6 +1,7 @@
 package engine;
 
 import engine.config.YAMLConfig;
+import engine.controller.ApiController;
 import engine.repository.*;
 import engine.service.HtmlParsing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,6 @@ public class Application extends SpringBootServletInitializer {
             configRepository.createSequences();
 
             configRepository.creteGetCountersFunction();
-
 
             //Функция парсинга lemmaString
             //pageContainerRepository.createFunction();

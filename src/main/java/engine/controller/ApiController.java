@@ -1,18 +1,21 @@
 package engine.controller;
 
 import engine.dto.SiteInfoDto;
+import engine.dto.TotalDto;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
 import engine.service.BeanAccess;
 import engine.service.Parser;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,10 +23,13 @@ import static engine.service.Parser.insertOrUpdatePage;
 
 @RestController
 @RequestMapping("/api")
+@Setter
 public class ApiController {
-
-    @Autowired
     static BeanAccess beanAccess;
+
+    public static void setBeanAccess(BeanAccess beanAccess) {
+        ApiController.beanAccess = beanAccess;
+    }
 
     @Getter
     @NoArgsConstructor
@@ -35,10 +41,34 @@ public class ApiController {
     public static class ResponseError {
         private final boolean result = false;
         private String error;
+
         public ResponseError(String error) {
             this.error = error;
         }
     }
+
+    @Getter
+    public static class ResponseStatistics implements Serializable {
+        private final boolean result = true;
+        private TotalDto total;
+        private List<SiteInfoDto> detailed;
+
+        public ResponseStatistics(List<SiteInfoDto> detailed) {
+            this.detailed = detailed;
+            int sites = detailed.size();
+            int pages = 0;
+            int lemmas = 0;
+            boolean isIndexing = true;
+            for (SiteInfoDto siteInfo : detailed) {
+                pages += siteInfo.pages();
+                lemmas += siteInfo.lemmas();
+                if (siteInfo.status() != SiteStatus.INDEXED) isIndexing = false;
+            }
+            this.total = new TotalDto(sites,pages,lemmas,isIndexing);
+        }
+
+    }
+
     @RequestMapping(value = "/admin", method = RequestMethod.GET) // ищет файл index.html в resources/templates
     public String index() {
         return "index.html";
@@ -46,9 +76,12 @@ public class ApiController {
 
     @GetMapping(value = "/statistics")
     public ResponseEntity<?> getStatistics() {
-        List<SiteInfoDto> dtoList =  beanAccess.getSiteRepository().getTotalInfo();
-        dtoList.forEach(System.out::println);
-        return new ResponseEntity<>(new ResponseOk(), HttpStatus.OK);
+
+        List<SiteInfoDto> siteInfoDtoList = beanAccess.getSiteRepository().getTotalInfo();
+        ResponseStatistics statistics = new ResponseStatistics(siteInfoDtoList);
+
+        return new ResponseEntity<>(statistics, HttpStatus.OK);
+        //return new ResponseEntity<>(new ResponseOk(), HttpStatus.OK);
     }
 
     @PostMapping(value = "/indexPage")
@@ -87,8 +120,8 @@ public class ApiController {
     }
 
     @GetMapping("/test")
-    public ResponseEntity<?> test(Long id){
-            return new ResponseEntity<>(new ResponseError("Индексация уже запущена!"), HttpStatus.OK);
+    public ResponseEntity<?> test(Long id) {
+        return new ResponseEntity<>(new ResponseError("Индексация уже запущена!"), HttpStatus.OK);
     }
 
     @GetMapping(value = "/startIndexing")

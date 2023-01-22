@@ -2,6 +2,7 @@ package engine.service;
 
 import com.vaadin.flow.component.UI;
 import engine.config.YAMLConfig;
+import engine.controller.ApiController;
 import engine.repository.*;
 import engine.view.SiteComponent;
 import lombok.Getter;
@@ -62,6 +63,7 @@ public class BeanAccess {
     @PostConstruct
     private void setPrivateVariable() {
         transactionTemplate = new TransactionTemplate(transactionManager);
+        ApiController.setBeanAccess(this);
 
     }
 }
