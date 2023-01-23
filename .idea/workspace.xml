@@ -7,12 +7,11 @@
     <option name="rewriteBookmarkType" value="true" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Api">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Api /statistics">
+      <change afterPath="$PROJECT_DIR$/src/main/java/engine/controller/DefaultController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/engine/dto/SiteInfoWithoutErrorDto.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/Application.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/ApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/ApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/dto/Total.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/dto/TotalDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/BeanAccess.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/BeanAccess.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,8 +23,8 @@
       <list>
         <option value="Enum" />
         <option value="Interface" />
-        <option value="Class" />
         <option value="Record" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -108,13 +107,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00023" summary="Проверка Лемматизатора">
-      <created>1668924538685</created>
-      <option name="number" value="00023" />
-      <option name="presentableId" value="LOCAL-00023" />
-      <option name="project" value="LOCAL" />
-      <updated>1668924538685</updated>
     </task>
     <task id="LOCAL-00024" summary="Проверка Лемматизатора">
       <created>1668938816254</created>
@@ -452,7 +444,14 @@
       <option name="project" value="LOCAL" />
       <updated>1674380200537</updated>
     </task>
-    <option name="localTasksCounter" value="72" />
+    <task id="LOCAL-00072" summary="Api /statistics">
+      <created>1674401184875</created>
+      <option name="number" value="00072" />
+      <option name="presentableId" value="LOCAL-00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1674401184877</updated>
+    </task>
+    <option name="localTasksCounter" value="73" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -483,7 +482,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="Morph dependencies. Version with HashMap-cash." />
     <MESSAGE value="Morph dependencies. MultiSelect mode." />
     <MESSAGE value="Morph dependencies. Start-Stop-Continue downloading" />
     <MESSAGE value="Morph dependencies. MultiScan" />
@@ -508,7 +506,8 @@
     <MESSAGE value="Оптимизация кода" />
     <MESSAGE value="Изменения в странице &quot;Индексация&quot;" />
     <MESSAGE value="Api" />
-    <option name="LAST_COMMIT_MESSAGE" value="Api" />
+    <MESSAGE value="Api /statistics" />
+    <option name="LAST_COMMIT_MESSAGE" value="Api /statistics" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

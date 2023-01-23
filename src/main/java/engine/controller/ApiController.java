@@ -1,6 +1,7 @@
 package engine.controller;
 
 import engine.dto.SiteInfoDto;
+import engine.dto.SiteInfoWithoutErrorDto;
 import engine.dto.TotalDto;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
@@ -9,14 +10,13 @@ import engine.service.Parser;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static engine.service.Parser.insertOrUpdatePage;
@@ -48,40 +48,75 @@ public class ApiController {
     }
 
     @Getter
-    public static class ResponseStatistics implements Serializable {
+    public static class StatisticsWithErrors {
         private final boolean result = true;
         private TotalDto total;
         private List<SiteInfoDto> detailed;
 
-        public ResponseStatistics(List<SiteInfoDto> detailed) {
+        public StatisticsWithErrors(List<SiteInfoDto> detailed) {
+
             this.detailed = detailed;
+
             int sites = detailed.size();
             int pages = 0;
             int lemmas = 0;
             boolean isIndexing = true;
+
             for (SiteInfoDto siteInfo : detailed) {
                 pages += siteInfo.pages();
                 lemmas += siteInfo.lemmas();
                 if (siteInfo.status() != SiteStatus.INDEXED) isIndexing = false;
             }
-            this.total = new TotalDto(sites,pages,lemmas,isIndexing);
+            this.total = new TotalDto(sites, pages, lemmas, isIndexing);
         }
-
     }
 
-    @RequestMapping(value = "/admin", method = RequestMethod.GET) // ищет файл index.html в resources/templates
-    public String index() {
-        return "index.html";
+    @Getter
+    public static class Statistics {
+        private final boolean result = true;
+        private TotalDto total;
+        private final List<Object> detailed = new ArrayList<>();
     }
+
+    private SiteInfoWithoutErrorDto getSiteDtoWithoutError(SiteInfoDto fromDto) {
+        return new SiteInfoWithoutErrorDto(
+                fromDto.url(),
+                fromDto.name(),
+                fromDto.status(),
+                fromDto.statusTime(),
+                fromDto.pages(),
+                fromDto.lemmas()
+        );
+    }
+
 
     @GetMapping(value = "/statistics")
     public ResponseEntity<?> getStatistics() {
 
         List<SiteInfoDto> siteInfoDtoList = beanAccess.getSiteRepository().getTotalInfo();
-        ResponseStatistics statistics = new ResponseStatistics(siteInfoDtoList);
+
+        int sites = siteInfoDtoList.size();
+        int pages = 0;
+        int lemmas = 0;
+        boolean isIndexing = true;
+
+        Statistics statistics = new Statistics();
+
+        for (SiteInfoDto siteInfo : siteInfoDtoList) {
+
+            if (siteInfo.status() == SiteStatus.FAILED)
+                statistics.detailed.add(siteInfo);
+            else
+                statistics.detailed.add(getSiteDtoWithoutError(siteInfo));
+
+            pages += siteInfo.pages();
+            lemmas += siteInfo.lemmas();
+            if (siteInfo.status() != SiteStatus.INDEXED) isIndexing = false;
+        }
+
+        statistics.total = new TotalDto(sites,pages,lemmas,isIndexing);
 
         return new ResponseEntity<>(statistics, HttpStatus.OK);
-        //return new ResponseEntity<>(new ResponseOk(), HttpStatus.OK);
     }
 
     @PostMapping(value = "/indexPage")
