@@ -328,7 +328,6 @@ public class Parser extends RecursiveAction {
         Document document = null;
 
         if (readyLinks.contains(path))
-            //Переиндексация
             return;
         else {
             try {

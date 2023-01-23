@@ -119,6 +119,8 @@ public class SiteComponent {
 
         //========================= ТЕСТ ==========================================
         Button testButton = new Button("Тест");
+        testButton.setVisible(false);
+
         buttons.add(testButton);
         testButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
         testButton.addClickListener(event -> {
@@ -129,11 +131,6 @@ public class SiteComponent {
                 }
 
             });
-
-//            SiteRepository siteRepository = beanAccess.getSiteRepository();
-//            for (Site site : siteRepository.getStatistic()) {
-//                siteRepository.save(site);
-//            }
 
 
         });

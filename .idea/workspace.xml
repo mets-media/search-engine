@@ -9,14 +9,8 @@
   <component name="ChangeListManager">
     <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Front">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/ApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/ApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/BeanAccess.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/BeanAccess.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/DBWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/DBWriter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/LazyLoading.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/MainView.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -115,13 +109,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00025" summary="Проверка Лемматизатора">
-      <created>1669174306924</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1669174306924</updated>
     </task>
     <task id="LOCAL-00026" summary="Проверка Lazy loading">
       <created>1669530536919</created>
@@ -459,7 +446,14 @@
       <option name="project" value="LOCAL" />
       <updated>1674435452879</updated>
     </task>
-    <option name="localTasksCounter" value="74" />
+    <task id="LOCAL-00074" summary="Front">
+      <created>1674465196542</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1674465196543</updated>
+    </task>
+    <option name="localTasksCounter" value="75" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
