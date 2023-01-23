@@ -28,8 +28,6 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static engine.service.SearchService.listMerge;
-
 public class SearchComponent {
 
     private static BeanAccess beanAccess;
@@ -477,7 +475,8 @@ public class SearchComponent {
             List<PathTable> listPaths = beanAccess.getImplRepository()
                     .findPathTableItems(SearchService.getSQLByName("getPaths")
                             .replace(":pageIdArray", pageIdArray));
-            return listMerge(pathTableList, listPaths);
+            //return listMerge(pathTableList, listPaths);
+            return SearchService.listMergeEx(pathTableList, listPaths);
         }
         return new ArrayList<>();
     }

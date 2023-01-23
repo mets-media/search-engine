@@ -24,13 +24,12 @@ public class DBWriter extends Thread {
     private final Lemmatization lemmatizator;
     private final List<Page> preparePages = new ArrayList<>();
     private final List<String> lemmaStrings = new ArrayList<>();
-
-    private final List<Page> errorInsertPage = new ArrayList<>();
-    private final List<String> errorLemmaString = new ArrayList<>();
-
-
     private boolean run;
+    private boolean writeAll = false;
 
+    public void writeAll() {
+        this.writeAll = true;
+    }
 
     public DBWriter(String name, Site site, BeanAccess beanAccess, ConcurrentLinkedQueue<Page> readyPage, Integer batchSize, boolean checkPartOfSpeech) {
         super(name);
@@ -58,8 +57,11 @@ public class DBWriter extends Thread {
 
             //prepareLemmaStrings();
 
+            //if (readyPage.size() >= batchSize) {
+            if ((readyPage.size() >= batchSize) || writeAll) {
 
-            if (readyPage.size() >= batchSize) {
+                writeAll = false;
+
                 List<Page> savePage = readyPage.stream().limit(batchSize).toList();
 
                 try {

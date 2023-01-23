@@ -3,13 +3,14 @@ package engine.service;
 import engine.entity.IndexEntity;
 import engine.entity.Lemma;
 import engine.entity.PathTable;
+import engine.entity.Site;
 import lombok.AllArgsConstructor;
 import lombok.experimental.UtilityClass;
 
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @UtilityClass
 public class SearchService {
@@ -156,45 +157,39 @@ public class SearchService {
 
     }
 
-    public static List<PathTable> listMerge(List<PathTable> list1, List<PathTable> list2) {
-        /**
-         * Суммирование List1 List2
-         */
-
-        //-----------------------------------------------------------------------------------------------------
-        BiFunction<PathTable,PathTable,PathTable> ADD_PATH_FUNCTION =
-                (p1,p2) -> new PathTable(p1.getPageId(), p1.getAbsRelevance(), p1.getRelRelevance(), p2.getPath());
-        //-----------------------------------------------------------------------------------------------------
-
-        HashMap<Integer, PathTable> list1_Map = new HashMap<>();
-
-        list1.stream().map(l -> new AbstractMap.SimpleEntry<Integer, PathTable>(l.getPageId(), l))
-                .forEach(m -> list1_Map.put(m.getKey(), m.getValue()));
-
-        HashMap<Integer, PathTable> list2_Map = new HashMap<>();
-        list2.stream().map(l -> new AbstractMap.SimpleEntry<Integer, PathTable>(l.getPageId(), l))
-                .forEach(m -> list2_Map.put(m.getKey(), m.getValue()));
-
-        list2_Map.forEach((k,v) -> list1_Map.merge(k,v,ADD_PATH_FUNCTION));
-
-
-        //Новый вариант создания map
-        // list1.stream().collect(Collectors.toMap(PathTable::getPageId, Function.identity(), (oldItem, newItem) -> newItem));
-        // list1.stream().collect(Collectors.toMap(item -> item.getPageId(), item -> item, (oldItem, newItem) -> newItem));
-
-
-/*
+    public void refreshSitesInformation() {
+        new Thread(() -> { //Обновление информации по сайтам
+            for (Site site : beanAccess.getSiteRepository().getStatistic())
+                beanAccess.getSiteRepository().save(site);
+        }).start();
+    }
+    public static List<PathTable> listMergeEx(List<PathTable> list1, List<PathTable> list2) {
+        /**  * Суммирование List1 List2  */
         Map<Integer, PathTable> list1_Map = list1.stream()
                 .collect(Collectors.toMap(PathTable::getPageId, Function.identity()));
 
-        Map<Integer, PathTable> list2_Map = list1.stream()
-                .collect(Collectors.toMap(PathTable::getPageId,Function.identity()));
+        Map<Integer, PathTable> list2_Map = list2.stream()
+                .collect(Collectors.toMap(PathTable::getPageId, Function.identity()));
 
-//        list2_Map.forEach((k,v) -> list1_Map.merge(k,v,
-//                (p1,p2) -> new PathTable(p1.getPageId(), p1.getAbsRelevance(), p1.getRelRelevance(), p2.getPath())));
+        Map<Integer, PathTable> resultMap = Stream.concat(list1_Map.entrySet().stream(),list2_Map.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+        (l1,l2) -> new PathTable(l1.getPageId(),l1.getAbsRelevance(),l1.getRelRelevance(),l2.getPath())));
 
-        list2_Map.forEach((k,v) -> list1_Map.merge(k,v,ADD_PATH_FUNCTION));
-*/
+        return resultMap.values().stream().sorted(Comparator.comparing(PathTable::getAbsRelevance)).toList();
+
+    }
+    public static List<PathTable> listMerge(List<PathTable> list1, List<PathTable> list2) {
+        /**  * Суммирование List1 List2  */
+
+        Map<Integer, PathTable> list1_Map = list1.stream()
+                .collect(Collectors.toMap(PathTable::getPageId, Function.identity()));
+
+        Map<Integer, PathTable> list2_Map = list2.stream()
+                .collect(Collectors.toMap(PathTable::getPageId, Function.identity()));
+
+        list2_Map.forEach((k,v) -> list1_Map.merge(k,v,
+                (p1,p2) -> new PathTable(p1.getPageId(), p1.getAbsRelevance(), p1.getRelRelevance(), p2.getPath())));
+
         return list1_Map.values().stream().sorted(Comparator.comparing(PathTable::getAbsRelevance).reversed()).toList();
     }
 

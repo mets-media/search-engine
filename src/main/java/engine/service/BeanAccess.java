@@ -1,12 +1,12 @@
 package engine.service;
 
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.grid.Grid;
 import engine.config.YAMLConfig;
 import engine.controller.ApiController;
 import engine.repository.*;
 import engine.view.SiteComponent;
 import lombok.Getter;
-import org.apache.catalina.core.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -54,11 +54,6 @@ public class BeanAccess {
     SiteComponent siteComponent;
     private TransactionTemplate transactionTemplate;
 
-    public void setUi(UI ui) {
-        this.ui = ui;
-    }
-
-    private UI ui;
 
     @PostConstruct
     private void setPrivateVariable() {

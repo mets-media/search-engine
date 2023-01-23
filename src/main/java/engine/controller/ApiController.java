@@ -7,6 +7,7 @@ import engine.entity.Site;
 import engine.entity.SiteStatus;
 import engine.service.BeanAccess;
 import engine.service.Parser;
+import engine.service.SearchService;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -114,7 +115,7 @@ public class ApiController {
             if (siteInfo.status() != SiteStatus.INDEXED) isIndexing = false;
         }
 
-        statistics.total = new TotalDto(sites,pages,lemmas,isIndexing);
+        statistics.total = new TotalDto(sites, pages, lemmas, isIndexing);
 
         return new ResponseEntity<>(statistics, HttpStatus.OK);
     }
@@ -123,7 +124,7 @@ public class ApiController {
     public ResponseEntity<?> indexPage(@RequestParam String url) {
 
         if (!(insertOrUpdatePage(url, beanAccess))) {
-            return new ResponseEntity<>(new ResponseError("Страница: " + url + " - nнаходится за пределами проиндексированных сайтов!"), HttpStatus.OK);
+            return new ResponseEntity<>(new ResponseError("Страница: " + url + " - находится за пределами проиндексированных сайтов!"), HttpStatus.OK);
         }
         return new ResponseEntity<>(new ResponseOk(), HttpStatus.OK);
     }
@@ -132,7 +133,11 @@ public class ApiController {
     public ResponseEntity<?> StopIndexing() {
         List<Site> listSites = beanAccess.getSiteRepository().findAll();
 
-        if (!(listSites.get(0).getStatus() == SiteStatus.INDEXING)) {
+        boolean result = false;
+        for (Site site : listSites) {
+            if (site.getStatus() == SiteStatus.INDEXING) result = true;
+        }
+        if (!result) {
             return new ResponseEntity<>(new ResponseError("Индексация не запущена"), HttpStatus.OK);
         }
 
@@ -146,25 +151,23 @@ public class ApiController {
                 beanAccess.getSiteRepository().save(site);
             }
         });
-        new Thread(() -> { //Обновление информации по сайтам
-            for (Site site : beanAccess.getSiteRepository().getStatistic()) {
-                beanAccess.getSiteRepository().save(site);
-            }
-        });
+        SearchService.refreshSitesInformation();
         return new ResponseEntity<>(new ResponseOk(), HttpStatus.OK);
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<?> test(Long id) {
-        return new ResponseEntity<>(new ResponseError("Индексация уже запущена!"), HttpStatus.OK);
+    @GetMapping("/refresh")
+    public ResponseEntity<?> refresh() {
+        SearchService.refreshSitesInformation();
+        return new ResponseEntity<>(new ResponseOk(), HttpStatus.OK);
     }
 
     @GetMapping(value = "/startIndexing")
     public ResponseEntity<?> StartIndexing() {
         List<Site> listSites = beanAccess.getSiteRepository().findAll();
 
-        if (listSites.get(0).getStatus() == SiteStatus.INDEXING) {
-            return new ResponseEntity<>(new ResponseError("Индексация уже запущена!"), HttpStatus.OK);
+        for (Site site : listSites) {
+            if (site.getStatus() == SiteStatus.INDEXING)
+                return new ResponseEntity<>(new ResponseError("Индексация уже запущена!"), HttpStatus.OK);
         }
 
         beanAccess.getIndexRepository().reCreateTable();
@@ -178,10 +181,11 @@ public class ApiController {
         for (Site site : listSites) {
             site.setPageCount(0);
             site.setStatus(SiteStatus.NEW_SITE);
+            site.setLastError("");
             beanAccess.getSiteRepository().save(site);
         }
 
-        Parser.setDataAccess(beanAccess);
+        Parser.setBeanAccess(beanAccess);
 
         listSites.forEach(site -> {
             Parser.getStopList().remove(site);

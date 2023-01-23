@@ -62,7 +62,6 @@ public class MainView extends AppLayout {
 
     @PostConstruct
     private void getSites() {
-        beanAccess.setUi(UI.getCurrent());
         SiteComponent.setBeanAccess(beanAccess);
         SearchService.setBeanAccess(beanAccess);
 
@@ -88,7 +87,7 @@ public class MainView extends AppLayout {
         siteComponent.getGrid().setItems(siteRepository.findAll());
 
         if (yamlConfig.getAutoScan()) {
-            Parser.setDataAccess(beanAccess);
+            Parser.setBeanAccess(beanAccess);
 
             listSites.forEach(site -> {
                 Parser.getStopList().remove(site);
@@ -127,10 +126,6 @@ public class MainView extends AppLayout {
             String label = tabs.getSelectedTab().getLabel();
 
             switch (label) {
-//                case "Сайты" -> {
-//                    if (!contentsHashMap.containsKey(label)) {
-//                    }
-//                }
                 case "Настройки" -> {
                     if (!contentsHashMap.containsKey(label)) {
                         ConfigComponent.setConfigRepository(configRepository);

@@ -52,9 +52,7 @@ public class Parser extends RecursiveAction {
         return stopList;
     }
 
-    public static void setDataAccess(//Grid<Site> siteGrid,
-                                     BeanAccess beanAccess) {
-        //Parser.siteGrid = siteGrid;
+    public static void setBeanAccess(BeanAccess beanAccess) {
         Parser.beanAccess = beanAccess;
     }
 
@@ -193,7 +191,7 @@ public class Parser extends RecursiveAction {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public static void writeToKeepLink(Integer siteId, LinkStatus status, List<String> links) {
-        System.out.println("Записываю: " + links.size());
+        System.out.println("Запись onStopLink into KeepLink: " + links.size());
         String sql = "Insert into Keep_Link (Site_Id, Status, Path) values (?,?,?)";
 
         int[] result = beanAccess.getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
@@ -220,7 +218,7 @@ public class Parser extends RecursiveAction {
                                          List<String> links,
                                          List<Integer> codes,
                                          LinkStatus status) {
-        System.out.println("Записываю: " + links.size());
+        System.out.println("Запись errorlinks into KeepLink: " + links.size());
         String sql = "Insert into Keep_Link (Site_Id, Path, Code, Status) values (?,?,?,?)";
 
         int[] result = beanAccess.getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
@@ -270,8 +268,6 @@ public class Parser extends RecursiveAction {
             DBWriter dbWriter = new DBWriter("DBWriter[One page]", site, beanAccess,
                     readyPage, 1, true);
             dbWriter.start();
-
-            //System.out.println(readyPage.size());
 
             while (readyPage.size() > 0) {
                 sleep(2000);
@@ -323,6 +319,7 @@ public class Parser extends RecursiveAction {
         var inProcessLinks = inProcessLinksHashMap.get(siteId);
         var readyLinks = readyLinksHashMap.get(siteId);
         var readyPages = pageHashMap.get(siteId);
+        var dbWriter = dbWriterHashMap.get(siteId);
 
         if (stopList.contains(siteId)) {
             pool.shutdown();
@@ -365,16 +362,12 @@ public class Parser extends RecursiveAction {
 
         //Условие остановки!
         if (pool.isShutdown())  //Pool остановлен
-            if (pool.getActiveThreadCount() == 1) { //я - последний поток!
-                //Записать все readyPage
-                System.out.println("Запись readyPage");
+            if (pool.getActiveThreadCount() == 1) { //это - последний активный поток!
+                //Сообщение dbWriter о необходимости дописать оставшиеся readyPage
+                dbWriter.writeAll();
 
-                //writeTempTable(siteId);
-                //Отправить сообщение dbWriter об остановке и необходимости дописать оставшиеся page
-
-                //Записать inProcessLinks включая текущую - она последняя
                 System.out.println("Запись inProcessLink");
-                inProcessLinks.add(path);
+                inProcessLinks.add(path); //Записать inProcessLinks включая текущую - она последняя
                 writeToKeepLink(siteId, LinkStatus.ON_STOP_SCAN_LINK, inProcessLinks.stream().toList());
 
                 System.out.println("Запись errorLinks");
@@ -390,17 +383,19 @@ public class Parser extends RecursiveAction {
                 writeToKeepLinkHM(siteId, links, codes, LinkStatus.ERROR_LINK);
 
                 System.out.println("readyPage.size: " + readyPages.size());
-                System.out.println("inProccesLinks: " + inProcessLinks.size());
+                System.out.println("inProcessLinks: " + inProcessLinks.size());
                 System.out.println("Удаление activePools.remove(siteId)");
                 activePools.remove(siteId);
+
+                //Обновление статистики
+                SearchService.refreshSitesInformation();
             }
 
         //Рекурсия
-
         Set<String> hReference = HtmlParsing.getAllLinks(document, domainName);
         if (hReference != null)
             for (String hRef : hReference) {
-                if (!inProcessLinks.contains(hRef))  //очередь ожидания
+                if (!inProcessLinks.contains(hRef))  //очередь
                     if ((HtmlParsing.isCurrentSite(hRef, domainName)) && (!readyLinks.contains(hRef))) {
                         inProcessLinks.add(hRef);
                         Parser parser = new Parser(site, hRef, domainName);
@@ -424,7 +419,6 @@ public class Parser extends RecursiveAction {
                 site.setStatus(SiteStatus.FAILED);
                 site.setLastError("Не удалось загрузить стартовую страницу");
                 beanAccess.getSiteRepository().save(site);
-                System.out.println("Не удалось загрузить стартовую страницу");
 
             } else {
                 try {
@@ -432,11 +426,15 @@ public class Parser extends RecursiveAction {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                if (inProcessLinks.size() == 0) { //Проверочный вариант
+
+                if ((pool.getActiveThreadCount() == 1) &&
+                    (inProcessLinks.size() == 0)) {
                     site.setStatus(SiteStatus.INDEXED);
                     beanAccess.getSiteRepository().save(site);
                     stop(site);
                     System.out.println(site.getUrl() + " -> Загрузка завершена.");
+
+                    SearchService.refreshSitesInformation();
                 }
             }
             //siteGrid.setItems(beanAccess.getSiteRepository().findAll());

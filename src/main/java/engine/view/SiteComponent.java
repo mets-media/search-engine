@@ -16,9 +16,9 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import engine.entity.Site;
 import engine.entity.SiteStatus;
-import engine.repository.SiteRepository;
 import engine.service.BeanAccess;
 import engine.service.Parser;
+import engine.service.SearchService;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -166,18 +166,19 @@ public class SiteComponent {
 
         parseButton.addClickListener(buttonClickEvent -> {
 
-
-            Parser.setDataAccess(beanAccess);
+            Parser.setBeanAccess(beanAccess);
 
             Set<Site> selectedSites = grid.getSelectedItems();
             selectedSites.forEach(site -> {
                 grid.deselect(site); //после модификации - другой "site" - выделение не снимется
 
                 SiteStatus status = (SiteStatus) site.getStatus();
-                if ((status.equals(SiteStatus.NEW_SITE)) || (status.equals(SiteStatus.STOPPED))) {
+                //if ((status.equals(SiteStatus.NEW_SITE)) || (status.equals(SiteStatus.STOPPED))) {
+                if (!(status.equals(SiteStatus.INDEXING))) {
                     Parser.getStopList().remove(site);
 
                     site.setStatus(SiteStatus.INDEXING);
+                    site.setLastError("");
                     beanAccess.getSiteRepository().save(site);
                     //Проверка для сброса счётчиков удалений если max(page.id) = 0
                     beanAccess.getConfigRepository().resetSequences();
@@ -185,7 +186,6 @@ public class SiteComponent {
                 }
             });
             grid.setItems(beanAccess.getSiteRepository().findAll());
-            beanAccess.setUi(UI.getCurrent());
         });
 
         //========================= СТОП СКАНИРОВАНИЕ ==========================================
@@ -205,6 +205,7 @@ public class SiteComponent {
                     beanAccess.getSiteRepository().save(site);
                 }
             });
+            SearchService.refreshSitesInformation();
             grid.setItems(beanAccess.getSiteRepository().findAll());
         });
         return buttons;
@@ -369,18 +370,18 @@ public class SiteComponent {
 
         public SiteDetailFormLayout() {
             var verticalLayout = new VerticalLayout();
-            verticalLayout.setWidthFull();
+            verticalLayout.setWidth("100%");
             verticalLayout.setAlignItems(END);
 
-            var horizontalLayout = new HorizontalLayout(pageCountTextField,
+            var hLayout = new HorizontalLayout(pageCountTextField,
                     siteStatusTextField,
-                    statusTimeTextField,
-                    lastErrorTextField);
+                    statusTimeTextField);
 
 
-            verticalLayout.add(horizontalLayout);
-            horizontalLayout.setAlignItems(END);
-            horizontalLayout.setWidth("100%");
+
+            verticalLayout.add(hLayout, lastErrorTextField);
+            hLayout.setAlignItems(END);
+            hLayout.setWidth("100%");
 
             Stream.of(pageCountTextField, siteStatusTextField, statusTimeTextField)
                     .forEach(field -> field.setReadOnly(true));
