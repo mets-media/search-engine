@@ -81,13 +81,13 @@ public class SearchComponent {
         return mainLayout;
     }
 
-    public static void setDataAccess(BeanAccess beanAccess) {
+    public static void setBeanAccess(BeanAccess beanAccess) {
         SearchComponent.beanAccess = beanAccess;
     }
 
     private void checkAndSetEnableAutoMode(String selectedSite, String selectedMode) {
         if ((selectedSite.equals("Java HashMap")) ||
-                ((selectedSite.equals("Statement gen.")) && (selectedMode.equals("Все сайты")))) {
+                        ((selectedSite.equals("Statement gen.")) && (selectedMode.equals("Все сайты")))) {
             checkboxAuto.setEnabled(false);
             calcPageButton.setEnabled(false);
             findTextField.setEnabled(false);
@@ -96,6 +96,8 @@ public class SearchComponent {
             calcPageButton.setEnabled(true);
             findTextField.setEnabled(true);
         }
+
+        calcPageButton.setEnabled(!checkboxAuto.getValue());
     }
 
     private VerticalLayout getSearchComponent() {
@@ -109,6 +111,7 @@ public class SearchComponent {
         selectCountersQueryComboBox = UIElement.createComboBox(List.of("GetStatistic", "Repository.Count", "Counters"));
         selectCountersQueryComboBox.setVisible(false);
         selectGetInfoQueryComboBox = UIElement.createComboBox(List.of("PostgreSQL", "Java HashMap", "Statement gen."));
+        //selectGetInfoQueryComboBox.setLabel("Метод поиска");
         selectGetInfoQueryComboBox.addValueChangeListener(event -> {
             resultSQL = "Empty";
             //lemmaGrid.setItems(new ArrayList<>());
@@ -280,7 +283,7 @@ public class SearchComponent {
 
         siteComboBox.addValueChangeListener(event -> {
 
-            checkAndSetEnableAutoMode(selectGetInfoQueryComboBox.getValue(),event.getValue().getUrl());
+            checkAndSetEnableAutoMode(selectGetInfoQueryComboBox.getValue(), event.getValue().getUrl());
 
             clearGrids();
             indexHashMap.clear();

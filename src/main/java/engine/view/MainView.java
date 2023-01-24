@@ -1,6 +1,5 @@
 package engine.view;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.H1;
@@ -154,7 +153,7 @@ public class MainView extends AppLayout {
                 }
                 case "Поиск" -> {
                     if (!contentsHashMap.containsKey(label)) {
-                        SearchComponent.setDataAccess(beanAccess);
+                        SearchComponent.setBeanAccess(beanAccess);
                         SearchComponent searchComponent = new SearchComponent();
                         setContent(searchComponent.getMainLayout());
                         contentsHashMap.put(label, searchComponent.getMainLayout());
