@@ -7,11 +7,8 @@
     <option name="rewriteBookmarkType" value="true" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Тестовая версия 1.0">
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Read.me [img]">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/MainView.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,20 +109,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00028" summary="Проверка Lazy loading">
-      <created>1669573853010</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1669573853010</updated>
-    </task>
-    <task id="LOCAL-00029" summary="Индексация">
-      <created>1669861898280</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1669861898280</updated>
     </task>
     <task id="LOCAL-00030" summary="Индексация">
       <created>1670063443109</created>
@@ -456,7 +439,21 @@
       <option name="project" value="LOCAL" />
       <updated>1674545929628</updated>
     </task>
-    <option name="localTasksCounter" value="77" />
+    <task id="LOCAL-00077" summary="Тестовая версия 1.0">
+      <created>1674570471792</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1674570471792</updated>
+    </task>
+    <task id="LOCAL-00078" summary="Read.me [img]">
+      <created>1674580590749</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1674580590750</updated>
+    </task>
+    <option name="localTasksCounter" value="79" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -487,7 +484,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="Изменения в структуре проекта. (temp)" />
     <MESSAGE value="Проверка Лемматизатора" />
     <MESSAGE value="Проверка Lazy loading" />
     <MESSAGE value="Индексация" />
@@ -512,7 +508,8 @@
     <MESSAGE value="Front" />
     <MESSAGE value="Тестовая версия" />
     <MESSAGE value="Тестовая версия 1.0" />
-    <option name="LAST_COMMIT_MESSAGE" value="Тестовая версия 1.0" />
+    <MESSAGE value="Read.me [img]" />
+    <option name="LAST_COMMIT_MESSAGE" value="Read.me [img]" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
