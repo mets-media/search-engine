@@ -11,6 +11,7 @@ import engine.service.SearchService;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +27,9 @@ import static engine.service.Parser.insertOrUpdatePage;
 @RequestMapping("/api")
 @Setter
 public class ApiController {
-    static BeanAccess beanAccess;
+    @Autowired
+    BeanAccess beanAccess;
 
-    public static void setBeanAccess(BeanAccess beanAccess) {
-        ApiController.beanAccess = beanAccess;
-    }
 
     @Getter
     @NoArgsConstructor

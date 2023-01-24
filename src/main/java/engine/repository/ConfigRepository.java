@@ -12,14 +12,14 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
 
     @Transactional
     @Modifying
-    @Query(value = "Insert into Config (Id,Key,Name,Value) values " +
-            "(-7,'posMs','Позиция отображения сообщений','MIDDLE'), " +
-            "(-6,'showT','Время отображения сообщений, м.сек.','3000'), " +
-            "(-5,'delay','Пауза при обращении к страницам, м.сек.','100'), " +
-            "(-4,'isPoS','Учитывать части речи при индексации','true'), " +
-            "(-3,'batch','Размер блока для записи','10'), " +
-            //"(-2,'sLiSF','Короткая запись ссылок (boolean)','false'), " +
-            "(-1,'tps','Потоков на один сайт (Thread)','8')", nativeQuery = true)
+    @Query(value = "Insert into Config (Id,Key,Name,Value, Value_Type) values " +
+            "(-7,'posMs','Позиция отображения сообщений','MIDDLE',2), " +
+            "(-6,'showT','Время отображения сообщений, м.сек.','3000', 0), " +
+            "(-5,'delay','Пауза при обращении к страницам, м.сек.','100',0), " +
+            "(-4,'isPoS','Учитывать части речи при индексации','true',1), " +
+            "(-3,'batch','Размер блока для записи','10',0)," +
+            //"(-2,'sLiSF','Короткая запись ссылок (boolean)','false',1), " +
+            "(-1,'tps','Потоков на один сайт (Thread)','8',0)", nativeQuery = true)
     void initData();
 
     Optional<Config> findByKey(String key);

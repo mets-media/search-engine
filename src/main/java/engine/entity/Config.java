@@ -19,6 +19,7 @@ public class Config {
     private String key;
     private String name;
     private String value;
+    private ValueType valueType;
 
     public Config(String key, String name, String value) {
         this.key = key;
@@ -28,5 +29,10 @@ public class Config {
 
     public String getName() {
         return name;
+    }
+    public enum ValueType {
+        INTEGER,
+        BOOLEAN,
+        POSITION
     }
 }

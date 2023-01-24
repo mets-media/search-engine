@@ -85,6 +85,19 @@ public class SearchComponent {
         SearchComponent.beanAccess = beanAccess;
     }
 
+    private void checkAndSetEnableAutoMode(String selectedSite, String selectedMode) {
+        if ((selectedSite.equals("Java HashMap")) ||
+                ((selectedSite.equals("Statement gen.")) && (selectedMode.equals("Все сайты")))) {
+            checkboxAuto.setEnabled(false);
+            calcPageButton.setEnabled(false);
+            findTextField.setEnabled(false);
+        } else {
+            checkboxAuto.setEnabled(true);
+            calcPageButton.setEnabled(true);
+            findTextField.setEnabled(true);
+        }
+    }
+
     private VerticalLayout getSearchComponent() {
 
         Collection<TextField> textFieldCollection = Arrays.asList(pageCountTextField, lemmaCountTextField, indexCountTextField);
@@ -93,15 +106,28 @@ public class SearchComponent {
             textField.setWidth("15%");
         });
 
-        selectCountersQueryComboBox = UIElement.createComboBox(List.of("Repository.Count", "Counters", "GetStatistic"));
+        selectCountersQueryComboBox = UIElement.createComboBox(List.of("GetStatistic", "Repository.Count", "Counters"));
         selectCountersQueryComboBox.setVisible(false);
         selectGetInfoQueryComboBox = UIElement.createComboBox(List.of("PostgreSQL", "Java HashMap", "Statement gen."));
         selectGetInfoQueryComboBox.addValueChangeListener(event -> {
             resultSQL = "Empty";
-            lemmaGrid.setItems(new ArrayList<>());
+            //lemmaGrid.setItems(new ArrayList<>());
+
+            checkAndSetEnableAutoMode(event.getValue(), siteComboBox.getValue().getUrl());
+          /*  if ((event.getValue().equals("Java HashMap")) ||
+                    ((event.getValue().equals("Statement gen.")) && (siteComboBox.getValue().getUrl().equals("Все сайты")))) {
+                checkboxAuto.setEnabled(false);
+                calcPageButton.setEnabled(false);
+                findTextField.setEnabled(false);
+            } else {
+                checkboxAuto.setEnabled(true);
+                calcPageButton.setEnabled(true);
+                findTextField.setEnabled(true);
+            }
+*/
         });
 
-        //--------------      Сайт Страницы Леммы Index     обновить --------------
+        //--------------      Сайт Страницы Леммы Index обновить --------------
         var horizontalLayout = new HorizontalLayout(
                 getSiteComboBox(),
                 pageCountTextField,
@@ -175,7 +201,8 @@ public class SearchComponent {
                     setInfoValuesFromRepositoryCount();
                 }
             }
-            UIElement.showMessage("Время запроса: " + TimeMeasure.getStringExperienceTime());
+            siteComboBox.setValue(allSiteObject);
+            UIElement.showMessage("Время подсчёта всех страниц, лемм и индексов: " + TimeMeasure.getStringExperienceTime());
 
         });
         return button;
@@ -253,6 +280,8 @@ public class SearchComponent {
 
         siteComboBox.addValueChangeListener(event -> {
 
+            checkAndSetEnableAutoMode(selectGetInfoQueryComboBox.getValue(),event.getValue().getUrl());
+
             clearGrids();
             indexHashMap.clear();
 
@@ -261,7 +290,6 @@ public class SearchComponent {
             switch (event.getValue().getName()) {
                 case "*" -> {
 
-                    TimeMeasure.setStartTime();
                     //Внимание!!! - долгий запрос, с записью значений для каждого сайта
                     //setInfoValuesFromGetStatistic();
 
@@ -270,8 +298,6 @@ public class SearchComponent {
 
                     //Установк значений по счётчикам удалений
                     setInfoFromCounters();
-
-                    UIElement.showMessage("Время запроса: " + TimeMeasure.getStringExperienceTime());
 
                 }
                 default -> {

@@ -58,7 +58,6 @@ public class BeanAccess {
     @PostConstruct
     private void setPrivateVariable() {
         transactionTemplate = new TransactionTemplate(transactionManager);
-        ApiController.setBeanAccess(this);
 
     }
 }

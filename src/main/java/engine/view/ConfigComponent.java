@@ -1,25 +1,25 @@
 package engine.view;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import engine.entity.Config;
 import engine.repository.ConfigRepository;
 import lombok.Getter;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static engine.view.UIElement.showMessage;
 
@@ -45,13 +45,14 @@ public class ConfigComponent {
         grid.addColumn(Config::getKey).setHeader("Key").setAutoWidth(true)
                 .setSortable(true)
                 .setTextAlign(ColumnTextAlign.CENTER)
-                        .setVisible(false);
+                .setVisible(false);
         grid.addColumn(Config::getName).setHeader("Наименование").setSortable(true);
         grid.addColumn(Config::getValue).setHeader("Значение");
 
         mainLayout.add(grid);
     }
 
+/*
     private HorizontalLayout createControlButtons() {
         var topLayout = new HorizontalLayout();
         topLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
@@ -88,7 +89,6 @@ public class ConfigComponent {
         return topLayout;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void addListeners() {
         newOptionButton.addClickListener(buttonClickEvent -> {
             showDialog(null);
@@ -105,6 +105,7 @@ public class ConfigComponent {
             grid.setItems(configRepository.findAll());
         });
     }
+*/
 
     private List<Button> createButtons(List<String> captions) {
         List<Button> buttons = new ArrayList<>();
@@ -115,6 +116,7 @@ public class ConfigComponent {
             buttons.add(button);
             switch (button.getText()) {
                 case "Добавить" -> {
+                    button.setEnabled(false);
                     button.addClickListener(buttonClickEvent -> {
                         showDialog(null);
                     });
@@ -123,11 +125,13 @@ public class ConfigComponent {
                     button.addClickListener(buttonClickEvent -> {
                         Optional<Config> config = grid.getSelectedItems().stream().findFirst();
                         config.ifPresent(c -> {
-                            showDialog(c);
+                            //showDialog(c);
+                            getDialog(c);
                         });
                     });
                 }
                 case "Удалить" -> {
+                    button.setEnabled(false);
                     button.addClickListener(buttonClickEvent -> {
                         Optional<Config> config = grid.getSelectedItems().stream().findFirst();
                         config.ifPresent(c -> {
@@ -150,6 +154,68 @@ public class ConfigComponent {
         ConfigComponent.configRepository = configRepository;
     }
 
+    private void getDialog(Config option) {
+        Dialog dialog = new Dialog();
+        dialog.setModal(true);
+
+        dialog.setHeaderTitle(option.getName());
+        switch (option.getValueType()) {
+            case INTEGER -> {
+                IntegerField integerField = new IntegerField();
+                integerField.setId("Integer");
+                integerField.setMax(5000);
+                integerField.setMin(0);
+                integerField.setAutoselect(true);
+                integerField.setValue(Integer.parseInt(option.getValue()));
+                dialog.add(integerField);
+            }
+            case BOOLEAN -> {
+                ComboBox<Boolean> comboBox = new ComboBox<>();
+                comboBox.setId("Boolean");
+                comboBox.setItems(List.of(true, false));
+                comboBox.setValue(Boolean.parseBoolean(option.getValue()));
+                dialog.add(comboBox);
+            }
+            case POSITION -> {
+                ComboBox<Notification.Position> comboBox = new ComboBox<>();
+                comboBox.setId("Position");
+                comboBox.setItemLabelGenerator(Enum::name);
+                comboBox.setItems(List.of(Notification.Position.MIDDLE, Notification.Position.BOTTOM_END));
+                switch (option.getValue()) {
+                    case "MIDDLE" -> comboBox.setValue(Notification.Position.MIDDLE);
+                    case "BOTTOM_END" -> comboBox.setValue(Notification.Position.BOTTOM_END);
+                }
+                dialog.add(comboBox);
+            }
+        }
+
+        Button saveButton = new Button("Сохранить", event -> {
+            AtomicReference<String> result = new AtomicReference<>("");
+            dialog.getChildren().forEach(component -> {
+
+                System.out.println(component.getClass().getName());
+                System.out.println(component.getId());
+
+                String id = String.valueOf(component.getId());
+                switch (id) {
+                    case "Optional[Integer]" ->
+                            result.set(Integer.toString(Math.round(((IntegerField) component).getValue())));
+                    case "Optional[Boolean]", "Optional[Position]" ->
+                            result.set(((ComboBox<?>) component).getValue().toString());
+                }
+                option.setValue(result.get());
+                configRepository.save(option);
+
+                grid.setItems(configRepository.findAll());
+                dialog.close();
+            });
+        });
+        Button cancelButton = new Button("Отменить", e -> dialog.close());
+
+        dialog.getFooter().add(cancelButton, saveButton);
+        dialog.open();
+    }
+
     private void showDialog(Config option) {
         Dialog dialog = new Dialog();
         dialog.setModal(true);
@@ -159,14 +225,30 @@ public class ConfigComponent {
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         TextField textFieldKey = new TextField("Key, Char(5)");
         textFieldKey.setMaxLength(5);
+        textFieldKey.setVisible(false);
 
         TextField textFieldName = new TextField("Свойство:");
+        textFieldName.setVisible(false);
         TextField textFieldValue = new TextField("Значение:");
         horizontalLayout.add(textFieldKey, textFieldName, textFieldValue);
-        dialog.add(horizontalLayout);
+
+        ComboBox<String> comboBox = new ComboBox<>("Тип переменной");
+        comboBox.setItems(List.of("Integer", "Boolean", "Position"));
+
+        comboBox.addValueChangeListener(event -> {
+            switch (event.getValue()) {
+                case "Integer" -> option.setValueType(Config.ValueType.INTEGER);
+                case "Boolean" -> option.setValueType(Config.ValueType.BOOLEAN);
+                case "Position" -> option.setValueType(Config.ValueType.POSITION);
+            }
+            configRepository.save(option);
+        });
+
+        dialog.add(horizontalLayout, comboBox);
+
 
         if (!(option == null)) {
-            dialog.setHeaderTitle("Редактировать свойство");
+            dialog.setHeaderTitle(option.getName());
             textFieldKey.setValue(option.getKey());
             textFieldName.setValue(option.getName());
             textFieldValue.setValue(option.getValue());
