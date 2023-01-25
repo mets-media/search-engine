@@ -7,10 +7,7 @@
     <option name="rewriteBookmarkType" value="true" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Система поиска окончательный вариант">
-      <change afterPath="$PROJECT_DIR$/img/Видео.mp4" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/DefaultController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/DefaultController.java" afterDir="false" />
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="ReadMe + Видео">
       <change beforePath="$PROJECT_DIR$/src/main/resources/_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/_import.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -107,13 +104,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00024" summary="Проверка Лемматизатора">
-      <created>1668938816254</created>
-      <option name="number" value="00024" />
-      <option name="presentableId" value="LOCAL-00024" />
-      <option name="project" value="LOCAL" />
-      <updated>1668938816260</updated>
     </task>
     <task id="LOCAL-00025" summary="Проверка Лемматизатора">
       <created>1669174306924</created>
@@ -451,7 +441,14 @@
       <option name="project" value="LOCAL" />
       <updated>1674212078622</updated>
     </task>
-    <option name="localTasksCounter" value="73" />
+    <task id="LOCAL-00073" summary="ReadMe + Видео">
+      <created>1674620573819</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1674620573820</updated>
+    </task>
+    <option name="localTasksCounter" value="74" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -482,7 +479,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="adds morph dependencies" />
     <MESSAGE value="Morph dependencies. Version with HashMap-cash." />
     <MESSAGE value="Morph dependencies. MultiSelect mode." />
     <MESSAGE value="Morph dependencies. Start-Stop-Continue downloading" />
@@ -507,7 +503,8 @@
     <MESSAGE value="Изменение интерфейса поиска" />
     <MESSAGE value="Оптимизация кода" />
     <MESSAGE value="Система поиска окончательный вариант" />
-    <option name="LAST_COMMIT_MESSAGE" value="Система поиска окончательный вариант" />
+    <MESSAGE value="ReadMe + Видео" />
+    <option name="LAST_COMMIT_MESSAGE" value="ReadMe + Видео" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
