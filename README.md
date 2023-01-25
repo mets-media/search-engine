@@ -182,7 +182,7 @@
    
 [Видео]
  ![](https://github.com/mets-media/search-engine/blob/master/img/%D0%92%D0%B8%D0%B4%D0%B5%D0%BE.gif)
- 
+ ![](https://github.com/mets-media/search-engine/blob/master/img/Video.gif)
 Открыть страницы в браузере из каждой таблицы можно с помощью двойного клика.
 
 # Поиск
