@@ -153,7 +153,7 @@
 
 #### Части речи
 
-![](img/Снимок_экрана_2023-01-23_в _18.39.09.png)
+![](img/Снимок_экрана_2023-01-23_в_18.39.09.png)
 
 В данном разделе приложения необходимо выбрать части речи, которые будут включены в результаты индексации. Начальные установки исключают из результатов индексации предлоги, союзы, междометия, частицы и т.д.
 
@@ -251,48 +251,48 @@
 Адреса сайтов вводятся в конце файла конфигурации - раздел: sites. Свойство autoScan: true - включает, автоматический запуск индексации сайтов при запуске программы. 
 
 ##### application.yaml
- 
-spring:  
-  config:  
-    activate:  
-      on-profile: main  
-  jpa:  
-    show-sql: true  
-    hibernate:  
-      ddl-auto: update  
-    properties:  
-      hibernate:  
-        dialect: org.hibernate.dialect.PostgreSQLDialect  
-        jdbc:  
-          batch_size: 10  
-  datasource:  
-    hikari:  
-      data-source-properties:  
-        useConfigs: maxPerformance  
-        rewriteBatchedInserts: true  
-    platform: postgres  
-    url: jdbc:postgresql://localhost:5432/search_engine  
-    username: postgres  
-    password: test  
-    driverClassName: org.postgresql.Driver  
-logging:  
-  level:  
-    org:  
-      hibernate:  
-        SQL: debug  
-        type:  
-          descriptor:  
-            sql:  
-              BasicBinder: trace  
-sites:  
-  - url: https://www.lenta.ru  
-    name: Лента.ру  
-  - url: https://www.skillbox.ru  
-    name: Skillbox  
-autoScan: true  
-userAgent: "Chrome/100.0.4896.127"  
-referrer: "http://www.google.com"  
-timeout: 1000  
-delay: 100
+
+    spring:
+      config:
+        activate:
+          on-profile: main
+      jpa:
+        show-sql: true
+        hibernate:
+          ddl-auto: update
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+            jdbc:
+              batch_size: 10
+      datasource:
+        hikari:
+          data-source-properties:
+            useConfigs: maxPerformance
+            rewriteBatchedInserts: true
+        platform: postgres
+        url: jdbc:postgresql://localhost:5432/search_engine
+        username: postgres
+        password: test
+        driverClassName: org.postgresql.Driver
+    logging:
+      level:
+        org:
+          hibernate:
+            SQL: debug
+            type:
+              descriptor:
+                sql:
+                  BasicBinder: trace
+    sites:
+      - url: https://www.lenta.ru
+        name: Лента.ру
+      - url: https://www.skillbox.ru
+        name: Skillbox
+    autoScan: false
+    userAgent: "Chrome/100.0.4896.127"
+    referrer: "http://www.google.com"
+    timeout: 1000
+    delay: 100
 
 # API
