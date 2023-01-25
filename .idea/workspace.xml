@@ -69,11 +69,11 @@
       <recent name="$PROJECT_DIR$/target" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/img" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src/main/resources/templates" />
       <recent name="$PROJECT_DIR$/src/main/resources/static" />
       <recent name="$PROJECT_DIR$/src/main/resources" />
-      <recent name="$PROJECT_DIR$/src" />
     </key>
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="engine.repository" />
@@ -107,13 +107,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00034" summary="Индексация">
-      <created>1670419035945</created>
-      <option name="number" value="00034" />
-      <option name="presentableId" value="LOCAL-00034" />
-      <option name="project" value="LOCAL" />
-      <updated>1670419035950</updated>
     </task>
     <task id="LOCAL-00035" summary="Индексация">
       <created>1670419348224</created>
@@ -451,7 +444,14 @@
       <option name="project" value="LOCAL" />
       <updated>1674586289380</updated>
     </task>
-    <option name="localTasksCounter" value="83" />
+    <task id="LOCAL-00083" summary="Read.me + screenShorts">
+      <created>1674613384157</created>
+      <option name="number" value="00083" />
+      <option name="presentableId" value="LOCAL-00083" />
+      <option name="project" value="LOCAL" />
+      <updated>1674613384158</updated>
+    </task>
+    <option name="localTasksCounter" value="84" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
