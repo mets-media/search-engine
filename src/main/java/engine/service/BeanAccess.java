@@ -8,6 +8,7 @@ import engine.repository.*;
 import engine.view.SiteComponent;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -20,6 +21,8 @@ import javax.persistence.PersistenceContext;
 @Component
 @Getter
 public class BeanAccess {
+    @Autowired
+    ApplicationContext context;
     @Autowired
     JdbcTemplate jdbcTemplate;
     @Autowired

@@ -13,6 +13,11 @@ sites:
 user-agent: "Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6"
 
 ---
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /
+
 spring:
   config:
     activate:
@@ -36,6 +41,11 @@ spring:
     username: postgres
     password: test
     driverClassName: org.postgresql.Driver
+
+#  thymeleaf:
+#    prefix: classpath:/resources/admin/
+#    suffix: .html
+
 logging:
   level:
     org:
@@ -45,6 +55,10 @@ logging:
           descriptor:
             sql:
               BasicBinder: trace
+#vaadin:
+#  servlet:
+#    urlMapping: /mets
+
 sites:
   - url: https://www.lenta.ru
     name: Лента.ру

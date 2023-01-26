@@ -1,7 +1,6 @@
 package engine;
 
 import engine.config.YAMLConfig;
-import engine.controller.ApiController;
 import engine.repository.*;
 import engine.service.HtmlParsing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +18,32 @@ public class Application extends SpringBootServletInitializer {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
+
+//
+//    @Bean
+//    public BeanNameViewResolver beanNameViewResolver(){
+//        return new BeanNameViewResolver();
+//    }
+//
+//    @Bean
+//    public View admin() {
+//        return new InternalResourceView("/admin/admin.html");
+//    }
+//
+//
+//    @Bean
+//    public ServletRegistrationBean frontendServletBean() {
+//        ServletRegistrationBean bean = new ServletRegistrationBean<>(new VaadinServlet() {
+//            @Override
+//            protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+//                if (!serveStaticOrWebJarRequest(req, resp)) {
+//                    resp.sendError(404);
+//                }
+//            }
+//        }, "/mets");
+//        bean.setLoadOnStartup(1);
+//        return bean;
+//    }
 
     @Bean
     public CommandLineRunner dataGenerator(ConfigRepository configRepository,
@@ -38,8 +63,6 @@ public class Application extends SpringBootServletInitializer {
             HtmlParsing.setReferrer(yamlConfig.getReferrer());
             HtmlParsing.setTimeout(yamlConfig.getTimeout());
             HtmlParsing.setDelay(yamlConfig.getDelay());
-
-            //List<Site> siteList = yamlConfig.getSites();
 
             //------- Инициализация служебных данных ------------
             if (fieldRepository.count() == 0)
@@ -64,19 +87,11 @@ public class Application extends SpringBootServletInitializer {
             configRepository.createGetPagesFunction();
             configRepository.createGetByLemmaAnfSiteIdFunction();
 
-
-            //@ManyTOMany
             indexRepository.createForeignKeys();
             //счётчики удалений
             configRepository.createSequences();
 
             configRepository.creteGetCountersFunction();
-
-            //Функция парсинга lemmaString
-            //pageContainerRepository.createFunction();
-            //Удаление данных в подчинённых таблицах
-            //siteRepository.createDeleteSiteInfoFunction();
-
         };
     }
 

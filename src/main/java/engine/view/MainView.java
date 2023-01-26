@@ -6,6 +6,7 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import engine.config.YAMLConfig;
 import engine.entity.SiteStatus;
@@ -25,8 +26,9 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 
-@Route
+@Route("")
 @Getter
+@PageTitle("Search Engine")
 public class MainView extends AppLayout {
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -68,7 +70,7 @@ public class MainView extends AppLayout {
 
         if (!(listSites == null))
             listSites.forEach(site -> {
-                if (!siteRepository.getSiteByUrl(site.getUrl()).isPresent()) {
+                if (siteRepository.getSiteByUrl(site.getUrl()).isEmpty()) {
                     site.setPageCount(0);
                     site.setLemmaCount(0);
                     site.setIndexCount(0);
@@ -117,8 +119,8 @@ public class MainView extends AppLayout {
         H1 title = new H1("Search Engine");
         title.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
-        //Tabs tabs = CreateUI.createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск", "Тест"),
-        Tabs tabs = UIElement.createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск"),
+        Tabs tabs = UIElement.createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск", "Управление"),
+        //Tabs tabs = UIElement.createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск"),
                 Tabs.Orientation.VERTICAL);
 
         tabs.addSelectedChangeListener(event -> {
@@ -159,7 +161,7 @@ public class MainView extends AppLayout {
                         contentsHashMap.put(label, searchComponent.getMainLayout());
                     }
                 }
-                case "Тест" -> {
+                case "Управление" -> {
                     if (!contentsHashMap.containsKey(label)) {
                         TestComponent.setDataAccess(beanAccess);
                         TestComponent testComponent = new TestComponent();

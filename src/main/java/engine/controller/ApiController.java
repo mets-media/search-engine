@@ -40,7 +40,7 @@ public class ApiController {
     @Getter
     public static class ResponseError {
         private final boolean result = false;
-        private String error;
+        private final String error;
 
         public ResponseError(String error) {
             this.error = error;
@@ -50,8 +50,8 @@ public class ApiController {
     @Getter
     public static class StatisticsWithErrors {
         private final boolean result = true;
-        private TotalDto total;
-        private List<SiteInfoDto> detailed;
+        private final TotalDto total;
+        private final List<SiteInfoDto> detailed;
 
         public StatisticsWithErrors(List<SiteInfoDto> detailed) {
 
