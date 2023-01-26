@@ -27,15 +27,17 @@ public class TestComponent {
 
         Button button = new Button("Закрыть приложение");
         button.setIcon(VaadinIcon.EXIT.create());
+
         button.addClickListener(event -> {
             ApplicationContext context = beanAccess.getContext();
             ((ConfigurableApplicationContext) context).close();
         });
 
-        List<Button> listButton = new ArrayList<>();
-        listButton.add(button);
+        //List<Button> listButton = new ArrayList<>();
+        //listButton.add(button);
 
-        mainLayout.add(UIElement.getTopLayout("Завершение приложения", "xl", listButton));
+        mainLayout.add(UIElement.getTopLayout("Завершение приложения", "xl", null));
+        mainLayout.add(button);
 
     }
 
