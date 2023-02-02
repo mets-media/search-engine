@@ -1,9 +1,6 @@
 package engine.service;
 
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.grid.Grid;
 import engine.config.YAMLConfig;
-import engine.controller.ApiController;
 import engine.repository.*;
 import engine.view.SiteComponent;
 import lombok.Getter;
@@ -46,8 +43,6 @@ public class BeanAccess {
     @Autowired
     PageContainerRepository pageContainerRepository;
     @Autowired
-    StatusRepository statusRepository;
-    @Autowired
     KeepLinkRepository keepLinkRepository;
     @Autowired
     YAMLConfig yamlConfig;
@@ -57,10 +52,12 @@ public class BeanAccess {
     SiteComponent siteComponent;
     private TransactionTemplate transactionTemplate;
 
-
     @PostConstruct
     private void setPrivateVariable() {
         transactionTemplate = new TransactionTemplate(transactionManager);
+        Parser.setBeanAccess(this);
+        ApiService.setBeanAccess(this);
+        SearchService.setBeanAccess(this);
 
     }
 }

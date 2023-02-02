@@ -13,7 +13,7 @@ import java.util.List;
 
 @Repository
 public interface PageRepository extends JpaRepository<Page, Integer> {
-//public interface PageRepository extends PagingAndSortingRepository<Page, Integer> {
+
     @Transactional
     void deleteBySiteId(int pageSiteId);
 

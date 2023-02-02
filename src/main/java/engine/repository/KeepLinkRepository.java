@@ -2,7 +2,6 @@ package engine.repository;
 
 import engine.dto.IdTextDto;
 import engine.entity.KeepLink;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -32,8 +31,8 @@ public interface KeepLinkRepository extends JpaRepository<KeepLink, Integer> {
     @Query(value = """
             select distinct new engine.dto.IdTextDto
             (
-            code, 
-            case 
+            code,
+            case
               when code = -1 then 'Неизвестная ошибка'  
               when code = -2 then 'Timout при загрузке страницы' 
               else concat('код ошибки ', code) 
@@ -57,6 +56,4 @@ public interface KeepLinkRepository extends JpaRepository<KeepLink, Integer> {
             CONSTRAINT keep_link_pkey PRIMARY KEY (id)
             )""", nativeQuery = true)
     void reCreateTable();
-
-
 }

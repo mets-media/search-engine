@@ -55,9 +55,6 @@ public class DBWriter extends Thread {
                     throw new RuntimeException(e);
                 }
 
-            //prepareLemmaStrings();
-
-            //if (readyPage.size() >= batchSize) {
             if ((readyPage.size() >= batchSize) || writeAll) {
 
                 writeAll = false;
@@ -66,11 +63,8 @@ public class DBWriter extends Thread {
 
                 try {
                     batchUpdate(savePage, false);
-                    //lemmaStrings.clear();
-                } catch (Exception e) {
+                } catch (Exception e) { //возможно ошибка utf-8 0x00
                     e.printStackTrace();
-                    //Ошибка utf-8 0x00
-
                     try {//Исключение ошибки 0x00
                         batchUpdate(savePage, true);
                     } catch (Exception exception) {
@@ -78,23 +72,12 @@ public class DBWriter extends Thread {
                     }
 
                 }
-                //Обновление времени статуса
-                //site.setStatusTime(LocalDateTime.now());
-                //beanAccess.getSiteRepository().save(site);
-
                 readyPage.removeAll(savePage);
-                //System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
             }
 
 
         }//========================================================================================================
 
-        //Прерывание бесконечного цикла по run = false
-        //List<Page> savePage = readyPage.stream().toList();
-        //batchUpdate(savePage);
-        //readyPage.removeAll(savePage);
-
-        //batchUpdate(preparePages, lemmaStrings);
         batchUpdate(readyPage.stream().toList(), true);
         System.out.println("Запись хвоста: " + beanAccess.getPageRepository().count());
 
@@ -113,10 +96,7 @@ public class DBWriter extends Thread {
     private boolean batchUpdate(List<Page> savePages, boolean replace0x00) {
 
         TimeMeasure.setStartTime();
-        //System.out.printf("Запись данных; name = %s\n", getName());
-
         String sql = "Insert into Page_Container (Site_Id, Code, Path, Content, Lemmatization) values (?,?,?,?,?)";
-        //int[] results = beanAccess.getJdbcTemplate().batchUpdate(sql, new InterruptibleBatchPreparedStatementSetter() {
         int[] results = beanAccess.getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
 
             @Override
@@ -136,7 +116,6 @@ public class DBWriter extends Thread {
                 }
                 ps.setString(3, path);
 
-
                 String content = page.getContent();
 
                 if (replace0x00)//Исключение ошибки 0x00 UTF-8
@@ -145,12 +124,6 @@ public class DBWriter extends Thread {
                 ps.setString(4, content);
 
                 String lemmaString = getLemmaString(content, lemmatizator);
-
-//                String lStr = lemmaStrings.get(i);
-//                if (lStr.equals(lemmaString))
-//                    System.out.println("Равны lemmaString " + i);
-//                else
-//                    System.out.println("Не равны lemmaString " + i);
 
                 if (lemmaString.isEmpty())
                     System.out.println("lemmaString is empty " + page.getPath());
@@ -162,13 +135,6 @@ public class DBWriter extends Thread {
             public int getBatchSize() {
                 return savePages.size();
             }
-
-//            @Override
-//            public boolean isBatchExhausted(int i) {
-//                if (i < batchSize) return true;
-//                else return false;
-//            }
-
         });
 
         for (int i : results) {
@@ -180,7 +146,6 @@ public class DBWriter extends Thread {
 
         return true;
     }
-
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private int[] batchUpdate(List<Page> preparePages, List<String> lemmaStrings) {
@@ -207,25 +172,17 @@ public class DBWriter extends Thread {
                 }
 
                 ps.setString(3, path);
-
                 String content = page.getContent();
-
                 ps.setString(4, content);
-
                 ps.setString(5, lemmaStrings.get(i));
             }
-
             @Override
             public int getBatchSize() {
                 return preparePages.size();
             }
-
         });
-
         return results;
     }//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
     private Lemmatization getNewLemmatizator() {
         List<String> excludeList = null;
         if (checkPartOfSpeech)
@@ -254,76 +211,8 @@ public class DBWriter extends Thread {
 
         if (totalInfo == null) {
             totalString = "";
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!  lemmaString = null  !!!!!!!!!!!!!!!!!!!!!!!!");
-
+            System.out.println("!!! lemmaString = null  !!!");
         }
-
         return totalString;
     }
-
-    private void prepareLemmaStrings() {
-
-//          Новый вариант - с заранее подготовленными строками лемматизации
-//--------------------------------------------------------------------------------------------------------------------
-        //readyPage.stream().findFirst().ifPresent(page -> {
-        readyPage.forEach(page -> {
-            if (page.getPath().length() > 255) {
-                //Записать длинную ссылку
-                //longLinkRepository
-            }
-            //Исключение ошибки 0x00 UTF-8
-            page.setContent(page.getContent().replaceAll("\u0000", ""));
-
-            preparePages.add(page);
-            lemmaStrings.add(getLemmaString(page.getContent(), lemmatizator));
-            //временно заглушил
-            //readyPage.remove(page); //Удаление обработанной страницы
-        });
-/*
-            if (preparePages.size() >= batchSize) {
-                int[] results = new int[0];
-                try {
-                    if (!(preparePages.size() == lemmaStrings.size()))
-                        System.out.println("Ошибка алгоритма DBWriter");
-
-                    results = batchUpdate(preparePages, lemmaStrings);
-                } catch (Exception e) {// Возникновении ошибки - транзакция откатывается
-                    //throw new RuntimeException(e);
-                    e.printStackTrace();
-                    System.out.println(getName() + " Ошибка записи данных! => записываем без общей транзакции");
-                    //Определяем в каком Insert ошибка
-
-                    Arrays.stream(results).dropWhile(i -> (i == 1)).forEach(i -> {
-                        errorInsertPage.add(preparePages.get(i));
-                        errorLemmaString.add(lemmaStrings.get(i));
-
-                        System.out.println("Страниц с ошибками: " + errorInsertPage.size());
-
-                        preparePages.remove(i);
-                        lemmaStrings.remove(i);
-                    });
-
-                    //Повторная попытка записи произойдёт в следующем цикле
-
-                } finally {
-
-                    int siteId = preparePages.get(0).getSiteId();
-                    int pageCount = beanAccess.getPageRepository().countBySiteId(siteId);
-                    beanAccess.getSiteRepository().setPageCountBySiteId(siteId, pageCount);
-
-                    System.out.printf("Общее число старанниц в базе данных: %d страниц\n", beanAccess.getPageRepository().count());
-
-                    preparePages.clear();
-                    lemmaStrings.clear();
-                }
-
-
-            }
-
-*/
-
-//--------------------------------------------------------------------------------------------------------------------
-
-    }
-
 }

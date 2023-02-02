@@ -23,7 +23,7 @@ public class Lemmatization {
 
     private static BeanAccess beanAccess;
 
-    public static void setDataAccess(BeanAccess beanAccess) {
+    public static void setBeanAccess(BeanAccess beanAccess) {
         Lemmatization.beanAccess = beanAccess;
     }
 
@@ -37,6 +37,14 @@ public class Lemmatization {
         }
     }
 
+    @Getter
+    @AllArgsConstructor
+    public static class LemmaInfo {
+        private String lemma;
+        private Integer count;
+        private Float rank;
+    }
+
     private Boolean hasProperty(String wordBaseForm) {
         for (String excludeProp : excludeList) {
             String[] form = wordBaseForm.split(" ");
@@ -46,9 +54,8 @@ public class Lemmatization {
         return false;
     }
 
-    private Boolean includeForm(String lemma) {
+    public Boolean includeForm(String lemma) {
         List<String> lemmaForms = luceneMorph.getMorphInfo(lemma);
-        //return !lemmaForms.stream().anyMatch(this::hasProperty);
         return lemmaForms.stream().noneMatch(this::hasProperty);
     }
 
@@ -63,7 +70,6 @@ public class Lemmatization {
                     List<String> info = luceneMorph.getMorphInfo(normalForm);
                     info.forEach(i -> {
                         String[] prop = i.split(" ");
-                        //lemmaInfo.add(i +" -> " + prop[1]);
                         lemmaInfo.add(prop[1]);
                     });
                 });
@@ -82,9 +88,7 @@ public class Lemmatization {
             if (!word.isBlank()) {
                 List<String> wordNormalForms = luceneMorph.getNormalForms(word);
                 wordNormalForms.forEach(normalForm -> {
-                    //List<String> info = luceneMorph.getMorphInfo(normalForm);
                     if (includeForm(normalForm)) {
-                        //lemmaHashMap.put(word + "->" + normalForm + " -> " + info, 1);
                         int count = 1;
                         if (lemmaHashMap.containsKey(normalForm)) {
                             count = count + lemmaHashMap.get(normalForm);
@@ -124,26 +128,15 @@ public class Lemmatization {
         return lemmaHashMap;
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class LemmaInfo {
-        private String lemma;
-        private Integer count;
-        private Float rank;
-    }
     BiFunction<LemmaInfo, LemmaInfo, LemmaInfo> SUM_LEMMA_PROPERTIES = (l1, l2) ->
             new LemmaInfo(l1.getLemma(),l1.getCount() + l2.getCount(), l1.getRank() + l2.getRank());
 
-    //BiFunction<LemmaInfo,LemmaInfo,LemmaInfo> REMOVE_DUPLICATION = ()
-
-    //Проверить
     public HashMap<String, LemmaInfo> mergeAllHashMaps(List<HashMap<String, LemmaInfo>> listHashMaps) {
         HashMap<String, LemmaInfo> result = new HashMap<>(listHashMaps.get(0));
 
         for (int i = 1; i < listHashMaps.size();i++) {
             listHashMaps.get(i).forEach((k, v) -> result.merge(k, v, SUM_LEMMA_PROPERTIES));
         }
-
         return result;
     }
     public List<HashMap<String, LemmaInfo>> getHashMapsLemmaForEachCssSelector(String content) {

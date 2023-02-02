@@ -80,7 +80,7 @@ public class HtmlParsing {
             return null;
     }
 
-    public static Integer getStatusCode(String url) {
+    public static synchronized Integer getStatusCode(String url) {
 
         try {
             Connection.Response response = Jsoup.connect(url)
@@ -95,7 +95,7 @@ public class HtmlParsing {
         }
     }
 
-    public static Integer getStatusCode(String url, int readTimeout) {
+    public static synchronized Integer getStatusCode(String url, int readTimeout) {
 
         try {
             Connection.Response response = Jsoup.connect(url)
@@ -115,7 +115,7 @@ public class HtmlParsing {
         return Jsoup.connect(url)
                 .userAgent(userAgent)
                 .referrer(referrer)
-                //.ignoreContentType(true)
+                .timeout(timeout)
                 .get();
 
     }
@@ -136,8 +136,6 @@ public class HtmlParsing {
     }
 
     public static boolean isCurrentSite(String hRef, String domainName) {
-        //return (hRef.toLowerCase().indexOf("://" + domainName) >= 0) ? true : false;
-
         String regEx = "\\W" + domainName + "\\W";
         Pattern pattern = Pattern.compile(regEx);
         Matcher matcher = pattern.matcher(hRef);
@@ -183,42 +181,12 @@ public class HtmlParsing {
                 if (hRef.contains(".pdf") || hRef.contains(".PDF")) {
                     hRef = "";
                 }
-
-
             }
-
             if (!"".equals(hRef)) {
                 links.add(hRef);
             }
         }
         return links;
-    }
-
-    public static Set<String> getAllTitles(String content) {
-
-        Set<String> titles = new TreeSet<>();
-
-        Document document = Jsoup.parseBodyFragment(content);
-
-        //Pattern pattern = Pattern.compile("\\Wtitle\\W");
-
-        document.getAllElements().forEach(element -> element.attributes().forEach(attr -> {
-            if (!(attr.getValue() == null))
-                if (attr.getValue().contains("title")) {
-                    //if (pattern.matcher(attr.getValue()).find()) {
-                    String[] strings = element.toString().split(">");
-
-                    String titleString = element.toString();
-//                        if (strings.length >= 2) {
-//                            titleString = strings[1].substring(0, strings[1].indexOf("<")).trim();
-//                        }
-
-                    if (!titleString.isBlank())
-                        titles.add(titleString + '\n');
-
-                }
-        }));
-        return titles;
     }
 
     public static String[] getRussianWords(String text) {
@@ -248,11 +216,6 @@ public class HtmlParsing {
             element.attributes().forEach(attr -> {
                 if (!(attr.getValue() == null))
                     if (pattern.matcher(attr.getValue()).find()) {
-                        //String resultString =  String.join(" ", getRussianWords(element.toString()));
-
-//                        String resultString =  element.toString();
-//                        if (!resultString.isBlank())
-//                            resultSet.add(resultString);
                         resultSet.add(element);
                     }
             });

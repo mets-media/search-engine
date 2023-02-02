@@ -1,6 +1,5 @@
 package engine.view;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -15,7 +14,7 @@ import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import engine.entity.Site;
-import engine.entity.SiteStatus;
+import engine.enums.SiteStatus;
 import engine.service.BeanAccess;
 import engine.service.Parser;
 import engine.service.SearchService;
@@ -43,11 +42,9 @@ public class SiteComponent {
     private static BeanAccess beanAccess;
     private final VerticalLayout mainLayout;
     private final Grid<Site> grid;
-
     public static void setBeanAccess(BeanAccess beanAccess) {
         SiteComponent.beanAccess = beanAccess;
     }
-
     public SiteComponent() {
         mainLayout = UIElement.getMainLayout();
         mainLayout.add(UIElement.getTopLayout("Сканирование сайтов", "xl", createButtons()));
@@ -58,16 +55,11 @@ public class SiteComponent {
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
         UIElement.setAllCheckboxVisibility(grid, true);
 
-        //grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
-
         grid.addColumn(Site::getName).setHeader("Наименование").setResizable(true).setSortable(true);
         grid.addColumn(Site::getUrl)
                 .setHeader("Адрес(url)")
                 .setResizable(true)
                 .setSortable(true);
-//        grid.addColumn(Site::getPageCount).setHeader("Страниц в базе").setResizable(true)
-//                .setTextAlign(ColumnTextAlign.CENTER);
-
 
         grid.addColumn(Site::getStatus).setHeader("Статус").setResizable(true)
                 .setTextAlign(ColumnTextAlign.CENTER);
@@ -102,15 +94,8 @@ public class SiteComponent {
             return progressBar;
         });
 
-        //grid.addColumn(new LocalDateTimeRenderer<>((ValueProvider<Site, LocalDateTime>) site ->
-        //        site.getStatusTime())).setHeader("Дата статуса ").setResizable(true);
-
-        //grid.addColumn(Site::getLastError).setHeader("Сообщение").setResizable(true);
-
         grid.setItemDetailsRenderer(createSiteDetailRenderer());
-
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
-
         mainLayout.add(grid);
     }
 
@@ -129,10 +114,7 @@ public class SiteComponent {
                     site.setStatus(SiteStatus.NEW_SITE);
                     beanAccess.getSiteRepository().save(site);
                 }
-
             });
-
-
         });
         //========================= ДОБАВИТЬ САЙТ ==========================================
         Button createButton = new Button("Добавить");
@@ -208,23 +190,8 @@ public class SiteComponent {
         return buttons;
     }
 
-
-//    public static void setAllCheckboxVisibility(Grid<Site> grid, boolean visible) {
-//        if (visible) {
-//            ((GridMultiSelectionModel<?>) grid.getSelectionModel())
-//                    .setSelectAllCheckboxVisibility(
-//                            GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE
-//                    );
-//        } else
-//            ((GridMultiSelectionModel<?>) grid.getSelectionModel())
-//                    .setSelectAllCheckboxVisibility(
-//                            GridMultiSelectionModel.SelectAllCheckboxVisibility.HIDDEN
-//                    );
-//    }
-
     private void showDeleteSiteDialog(List<Site> sites) {
         Dialog dialog = new Dialog();
-        //dialog.setMaxHeight(300, Unit.PIXELS);
         dialog.setMaxHeight("30%");
 
         Button confirm = new Button("Удалить");
@@ -317,7 +284,6 @@ public class SiteComponent {
         TextField textFieldName = new TextField("Наименование");
         textFieldName.setMinWidth("50%");
         TextField textFieldUrl = new TextField("url сайта [http://....]");
-        //textFieldUrl.setValue("http://");
         textFieldUrl.setWidth("50%");
         horizontalLayout.add(textFieldName, textFieldUrl);
         dialog.add(horizontalLayout);
@@ -374,8 +340,6 @@ public class SiteComponent {
                     siteStatusTextField,
                     statusTimeTextField);
 
-
-
             verticalLayout.add(hLayout, lastErrorTextField);
             hLayout.setAlignItems(END);
             hLayout.setWidth("100%");
@@ -388,8 +352,6 @@ public class SiteComponent {
             statusTimeTextField.setWidth("40%");
 
             lastErrorTextField.setWidthFull();
-
-
 
             add(verticalLayout);
         }
@@ -413,5 +375,4 @@ public class SiteComponent {
         return new ComponentRenderer<>(SiteDetailFormLayout::new,
                 SiteDetailFormLayout::setSite);
     }
-
 }

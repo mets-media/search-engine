@@ -6,7 +6,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 public class StartBrowser {
-
     public static void startBrowser(String url) {
 
         String os = System.getProperty("os.name").toLowerCase(); // получаем имя операционной системы
@@ -53,5 +52,4 @@ public class StartBrowser {
             System.err.println("Failed to browse. " + ex.getLocalizedMessage());
         }
     }
-
 }

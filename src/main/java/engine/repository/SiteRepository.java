@@ -1,6 +1,5 @@
 package engine.repository;
 
-import engine.dto.IdTextDto;
 import engine.dto.SiteInfoDto;
 import engine.entity.PathTable;
 import engine.entity.Site;
@@ -25,9 +24,10 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
     Page<Site> getSitesFromPageTable(Pageable pageable);
 
     @Query(value =
-            "Select * from Site \n" +
-            "where id in (select distinct Site_Id from page) \n" +
-            "order by id", nativeQuery = true)
+            """
+                    Select * from Site
+                    where id in (select distinct Site_Id from page)\s
+                    order by id""", nativeQuery = true)
     List<Site> getSitesFromPageTable();
 
     @Modifying
@@ -54,11 +54,6 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
                         join site on (pages.site_id = site.id)""", nativeQuery = true)
     List<Site> getStatistic();
 
-//    @Query(value = """
-//            Select new engine.dto.SiteInfoDto (id, name, url, last_error, page_count, lemma_count)
-//            from Site
-//            order by name""")
-//    List<SiteInfoDto> getTotalInfo();
     @Query(value = """
             select distinct new engine.dto.SiteInfoDto
             (
@@ -73,17 +68,6 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
             from Site""")
     List<SiteInfoDto> getTotalInfo();
 
-/* Запрос для SiteInfoDto
-with pages as (select site_id, count(*) page_count from page group by site_id),
-                         lemmas as (select site_id, count(*) lemma_count from lemma group by site_id ),
-                        indexes as (select page.site_id, count(*) index_count from index
-                                     join page on (index.page_id = page.id)
-                                     group by page.site_id)
-                        select id, name, url, status, status_time, last_error, pages.page_count, lemmas.lemma_count from pages
-                        join lemmas on (pages.site_id = lemmas.site_id)
-                        join indexes on (pages.site_id = indexes.site_id)
-                        join site on (pages.site_id = site.id)
-* */
     @Query(value =
             """
                     select 0 id, '*' name, 'Все сайты' url,

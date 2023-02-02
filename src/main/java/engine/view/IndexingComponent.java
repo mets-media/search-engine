@@ -25,6 +25,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import engine.dto.IdTextDto;
 import engine.entity.*;
+import engine.enums.LinkStatus;
 import engine.service.BeanAccess;
 import engine.service.HtmlParsing;
 import engine.service.Lemmatization;
@@ -43,7 +44,6 @@ import static engine.view.UIElement.showMessage;
 
 
 public class IndexingComponent {
-
     private static BeanAccess beanAccess;
     private final VerticalLayout mainLayout;
     private final Grid<Field> fieldGrid = new Grid<>(Field.class, false);
@@ -57,7 +57,6 @@ public class IndexingComponent {
     private KeepLink draggedKeepLinkItem;
     private Page draggedPageItemPage;
     private GridLazyDataView<Page> dataViewPage;
-    //private GridLazyDataView<KeepLink> dataViewError;
     private GridListDataView<KeepLink> dataViewError;
 
     private ComboBox<Site> siteComboBox;
@@ -251,18 +250,15 @@ public class IndexingComponent {
         Grid<KeepLink> grid = new Grid<>(KeepLink.class, false);
 
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
-        //UIElement.setAllCheckboxVisibility(grid,false);
 
         Grid.Column<KeepLink> col1 = grid.addColumn(KeepLink::getPath)
                 .setHeader("Path")
                 //.setKey("path")
                 .setWidth("80%")
                 .setResizable(true);
-        //.setAutoWidth(true);
 
         Grid.Column<KeepLink> col2 = grid.addColumn(KeepLink::getCode)
                 .setHeader("Code")
-                //.setKey("code")
                 .setWidth("10%")
                 .setResizable(true)
                 .setAutoWidth(true);
@@ -301,10 +297,6 @@ public class IndexingComponent {
 
             dataViewError = errorGrid.setItems(list);
 
-            //errorGrid.getColumns().get(0).setHeader(errorComboBox.getValue().text());
-//            errorGrid.getHeaderRows().get(0).getCell(errorGrid.getColumns().get(0))
-//                    .setText("Страницы с ошибками " + " [ " + list.size() + " стр.]");
-
             setColumnText(errorGrid, 0, errorComboBox.getValue().text());
             setHeaderText(errorGrid, 0, 0,
                     "Страницы с ошибками " + " [ " + list.size() + " стр.]");
@@ -319,20 +311,15 @@ public class IndexingComponent {
     private void setHeaderText(Grid<KeepLink> grid, int headerIndex, int colIndex, String text) {
         grid.getHeaderRows().get(0).getCell(grid.getColumns().get(0))
                 .setText(text);
-
     }
-
     private void handleDragStartPage(GridDragStartEvent<Page> e) {
         draggedPageItemPage = e.getDraggedItems().get(0);
     }
-
     private void handleDragEndPage(GridDragEndEvent<Page> e) {
         draggedPageItemPage = null;
     }
 
     private void handleDragStartKeepLink(GridDragStartEvent<KeepLink> e) {
-        //draggedKeepLinkItem = e.getDraggedItems().get(0);
-
         if (errorGrid.getSelectedItems().size() > 1)
             draggedkeepLinkList = errorGrid.getSelectedItems().stream().toList();
         else
@@ -345,7 +332,6 @@ public class IndexingComponent {
 
         setHeaderText(errorGrid, 0, 0, "Страницы с ошибками " + " [ " + dataViewError.getItemCount() + " стр.]");
     }
-
     private Button createRefreshButton() {
         var button = UIElement.createButton("", VaadinIcon.REFRESH, "Обновить информацию");
 
@@ -359,13 +345,10 @@ public class IndexingComponent {
     }
 
     private void dragAndDropGrids() {
-
         errorGrid.setDropMode(GridDropMode.ON_GRID);
         errorGrid.setRowsDraggable(true);
         errorGrid.addDragStartListener(this::handleDragStartKeepLink);
         errorGrid.addDropListener(e -> {
-            //dataViewPage.removeItem(draggedItem);
-            //dataViewError.addItem(draggedItem);
         });
         errorGrid.addDragEndListener(this::handleDragEndKeepLink);
 
@@ -376,14 +359,13 @@ public class IndexingComponent {
             if (draggedkeepLinkList != null) {/** Запись выбранных KeepLink */
                 showMessage("Страниц для записи: " + draggedkeepLinkList.size());
                 for (KeepLink keepLink : draggedkeepLinkList) {
-                    if (!(insertOrUpdatePage(keepLink.getPath(), beanAccess))) {
+                    if (!(insertOrUpdatePage(keepLink.getPath()))) {
                         showMessage("Страница за пределами проиндексированных сайтов! " + keepLink.getPath());
                     }
-                    //showMessage(("Записываем и индексируем страницу: ").concat(keepLink.getPath()));
                     dataViewError.removeItem(keepLink);
                 }
             } else {
-                if (!(insertOrUpdatePage(draggedKeepLinkItem.getPath(), beanAccess))) {
+                if (!(insertOrUpdatePage(draggedKeepLinkItem.getPath()))) {
                     showMessage("Страница за пределами проиндексированных сайтов! " + draggedKeepLinkItem.getPath());
                 }
                 showMessage(("Записываем и индексируем страницу: ").concat(draggedKeepLinkItem.getPath()));
@@ -399,8 +381,6 @@ public class IndexingComponent {
         Integer pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
         site.setPageCount(pageCount);
 
-        //pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
-
         pageGrid.getHeaderRows().get(0).getCell(pageGrid.getColumns().get(0))
                 .setText("Индексированные страницы [ " + new DecimalFormat("#,###")
                         .format(pageCount) + " стр.]");
@@ -415,7 +395,6 @@ public class IndexingComponent {
                 .getDistinctErrors(site.getId(), LinkStatus.ERROR_LINK.ordinal());
 
         errorComboBox.clear();
-        //errorGrid.setItems(new ArrayList<KeepLink>());
 
         list.add(0, new IdTextDto(0, "Все ошибки"));
         errorComboBox.setItems(list);
@@ -438,32 +417,6 @@ public class IndexingComponent {
             Site site = event.getValue();
 
             siteSelect(site);
-/*
-            Integer pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
-            site.setPageCount(pageCount);
-
-            //pageCountTextField.setValue(new DecimalFormat("#,###").format(pageCount));
-
-            pageGrid.getHeaderRows().get(0).getCell(pageGrid.getColumns().get(0))
-                    .setText("Индексированные страницы [ " + new DecimalFormat("#,###")
-                            .format(pageCount) + " стр.]");
-
-            dataViewPage = pageGrid.setItems(query -> beanAccess.getPageRepository()
-                    .findBySiteId(
-                            site.getId(),
-                            PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path")))
-                    .stream());
-
-            List<IdTextDto> list = beanAccess.getKeepLinkRepository()
-                    .getDistinctErrors(site.getId(), LinkStatus.ERROR_LINK.ordinal());
-
-            errorComboBox.clear();
-            //errorGrid.setItems(new ArrayList<KeepLink>());
-
-            list.add(0, new IdTextDto(0, "Все ошибки"));
-            errorComboBox.setItems(list);
-            errorComboBox.setValue(list.get(0));
-*/
         });//===============================================================================
 
         siteComboBox.setWidth("50%");
@@ -472,9 +425,6 @@ public class IndexingComponent {
 
 
     private Grid<Page> createPageGrid() {
-
-        //pageCountTextField.setReadOnly(true);
-
         Grid<Page> grid = new Grid<>(Page.class, false);
 
         Grid.Column<Page> col1 = grid.addColumn(Page::getCode)
@@ -521,7 +471,6 @@ public class IndexingComponent {
 
         errorComboBox = createErrorComboBox();
 
-
         siteComboBox.setWidth("50%");
         errorComboBox.setWidth("50%");
 
@@ -531,8 +480,6 @@ public class IndexingComponent {
 
         return new VerticalLayout(horizontalLayout,
                 UIElement.getVerticalLayoutWithSideBySideGrids(List.of(pageGrid, errorGrid), "gridsLayout"));
-        //cssVerticalLayout);
-
     }
 
     private void fillCssLayout() {
@@ -620,8 +567,6 @@ public class IndexingComponent {
                 hm.entrySet().forEach(e -> stringBuilder.append(e.getValue().getLemma() + "," +
                         e.getValue().getCount() + ", " + e.getValue().getRank() + "\n\n"));
 
-                //stringBuilder.append("\n\n Size после BiFunction: " + hm.size() + "\n\n");
-
                 cssSelectorTextArea.setValue(stringBuilder.toString());
             });
         });
@@ -630,13 +575,10 @@ public class IndexingComponent {
         var cssControlsLayout = new HorizontalLayout(cssSelectorComboBox, lemmaButton, indexingButton);
         cssControlsLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
-        //pageGrid = createPageGrid();
-
         cssVerticalLayout = new VerticalLayout();
 
         cssSelectorTextArea.setWidth("100%");
         cssVerticalLayout.setSpacing(false);
-        //cssVerticalLayout.add(cssControlsLayout, cssSelectorTextArea, pageGrid);
         cssVerticalLayout.add(cssControlsLayout, cssSelectorTextArea);
 
         cssVerticalLayout.setEnabled(true);
@@ -671,5 +613,4 @@ public class IndexingComponent {
         vLayout.add(gridPartsOfSpeech);
         return vLayout;
     }
-
 }

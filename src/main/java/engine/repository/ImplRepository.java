@@ -1,5 +1,6 @@
 package engine.repository;
 
+import engine.dto.SiteAndContent;
 import engine.entity.KeepLink;
 import engine.entity.Lemma;
 import engine.entity.PathTable;
@@ -9,11 +10,14 @@ import engine.mapper.PathTableMapper;
 import engine.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class ImplRepository {
@@ -45,5 +49,4 @@ public class ImplRepository {
         return jdbcTemplate.query(SearchService.getSQLByName("findLemmasInAllSites")
                 .replace(":lemmaIn", lemmas), lemmaMapper);
     }
-
 }
