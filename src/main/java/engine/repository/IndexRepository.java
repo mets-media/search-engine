@@ -1,6 +1,6 @@
 package engine.repository;
 
-import engine.entity.IndexEntity;
+import engine.entity.Index;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -9,9 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public interface IndexRepository extends CrudRepository<IndexEntity, Integer> {
-
-
+public interface IndexRepository extends CrudRepository<Index, Integer> {
     @Query(value = """
             select count(*) from index
             join page on (index.page_id = page.id)
@@ -76,16 +74,15 @@ public interface IndexRepository extends CrudRepository<IndexEntity, Integer> {
             "join Lemma on Lemma.Id = Index.Lemma_Id " +
             "where Lemma.Lemma = :lemma " +
             "", nativeQuery = true)
-    List<IndexEntity> getIndexByLemmaForAllSites(@Param("lemma") String lemma);
+    List<Index> getIndexByLemmaForAllSites(@Param("lemma") String lemma);
 
     @Query(value = "Select * from index " +
             "join Lemma on Lemma.Id = Index.Lemma_Id " +
             "where Lemma.Lemma = :lemma " +
             "  and site_id = :siteId", nativeQuery = true)
-    List<IndexEntity> getIndexByLemmaForSiteId(@Param("lemma") String lemma, @Param("siteId") int siteId);
+    List<Index> getIndexByLemmaForSiteId(@Param("lemma") String lemma, @Param("siteId") int siteId);
 
-    //для выбранного сайта lemmaIn содержит список lemma_id
     @Query(value = "select * from index where page_Id = :pageId and lemma_id in (:lemmaIn)", nativeQuery = true)
-    List<IndexEntity> findByPageIdLemmaIdIn(@Param("pageId") Integer pageId, @Param("lemmaIn") List<Integer> lemmaIn);
+    List<Index> findByPageIdLemmaIdIn(@Param("pageId") Integer pageId, @Param("lemmaIn") List<Integer> lemmaIn);
 
 }

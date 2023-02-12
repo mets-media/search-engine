@@ -11,8 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 public interface LemmaRepository extends JpaRepository<Lemma,Integer> {
-
     List<Lemma> findBySiteIdAndLemmaIn(Integer siteId, List<String> lemma, Pageable pageable);
+    List<Lemma> findBySiteIdAndLemmaIn(Integer siteId, List<String> lemma);
     List<Lemma> findByLemmaIn(List<String> lemmas);
 
     @Query(value = "select 0 id, sum(frequency) frequency, lemma, sum(rank) rank, 0 site_id \n" +
@@ -23,7 +23,6 @@ public interface LemmaRepository extends JpaRepository<Lemma,Integer> {
     List<Lemma> findLemmaByLemmaNameIn(@Param("lemmaIn") List<String> lemmaIn);
 
     @Query(value=
-            //"with page_lemma_count as (select lemma_id, count(*) lemma_count, sum(lemma.rank) rank from index \n" +
             "with page_lemma_count as (select lemma_id, count(*) lemma_count, sum(index.rank) rank from index \n" +
             "join lemma on (lemma.id = index.lemma_id)\n" +
             "where page_id = :pageId\n" +

@@ -1,20 +1,15 @@
 package engine.service;
 
-import com.vaadin.flow.component.notification.Notification;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static engine.view.UIElement.showMessage;
 
 public class TimeMeasure {
-
-
-    private static ConcurrentHashMap<String, Long> timers = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Long> timers = new ConcurrentHashMap<>();
     private static long startTime;
-
     public static void setStartTime() {
         startTime = System.currentTimeMillis();
     }
-
     public static long getStartTime() {
         return startTime;
     }
@@ -45,13 +40,10 @@ public class TimeMeasure {
         else
             return "Таймер " + timerName + " не найден";
     }
-
     public static void removeTimer(String timerName) {
         timers.remove(timerName);
     }
-
     public static void timeSpentNotification(String text) {
         showMessage(text + TimeMeasure.getStringExperienceTime());
     }
-
 }

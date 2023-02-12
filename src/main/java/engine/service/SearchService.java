@@ -1,11 +1,13 @@
 package engine.service;
 
-import engine.entity.IndexEntity;
+import engine.dto.SqlQueryDto;
+import engine.entity.Index;
 import engine.entity.Lemma;
 import engine.entity.PathTable;
 import engine.entity.Site;
 import lombok.AllArgsConstructor;
 import lombok.experimental.UtilityClass;
+import org.hibernate.loader.custom.sql.SQLQueryParser;
 
 import java.util.*;
 import java.util.function.Function;
@@ -14,15 +16,9 @@ import java.util.stream.Stream;
 
 @UtilityClass
 public class SearchService {
-
     private static BeanAccess beanAccess;
-    private static HashMap<String, SQLQuery> sqlContent;
+    private static HashMap<String, SqlQueryDto> sqlContent;
 
-    @AllArgsConstructor
-    public static class SQLQuery {
-        private String name;
-        private String sql;
-    }
     public static void setBeanAccess(BeanAccess beanAccess) {
         SearchService.beanAccess = beanAccess;
     }
@@ -55,11 +51,11 @@ public class SearchService {
                 .collect(Collectors.joining(","));
     };
     public static  List<PathTable> findIndexIntersection(Set<Lemma> lemmas,
-                                                         HashMap<String, List<IndexEntity>> indexHashMap,
+                                                         HashMap<String, List<Index>> indexHashMap,
                                                          int siteId) {
         if (lemmas.size() == 0) return new ArrayList<>();
 
-        List<IndexEntity> listIndex;
+        List<Index> listIndex;
 
         for (Lemma lemma : lemmas) {
             String selectedLemma = lemma.getLemma();
@@ -78,13 +74,13 @@ public class SearchService {
         //Взять только выбранные леммы
         for (Lemma lemma : lemmas) {
             pageIdHashMap.put(lemma.getLemma(),
-                    indexHashMap.get(lemma.getLemma()).stream().map(IndexEntity::getPageId).toList());
+                    indexHashMap.get(lemma.getLemma()).stream().map(Index::getPageId).toList());
         }
         //Найти пересечение
         List<Integer> joinPageId = SearchService.retainAllPageId(lemmas, pageIdHashMap);
 
         //Вычитаем лишние IndexEntity
-        List<IndexEntity> joinedIndexEntities = SearchService.removeByPageId(indexHashMap, joinPageId);
+        List<Index> joinedIndexEntities = SearchService.removeByPageId(indexHashMap, joinPageId);
 
         return calcRelevanceForEachPage(joinedIndexEntities, lemmas, siteId);
     }
@@ -96,7 +92,7 @@ public class SearchService {
         return -1;
     }
 
-    private static List<PathTable> calcRelevanceForEachPage(List<IndexEntity> entities, Set<Lemma> lemmas, int selectedSiteId) {
+    private static List<PathTable> calcRelevanceForEachPage(List<Index> entities, Set<Lemma> lemmas, int selectedSiteId) {
 
         List<PathTable> result = new ArrayList<>();
 
@@ -105,14 +101,14 @@ public class SearchService {
         float rel = 0;
         float max_rank = 0;
 
-        for (IndexEntity indexEntity : entities) {
+        for (Index index : entities) {
 
-            int nextPage = indexEntity.getPageId();
+            int nextPage = index.getPageId();
 
             if ((nextPage != pageId) && (pageId != 0)) {
                 rel = abs / max_rank;
                 //get path
-                int lemmaSiteId = getSiteIdFromLemmas(indexEntity.getLemmaId(), lemmas);
+                int lemmaSiteId = getSiteIdFromLemmas(index.getLemmaId(), lemmas);
 
                 //Добавляем в результат
                 if ((lemmaSiteId == selectedSiteId) || (selectedSiteId == 0))
@@ -121,9 +117,9 @@ public class SearchService {
                 abs = 0;
                 rel = 0;
             }
-            pageId = indexEntity.getPageId();
-            abs += indexEntity.getRank();
-            if (max_rank < indexEntity.getRank()) max_rank = indexEntity.getRank();
+            pageId = index.getPageId();
+            abs += index.getRank();
+            if (max_rank < index.getRank()) max_rank = index.getRank();
         }
         if (abs != 0) { //Добавляем последнюю - если она есть
             rel = abs / max_rank;
@@ -213,26 +209,26 @@ public class SearchService {
         return result;
     }
 
-    public List<IndexEntity> removeByPageId(HashMap<String, List<IndexEntity>> hashMapIndex,
-                                             List<Integer> listPageId) {
+    public List<Index> removeByPageId(HashMap<String, List<Index>> hashMapIndex,
+                                      List<Integer> listPageId) {
 
-        Set<IndexEntity> entityHashSet = new HashSet<>();
+        Set<Index> entityHashSet = new HashSet<>();
 
         for (String lemma : hashMapIndex.keySet()) {
 
-            List<IndexEntity> indexEntities = hashMapIndex.get(lemma);
+            List<Index> indexEntities = hashMapIndex.get(lemma);
 
-            indexEntities.forEach(indexEntity -> {
-                if (listPageId.contains(indexEntity.getPageId()))
-                    entityHashSet.add(indexEntity);
+            indexEntities.forEach(index -> {
+                if (listPageId.contains(index.getPageId()))
+                    entityHashSet.add(index);
             });
         }
 
-        return entityHashSet.stream().sorted(Comparator.comparing(IndexEntity::getPageId)).toList();
+        return entityHashSet.stream().sorted(Comparator.comparing(Index::getPageId)).toList();
     }
 
 
-    private List<IndexEntity> retainAllIndexes(Set<Lemma> lemmaSet, HashMap<String, List<IndexEntity>> hashMap) {
+    private List<Index> retainAllIndexes(Set<Lemma> lemmaSet, HashMap<String, List<Index>> hashMap) {
         List<Lemma> sortedLemma = lemmaSet
                 .stream()
                 .sorted(Comparator.comparing(Lemma::getFrequency)).toList();
@@ -241,7 +237,7 @@ public class SearchService {
 
         String lowFrequencyLemma = sortedLemma.get(0).getLemma();
 
-        List<IndexEntity> result = new ArrayList<>(hashMap.get(lowFrequencyLemma));
+        List<Index> result = new ArrayList<>(hashMap.get(lowFrequencyLemma));
         for (int i = 1; i < sortedLemma.size(); i++) {
             lowFrequencyLemma = sortedLemma.get(i).getLemma();
 
@@ -291,11 +287,11 @@ public class SearchService {
                     order by abs desc, rel desc
                 """;
 
-        sqlContent.put(name, new SQLQuery(name,sql));
+        sqlContent.put(name, new SqlQueryDto(name,sql));
 
         name = "allSitesGenerateStmt";
         sql = "select * from get_pages_generate_stmt(:lemmaNames)";
-        sqlContent.put(name, new SQLQuery(name,sql));
+        sqlContent.put(name, new SqlQueryDto(name,sql));
 
         name = "findLemmasInAllSites";
         sql = """
@@ -304,28 +300,36 @@ public class SearchService {
                     where lemma in (:lemmaIn)
                     group by lemma
                     order by frequency""";
-        sqlContent.put(name, new SQLQuery(name,sql));
+        sqlContent.put(name, new SqlQueryDto(name,sql));
 
         name = "getResult_INDEX_PAGE_LEMMA";
         sql = "select * from get_pages_index_page_lemma(':lemmaIdArray', ':pageIdArray', :siteId) " +
               "order by abs desc";
-        sqlContent.put(name, new SQLQuery(name,sql));
+        sqlContent.put(name, new SqlQueryDto(name,sql));
 
         name = "getResult_GetPage_PAGE_INDEX";
         sql = "select * from get_pages_page_index(':lemmaIdArray', ':pageIdArray') " +
                 "order by abs desc, rel";
-        sqlContent.put(name, new SQLQuery(name,sql));
+        sqlContent.put(name, new SqlQueryDto(name,sql));
 
         name = "getPaths";
         sql = """
-                Select id page_id, path, cast(0 as float) abs, cast(0 as float) rel 
-                from page 
+                Select id page_id, path, cast(0 as float) abs, cast(0 as float) rel
+                from page
                 where id in (:pageIdArray)""";
-        sqlContent.put(name, new SQLQuery(name,sql));
+        sqlContent.put(name, new SqlQueryDto(name,sql));
+
+        name = "getSiteInfoByPageId";
+        sql = """
+                select site.name, site.url from site
+                join page on (page.site_id = site.id)
+                where page.id = :pageId
+                """;
+        sqlContent.put(name, new SqlQueryDto(name,sql));
+
     }
 
     public static String getSQLByName(String nameSQLQuery) {
-        return sqlContent.get(nameSQLQuery).sql;
+        return sqlContent.get(nameSQLQuery).sql();
     }
-
 }

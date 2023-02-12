@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="engine:jar" />
+    </artifacts-to-build>
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
@@ -7,9 +12,78 @@
     <option name="rewriteBookmarkType" value="true" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="ReadMe + Видео">
-      <change afterPath="$PROJECT_DIR$/img/Video.gif" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/_import.sql" afterDir="false" />
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="SearchEngine 1.0">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/css/basic.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/css/extra.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/css/fonts.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Black.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Black.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Black.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Black.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Black.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Black.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Bold.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Bold.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Bold.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Bold.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Bold.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Bold.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraBold.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraBold.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraBold.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraBold.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraBold.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraBold.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraLight.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraLight.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraLight.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraLight.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraLight.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-ExtraLight.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Light.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Light.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Light.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Light.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Light.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Light.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Medium.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Medium.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Medium.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Medium.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Medium.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Medium.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Regular.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Regular.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Regular.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Regular.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Regular.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Regular.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-SemiBold.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-SemiBold.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-SemiBold.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-SemiBold.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-SemiBold.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-SemiBold.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Thin.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Thin.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Thin.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Thin.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Thin.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/fonts/Montserrat/Montserrat-Thin.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/img/icons/arrow_hide.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/img/icons/cancel.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/img/icons/checked.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/img/icons/dashboard.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/img/icons/management.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/img/icons/pause.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/img/icons/search.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/js/scripts.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/plg/form/jquery.form.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/plg/form/jquery.maskedinput.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/plg/jQuery/jquery-3.5.0.slim.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/admin/assets/plg/jQuery/jquery-3.5.1.min.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/artifacts/engine_jar/engine.jar" beforeDir="false" afterPath="$PROJECT_DIR$/out/artifacts/engine_jar/engine.jar" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,8 +94,9 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Enum" />
-        <option value="Class" />
         <option value="Interface" />
+        <option value="Record" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -29,7 +104,6 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="HARD" />
     <option name="ROOT_SYNC" value="SYNC" />
-    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="JpbToolWindowState">
     <option name="isToolWindowVisible" value="false" />
@@ -52,26 +126,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/mets.java&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.project.maven.repository.indices&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "last_opened_file_path": "/Users/alexandr/IdeaProjects/mets/target",
+    "project.structure.last.edited": "Libraries",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="engine.entity" />
     </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/target" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/src/main/resources" />
-      <recent name="$PROJECT_DIR$/src" />
-      <recent name="C:\mets.java\mets\lib\ russianmorphology" />
+      <recent name="$PROJECT_DIR$/src/main/resources/static/templates" />
+      <recent name="$PROJECT_DIR$/src/main/resources/static/static" />
+      <recent name="$PROJECT_DIR$/src/main/resources/static" />
+      <recent name="$PROJECT_DIR$/img" />
+      <recent name="$PROJECT_DIR$" />
     </key>
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="engine.repository" />
@@ -105,104 +186,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00026" summary="Проверка Lazy loading">
-      <created>1669530536919</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1669530536920</updated>
-    </task>
-    <task id="LOCAL-00027" summary="Проверка Lazy loading">
-      <created>1669568968870</created>
-      <option name="number" value="00027" />
-      <option name="presentableId" value="LOCAL-00027" />
-      <option name="project" value="LOCAL" />
-      <updated>1669568968871</updated>
-    </task>
-    <task id="LOCAL-00028" summary="Проверка Lazy loading">
-      <created>1669573853010</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1669573853010</updated>
-    </task>
-    <task id="LOCAL-00029" summary="Индексация">
-      <created>1669861898280</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1669861898280</updated>
-    </task>
-    <task id="LOCAL-00030" summary="Индексация">
-      <created>1670063443109</created>
-      <option name="number" value="00030" />
-      <option name="presentableId" value="LOCAL-00030" />
-      <option name="project" value="LOCAL" />
-      <updated>1670063443110</updated>
-    </task>
-    <task id="LOCAL-00031" summary="Индексация">
-      <created>1670066833822</created>
-      <option name="number" value="00031" />
-      <option name="presentableId" value="LOCAL-00031" />
-      <option name="project" value="LOCAL" />
-      <updated>1670066833822</updated>
-    </task>
-    <task id="LOCAL-00032" summary="Индексация">
-      <created>1670080436109</created>
-      <option name="number" value="00032" />
-      <option name="presentableId" value="LOCAL-00032" />
-      <option name="project" value="LOCAL" />
-      <updated>1670080436109</updated>
-    </task>
-    <task id="LOCAL-00033" summary="Индексация">
-      <created>1670127681821</created>
-      <option name="number" value="00033" />
-      <option name="presentableId" value="LOCAL-00033" />
-      <option name="project" value="LOCAL" />
-      <updated>1670127681822</updated>
-    </task>
-    <task id="LOCAL-00034" summary="Индексация">
-      <created>1670419035945</created>
-      <option name="number" value="00034" />
-      <option name="presentableId" value="LOCAL-00034" />
-      <option name="project" value="LOCAL" />
-      <updated>1670419035950</updated>
-    </task>
-    <task id="LOCAL-00035" summary="Индексация">
-      <created>1670419348224</created>
-      <option name="number" value="00035" />
-      <option name="presentableId" value="LOCAL-00035" />
-      <option name="project" value="LOCAL" />
-      <updated>1670419348224</updated>
-    </task>
-    <task id="LOCAL-00036" summary="Индексация">
-      <created>1670421302724</created>
-      <option name="number" value="00036" />
-      <option name="presentableId" value="LOCAL-00036" />
-      <option name="project" value="LOCAL" />
-      <updated>1670421302725</updated>
-    </task>
-    <task id="LOCAL-00037" summary="Индексация">
-      <created>1670572033328</created>
-      <option name="number" value="00037" />
-      <option name="presentableId" value="LOCAL-00037" />
-      <option name="project" value="LOCAL" />
-      <updated>1670572033328</updated>
-    </task>
-    <task id="LOCAL-00038" summary="Индексация">
-      <created>1670580554986</created>
-      <option name="number" value="00038" />
-      <option name="presentableId" value="LOCAL-00038" />
-      <option name="project" value="LOCAL" />
-      <updated>1670580554986</updated>
-    </task>
-    <task id="LOCAL-00039" summary="Система поиска">
-      <created>1670598079999</created>
-      <option name="number" value="00039" />
-      <option name="presentableId" value="LOCAL-00039" />
-      <option name="project" value="LOCAL" />
-      <updated>1670598079999</updated>
     </task>
     <task id="LOCAL-00040" summary="Система поиска">
       <created>1670735437083</created>
@@ -414,42 +397,140 @@
       <option name="project" value="LOCAL" />
       <updated>1673883277547</updated>
     </task>
-    <task id="LOCAL-00070" summary="Оптимизация кода">
-      <created>1674188025193</created>
+    <task id="LOCAL-00070" summary="Изменения в странице &quot;Индексация&quot;">
+      <created>1674354477929</created>
       <option name="number" value="00070" />
       <option name="presentableId" value="LOCAL-00070" />
       <option name="project" value="LOCAL" />
-      <updated>1674188025193</updated>
+      <updated>1674354477930</updated>
     </task>
-    <task id="LOCAL-00071" summary="Система поиска окончательный вариант">
-      <created>1674210969342</created>
+    <task id="LOCAL-00071" summary="Api">
+      <created>1674380200535</created>
       <option name="number" value="00071" />
       <option name="presentableId" value="LOCAL-00071" />
       <option name="project" value="LOCAL" />
-      <updated>1674210969342</updated>
+      <updated>1674380200537</updated>
     </task>
-    <task id="LOCAL-00072" summary="Система поиска окончательный вариант">
-      <created>1674212078622</created>
+    <task id="LOCAL-00072" summary="Api /statistics">
+      <created>1674401184875</created>
       <option name="number" value="00072" />
       <option name="presentableId" value="LOCAL-00072" />
       <option name="project" value="LOCAL" />
-      <updated>1674212078622</updated>
+      <updated>1674401184877</updated>
     </task>
-    <task id="LOCAL-00073" summary="ReadMe + Видео">
-      <created>1674620573819</created>
+    <task id="LOCAL-00073" summary="Front">
+      <created>1674435452878</created>
       <option name="number" value="00073" />
       <option name="presentableId" value="LOCAL-00073" />
       <option name="project" value="LOCAL" />
-      <updated>1674620573820</updated>
+      <updated>1674435452879</updated>
     </task>
-    <task id="LOCAL-00074" summary="ReadMe + Видео">
-      <created>1674621097237</created>
+    <task id="LOCAL-00074" summary="Front">
+      <created>1674465196542</created>
       <option name="number" value="00074" />
       <option name="presentableId" value="LOCAL-00074" />
       <option name="project" value="LOCAL" />
-      <updated>1674621097238</updated>
+      <updated>1674465196543</updated>
     </task>
-    <option name="localTasksCounter" value="75" />
+    <task id="LOCAL-00075" summary="Тестовая версия">
+      <created>1674468425000</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1674468425002</updated>
+    </task>
+    <task id="LOCAL-00076" summary="Тестовая версия 1.0">
+      <created>1674545929624</created>
+      <option name="number" value="00076" />
+      <option name="presentableId" value="LOCAL-00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1674545929628</updated>
+    </task>
+    <task id="LOCAL-00077" summary="Тестовая версия 1.0">
+      <created>1674570471792</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1674570471792</updated>
+    </task>
+    <task id="LOCAL-00078" summary="Read.me [img]">
+      <created>1674580590749</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1674580590750</updated>
+    </task>
+    <task id="LOCAL-00079" summary="Read.me [img]">
+      <created>1674580685330</created>
+      <option name="number" value="00079" />
+      <option name="presentableId" value="LOCAL-00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1674580685331</updated>
+    </task>
+    <task id="LOCAL-00080" summary="Read.me + screenShorts">
+      <created>1674584202565</created>
+      <option name="number" value="00080" />
+      <option name="presentableId" value="LOCAL-00080" />
+      <option name="project" value="LOCAL" />
+      <updated>1674584202566</updated>
+    </task>
+    <task id="LOCAL-00081" summary="Read.me + screenShorts">
+      <created>1674585578367</created>
+      <option name="number" value="00081" />
+      <option name="presentableId" value="LOCAL-00081" />
+      <option name="project" value="LOCAL" />
+      <updated>1674585578368</updated>
+    </task>
+    <task id="LOCAL-00082" summary="Read.me + screenShorts">
+      <created>1674586289378</created>
+      <option name="number" value="00082" />
+      <option name="presentableId" value="LOCAL-00082" />
+      <option name="project" value="LOCAL" />
+      <updated>1674586289380</updated>
+    </task>
+    <task id="LOCAL-00083" summary="Read.me + screenShorts">
+      <created>1674613384157</created>
+      <option name="number" value="00083" />
+      <option name="presentableId" value="LOCAL-00083" />
+      <option name="project" value="LOCAL" />
+      <updated>1674613384158</updated>
+    </task>
+    <task id="LOCAL-00084" summary="Read.me + screenShorts">
+      <created>1674613675930</created>
+      <option name="number" value="00084" />
+      <option name="presentableId" value="LOCAL-00084" />
+      <option name="project" value="LOCAL" />
+      <updated>1674613675931</updated>
+    </task>
+    <task id="LOCAL-00085" summary="SearchEngine 1.0">
+      <created>1674715979428</created>
+      <option name="number" value="00085" />
+      <option name="presentableId" value="LOCAL-00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1674715979429</updated>
+    </task>
+    <task id="LOCAL-00086" summary="SearchEngine 1.0">
+      <created>1674716322224</created>
+      <option name="number" value="00086" />
+      <option name="presentableId" value="LOCAL-00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1674716322224</updated>
+    </task>
+    <task id="LOCAL-00087" summary="SearchEngine 1.0">
+      <created>1674716385105</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1674716385106</updated>
+    </task>
+    <task id="LOCAL-00088" summary="SearchEngine 1.0">
+      <created>1674717746351</created>
+      <option name="number" value="00088" />
+      <option name="presentableId" value="LOCAL-00088" />
+      <option name="project" value="LOCAL" />
+      <updated>1674717746351</updated>
+    </task>
+    <option name="localTasksCounter" value="89" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -480,13 +561,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="Morph dependencies. Version with HashMap-cash." />
-    <MESSAGE value="Morph dependencies. MultiSelect mode." />
-    <MESSAGE value="Morph dependencies. Start-Stop-Continue downloading" />
-    <MESSAGE value="Morph dependencies. MultiScan" />
-    <MESSAGE value="Изменения в структуре проекта. (temp)" />
-    <MESSAGE value="Проверка Лемматизатора" />
-    <MESSAGE value="Проверка Lazy loading" />
     <MESSAGE value="Индексация" />
     <MESSAGE value="Система поиска" />
     <MESSAGE value="Система поиска. Snipped &lt;b&gt;" />
@@ -503,9 +577,16 @@
     <MESSAGE value="Оптимизация запросов" />
     <MESSAGE value="Изменение интерфейса поиска" />
     <MESSAGE value="Оптимизация кода" />
-    <MESSAGE value="Система поиска окончательный вариант" />
-    <MESSAGE value="ReadMe + Видео" />
-    <option name="LAST_COMMIT_MESSAGE" value="ReadMe + Видео" />
+    <MESSAGE value="Изменения в странице &quot;Индексация&quot;" />
+    <MESSAGE value="Api" />
+    <MESSAGE value="Api /statistics" />
+    <MESSAGE value="Front" />
+    <MESSAGE value="Тестовая версия" />
+    <MESSAGE value="Тестовая версия 1.0" />
+    <MESSAGE value="Read.me [img]" />
+    <MESSAGE value="Read.me + screenShorts" />
+    <MESSAGE value="SearchEngine 1.0" />
+    <option name="LAST_COMMIT_MESSAGE" value="SearchEngine 1.0" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -532,23 +613,18 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>183</line>
-          <option name="timeStamp" value="176" />
+          <line>132</line>
+          <option name="timeStamp" value="105" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>406</line>
-          <option name="timeStamp" value="182" />
+          <line>327</line>
+          <option name="timeStamp" value="107" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>247</line>
-          <option name="timeStamp" value="183" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>396</line>
-          <option name="timeStamp" value="184" />
+          <url>file://$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java</url>
+          <line>203</line>
+          <option name="timeStamp" value="116" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

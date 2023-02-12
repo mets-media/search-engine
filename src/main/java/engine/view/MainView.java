@@ -9,7 +9,7 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import engine.config.YAMLConfig;
-import engine.entity.SiteStatus;
+import engine.enums.SiteStatus;
 import engine.repository.*;
 import engine.service.BeanAccess;
 import engine.service.Parser;
@@ -50,8 +50,6 @@ public class MainView extends AppLayout {
     ImplRepository implRepository;
     @Autowired
     PageContainerRepository pageContainerRepository;
-    @Autowired
-    StatusRepository statusRepository;
     @Autowired
     YAMLConfig yamlConfig;
     @PersistenceContext
@@ -103,12 +101,8 @@ public class MainView extends AppLayout {
                 UIElement.setShowMessageTime(Integer.parseInt(time.getValue())));
         beanAccess.getConfigRepository().findByKey("posMs").ifPresent(position -> {
             switch (position.getValue()) {
-                case "MIDDLE" -> {
-                    UIElement.setPosition(Notification.Position.MIDDLE);
-                }
-                case "BOTTOM_END" -> {
-                    UIElement.setPosition(Notification.Position.BOTTOM_END);
-                }
+                case "MIDDLE" -> UIElement.setPosition(Notification.Position.MIDDLE);
+                case "BOTTOM_END" -> UIElement.setPosition(Notification.Position.BOTTOM_END);
             }
         });
 
@@ -119,9 +113,9 @@ public class MainView extends AppLayout {
         H1 title = new H1("Search Engine");
         title.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
-        Tabs tabs = UIElement.createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск", "Управление"),
-        //Tabs tabs = UIElement.createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск"),
-                Tabs.Orientation.VERTICAL);
+        Tabs tabs = UIElement
+                .createTabs(List.of("Сайты", "Настройки", "Лемматизатор", "Индексация", "Поиск", "Выход"),
+                        Tabs.Orientation.VERTICAL);
 
         tabs.addSelectedChangeListener(event -> {
             String label = tabs.getSelectedTab().getLabel();
@@ -138,7 +132,6 @@ public class MainView extends AppLayout {
                 }
                 case "Лемматизатор" -> {
                     if (!contentsHashMap.containsKey(label)) {
-                        //LemmaComponent.setPartOfSpeechRepository(partOfSpeechRepository);
                         LemmaComponent lemmaComponent = new LemmaComponent(beanAccess);
                         setContent(lemmaComponent.getMainLayout());
                         contentsHashMap.put(label, lemmaComponent.getMainLayout());
@@ -151,7 +144,6 @@ public class MainView extends AppLayout {
                         setContent(indexingComponent.getMainLayout());
                         contentsHashMap.put(label, indexingComponent.getMainLayout());
                     }
-
                 }
                 case "Поиск" -> {
                     if (!contentsHashMap.containsKey(label)) {
@@ -161,14 +153,13 @@ public class MainView extends AppLayout {
                         contentsHashMap.put(label, searchComponent.getMainLayout());
                     }
                 }
-                case "Управление" -> {
+                case "Выход" -> {
                     if (!contentsHashMap.containsKey(label)) {
-                        TestComponent.setDataAccess(beanAccess);
-                        TestComponent testComponent = new TestComponent();
-                        setContent(testComponent.getMainLayout());
-                        contentsHashMap.put(label, testComponent.getMainLayout());
+                        ControlComponent.setDataAccess(beanAccess);
+                        ControlComponent controlComponent = new ControlComponent();
+                        setContent(controlComponent.getMainLayout());
+                        contentsHashMap.put(label, controlComponent.getMainLayout());
                     }
-
                 }
             }
             setContent(contentsHashMap.get(label));
@@ -177,6 +168,5 @@ public class MainView extends AppLayout {
         addToDrawer(tabs);
         addToNavbar(toggle, title);
     }
-
 }
 

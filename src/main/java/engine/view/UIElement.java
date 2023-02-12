@@ -144,7 +144,6 @@ public class UIElement {
         headerRow.join(col1, col2).setComponent(simpleCell);
         return grid;
     }
-
     private static String createWordsCountFooterText(List<String> words) {
         int count = words.size();
         if (count > 1)
@@ -152,7 +151,6 @@ public class UIElement {
         else
             return "";
     }
-
     public static void removeComponentById(VerticalLayout container, String deleteId) {
 
         container.getChildren().forEach(component -> {
@@ -163,8 +161,6 @@ public class UIElement {
             });
         });
     }
-
-
     public static Button createButton(String text, VaadinIcon icon, String title) {
         Button button = new Button(text);
         if (!(icon == null)) button.setIcon(icon.create());
@@ -172,15 +168,12 @@ public class UIElement {
 
         return button;
     }
-
     public static ComboBox<String> createComboBox(List<String> items) {
         ComboBox<String> comboBox = new ComboBox<>();
         comboBox.setItems(items);
         comboBox.setValue(items.get(0));
         return comboBox;
     }
-
-
     public VerticalLayout getVerticalLayoutWithSideBySideGrids(List<Grid> gridList, String id) {
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setId(id);
@@ -203,6 +196,4 @@ public class UIElement {
         }
         return verticalLayout;
     }
-
-
 }

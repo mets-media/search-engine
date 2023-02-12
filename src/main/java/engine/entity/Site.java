@@ -1,6 +1,7 @@
 package engine.entity;
 
 
+import engine.enums.SiteStatus;
 import lombok.Data;
 import org.hibernate.annotations.ColumnDefault;
 
@@ -8,7 +9,6 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Data

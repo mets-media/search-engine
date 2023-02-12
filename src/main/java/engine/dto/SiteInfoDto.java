@@ -1,6 +1,6 @@
 package engine.dto;
 
-import engine.entity.SiteStatus;
+import engine.enums.SiteStatus;
 
 import java.time.LocalDateTime;
 

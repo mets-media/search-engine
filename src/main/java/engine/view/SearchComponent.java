@@ -29,11 +29,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class SearchComponent {
-
     private static BeanAccess beanAccess;
     private ComboBox<Site> siteComboBox = null;
     private final HashMap<String, List<Integer>> pageIdHashMap = new HashMap<>();
-    private final HashMap<String, List<IndexEntity>> indexHashMap = new HashMap<>();
+    private final HashMap<String, List<Index>> indexHashMap = new HashMap<>();
     private final VerticalLayout mainLayout;
     private final HorizontalLayout requestLayout = new HorizontalLayout();
     private final HorizontalLayout checkBoxAndButtonLayout = new HorizontalLayout();
@@ -73,7 +72,7 @@ public class SearchComponent {
 
         detailLayout.setVisible(false);
 
-        Lemmatization.setDataAccess(beanAccess);
+        Lemmatization.setBeanAccess(beanAccess);
         lemmatizator = Lemmatization.getLemmatizator();
     }
 
@@ -111,23 +110,9 @@ public class SearchComponent {
         selectCountersQueryComboBox = UIElement.createComboBox(List.of("GetStatistic", "Repository.Count", "Counters"));
         selectCountersQueryComboBox.setVisible(false);
         selectGetInfoQueryComboBox = UIElement.createComboBox(List.of("PostgreSQL", "Java HashMap", "Statement gen."));
-        //selectGetInfoQueryComboBox.setLabel("Метод поиска");
         selectGetInfoQueryComboBox.addValueChangeListener(event -> {
             resultSQL = "Empty";
-            //lemmaGrid.setItems(new ArrayList<>());
-
             checkAndSetEnableAutoMode(event.getValue(), siteComboBox.getValue().getUrl());
-          /*  if ((event.getValue().equals("Java HashMap")) ||
-                    ((event.getValue().equals("Statement gen.")) && (siteComboBox.getValue().getUrl().equals("Все сайты")))) {
-                checkboxAuto.setEnabled(false);
-                calcPageButton.setEnabled(false);
-                findTextField.setEnabled(false);
-            } else {
-                checkboxAuto.setEnabled(true);
-                calcPageButton.setEnabled(true);
-                findTextField.setEnabled(true);
-            }
-*/
         });
 
         //--------------      Сайт Страницы Леммы Index обновить --------------
@@ -174,15 +159,12 @@ public class SearchComponent {
         checkBoxAndButtonLayout.setAlignItems(FlexComponent.Alignment.END);
         checkBoxAndButtonLayout.setWidthFull();
         checkBoxAndButtonLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
-        //checkBoxAndButtonLayout.setEnabled(false);
-
 
         var resultLayout = new VerticalLayout(horizontalLayout,
                 requestLayout,
                 checkBoxAndButtonLayout,
                 gridsLayout,
                 getDetailLayout());
-
 
         return resultLayout;
     }
@@ -250,8 +232,6 @@ public class SearchComponent {
             int indexCount = site.getIndexCount();
             setInfoValues(pageCount, lemmaCount, indexCount);
         });
-
-
     }
 
     private void setInfoValues(long pageCount, long lemmaCount, long indexCount) {
@@ -264,15 +244,7 @@ public class SearchComponent {
         siteComboBox = new ComboBox<>("Сайт:");
         siteComboBox.setItemLabelGenerator(Site::getUrl);
 
-//        siteComboBox.setItems(query -> {
-//            return beanAccess.getSiteRepository().getSitesFromPageTable(
-//                    PageRequest.of(query.getPage(), query.getPageSize())
-//            ).stream();
-//        });
-
-
         List<Site> siteList = beanAccess.getSiteRepository().getSitesFromPageTable();
-
 
         allSiteObject.setId(0);
         allSiteObject.setName("*");
@@ -291,26 +263,8 @@ public class SearchComponent {
             detailLayout.setVisible(false);
 
             switch (event.getValue().getName()) {
-                case "*" -> {
-
-                    //Внимание!!! - долгий запрос, с записью значений для каждого сайта
-                    //setInfoValuesFromGetStatistic();
-
-                    //Установка значений путём подсчёта repository.count()
-                    //setInfoValuesFromRepositoryCount();
-
-                    //Установк значений по счётчикам удалений
-                    setInfoFromCounters();
-
-                }
+                case "*" -> setInfoFromCounters();
                 default -> {
-
-                    int siteId = event.getValue().getId();
-/*
-                    Integer pageCount = beanAccess.getPageRepository().countBySiteId(siteId);
-                    Integer lemmaCount = beanAccess.getLemmaRepository().countBySiteId(siteId);
-                    Integer indexCount = beanAccess.getIndexRepository().countBySiteId(siteId);
-*/
                     Site site = event.getValue();
                     Integer pageCount = site.getPageCount();
                     Integer lemmaCount = site.getLemmaCount();
@@ -370,16 +324,10 @@ public class SearchComponent {
         simpleCell_.getElement().getStyle().set("text-align", "center");
         headerRow.join(pathColumn, pageIdColumn).setComponent(simpleCell_);
 
-
-        //Без detail
-        //relevanceGrid.setItemDetailsRenderer(createPageDetailRenderer());
-
         findPageGrid.addItemDoubleClickListener(event -> {
             String path = event.getItem().getPath();
             StartBrowser.startBrowser(path);
         });
-
-        //findPageGrid.addAttachListener(attachEvent -> lemmaGrid.setEnabled(true));
 
         findPageGrid.addSelectionListener(selectionEvent -> {
 
@@ -394,9 +342,6 @@ public class SearchComponent {
 
                 Optional<Page> page = beanAccess.getPageRepository().findById(t.getPageId());
                 page.ifPresent(p -> {
-
-//                    Document document = Jsoup.parseBodyFragment(p.getContent());
-//                    titleTextField.setValue(document.title());
                     String content = p.getContent();
                     int start = content.indexOf("<title>") + 7;
                     int end = content.indexOf("</title>");
@@ -411,34 +356,8 @@ public class SearchComponent {
                             HtmlParsing.getHTMLStringsContainsLemma(content, lemmaGrid.getSelectedItems(), lemmatizator));
                     grid.setId("snippetGrid");
 
-
                     UIElement.removeComponentById(detailLayout, "indexGrid");
-/*
-                    //отображение index
-                    List<IndexEntity> listIndex;
-                    List<Integer> listLemmaId;
-                    if (siteComboBox.getValue().getId() == 0) { //Все сайты
-                        var lemmas = lemmaGrid.getSelectedItems().stream().map(Lemma::getLemma).toList();
 
-                        listLemmaId = beanAccess.getLemmaRepository()
-                                .findByLemmaIn(lemmas).stream().map(Lemma::getId).toList();
-
-                        listIndex = beanAccess.getIndexRepository()
-                                .findByPageIdLemmaIdIn(t.getPageId(), listLemmaId);
-                    } else {//Выбраннный сайт
-                        listLemmaId = lemmaGrid.getSelectedItems().stream()
-                                .map(Lemma::getId)
-                                .collect(Collectors.toList());
-
-                        listIndex = beanAccess.getIndexRepository()
-                                .findByPageIdLemmaIdIn(t.getPageId(), listLemmaId);
-                    }
-
-                    Grid<IndexEntity> gridIndex = new Grid<>(IndexEntity.class, true);
-                    gridIndex.setItems(listIndex);
-                    gridIndex.setId("indexGrid");
-                    detailLayout.add(grid, gridIndex);
-*/
                     detailLayout.add(grid);
                     detailLayout.setVisible(true);
                 });
@@ -461,11 +380,7 @@ public class SearchComponent {
                 }
             }
         }
-        //findTextField.setValue(result);
         findPageGrid.getColumns().get(2).setHeader(result);
-        //findPageGrid.getHeaderRows().get(0).getCell(findPageGrid.getColumns().get(2)).setText(result);
-
-        //lemmaGrid.setEnabled(true);
     }
 
     private List<PathTable> getSearchResults() {
@@ -492,27 +407,18 @@ public class SearchComponent {
 
         if (pathTableList.size() != 0) {
             //Получаем list<PathTable> с заполненным Path
-
-//            List<PathTable> listPaths = beanAccess.getPathTableRepository()
-//                    .getPaths(pathTableList.stream()
-//                            .map(l -> Integer.toString(l.getPageId()))
-//                            .collect(Collectors.joining(",")));
-
             String pageIdArray = pathTableList.stream()
                     .map(l -> Integer.toString(l.getPageId()))
                     .collect(Collectors.joining(","));
             List<PathTable> listPaths = beanAccess.getImplRepository()
                     .findPathTableItems(SearchService.getSQLByName("getPaths")
                             .replace(":pageIdArray", pageIdArray));
-            //return listMerge(pathTableList, listPaths);
             return SearchService.listMergeEx(pathTableList, listPaths);
         }
         return new ArrayList<>();
     }
 
     private List<PathTable> doLemmaSelectEvent(Set<Lemma> selectedLemmas, int siteId) {
-        //private String doLemmaSelectEvent(Set<Lemma> selectedLemmas, int siteId) {
-
         detailLayout.setVisible(false);
 
         List<PathTable> pathTableList;
@@ -547,9 +453,6 @@ public class SearchComponent {
                 return new ArrayList<>();
             }
         }
-
-        //pathTableList.sort(Comparator.comparing(PathTable::getAbsRelevance).reversed());
-
         return beanAccess.getImplRepository().findPathTableItems(resultSQL);
     }
 
@@ -629,21 +532,6 @@ public class SearchComponent {
                 default -> pathTableList =
                         doLemmaSelectEvent_JavaHashMap(selectionEvent.getAllSelectedItems(), siteId);
             }
-/*
-            if (sqlQuery != "") {
-              //Вариант с ленивой загрузкой
-                String finalSqlQuery = sqlQuery;
-                findPageGrid.setItems(query -> {
-                    return beanAccess.getPathTableRepository()
-                            .execQueryPageable(finalSqlQuery,
-                                    PageRequest.of(query.getPage(), query.getPageSize())).stream();
-                });
-                printFindingPageCount(-3, TimeMeasure.getStringExperienceTime());
-                return;
-
-                pathTableList = beanAccess.getPathTableRepository().execQuery(sqlQuery);
-            }
-*/
 
             findPageGrid.setItems(pathTableList);
             printFindingPageCount(pathTableList.size(), TimeMeasure.getStringExperienceTime());
@@ -687,14 +575,8 @@ public class SearchComponent {
             return;
         }
         String includeLemma = requestLemmas.keySet().stream().collect(Collectors.joining("','", "'", "'"));
-        //lemmaGrid.setItems(beanAccess.getPathTableRepository().findLemmasInAllSites(includeLemma));
 
         if (siteId == 0) { //Все сайты
-            //Запрос в программе выдаёт неверный результат, тот же запрос в pgAdmin работает правильно
-            //lemmaGrid.setItems(beanAccess.getLemmaRepository().findByLemmaIn(lemmaList));
-            //Причина неизвестна - БАГ!!!
-
-            //Реализовал через jdbcTemplate
             lemmaGrid.setItems(beanAccess.getImplRepository().findLemmasInAllSites(includeLemma));
         } else  //Выбранный сайт
             lemmaGrid.setItems(query -> beanAccess.getLemmaRepository()
@@ -772,5 +654,4 @@ public class SearchComponent {
 
         return detailLayout;
     }
-
 }

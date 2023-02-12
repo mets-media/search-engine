@@ -2,6 +2,7 @@ package engine;
 
 import engine.config.YAMLConfig;
 import engine.repository.*;
+import engine.service.ApiService;
 import engine.service.HtmlParsing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -19,45 +20,15 @@ public class Application extends SpringBootServletInitializer {
         SpringApplication.run(Application.class, args);
     }
 
-//
-//    @Bean
-//    public BeanNameViewResolver beanNameViewResolver(){
-//        return new BeanNameViewResolver();
-//    }
-//
-//    @Bean
-//    public View admin() {
-//        return new InternalResourceView("/admin/admin.html");
-//    }
-//
-//
-//    @Bean
-//    public ServletRegistrationBean frontendServletBean() {
-//        ServletRegistrationBean bean = new ServletRegistrationBean<>(new VaadinServlet() {
-//            @Override
-//            protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-//                if (!serveStaticOrWebJarRequest(req, resp)) {
-//                    resp.sendError(404);
-//                }
-//            }
-//        }, "/mets");
-//        bean.setLoadOnStartup(1);
-//        return bean;
-//    }
 
     @Bean
     public CommandLineRunner dataGenerator(ConfigRepository configRepository,
-                                           PageRepository pageRepository,
                                            LemmaRepository lemmaRepository,
                                            IndexRepository indexRepository,
                                            PartOfSpeechRepository partOfSpeechRepository,
                                            FieldRepository fieldRepository,
-                                           PageContainerRepository pageContainerRepository,
-                                           SiteRepository siteRepository) {
-                                           //ApplicationContext context) {
+                                           PageContainerRepository pageContainerRepository) {
         return args -> {
-
-            //dataSource();
 
             HtmlParsing.setUserAgent(yamlConfig.getUserAgent());
             HtmlParsing.setReferrer(yamlConfig.getReferrer());
@@ -72,7 +43,6 @@ public class Application extends SpringBootServletInitializer {
             if (partOfSpeechRepository.count() == 0)
                partOfSpeechRepository.initData();
             //----------------------------------------------------
-
             configRepository.createOneRecordTable();
 
             configRepository.createTriggers();
@@ -85,8 +55,7 @@ public class Application extends SpringBootServletInitializer {
             configRepository.createFunctionForAllSiteLemmaInfo();
             configRepository.createFunctionResetCounters();
             configRepository.createGetPagesFunction();
-            configRepository.createGetByLemmaAnfSiteIdFunction();
-
+            configRepository.createGetByLemmaAndSiteIdFunction();
             indexRepository.createForeignKeys();
             //счётчики удалений
             configRepository.createSequences();
@@ -94,17 +63,4 @@ public class Application extends SpringBootServletInitializer {
             configRepository.creteGetCountersFunction();
         };
     }
-
-
-//    @Bean
-//    @Primary
-//    public DataSource dataSource() {
-//        return DataSourceBuilder
-//                .create()
-//                .username("postgres")
-//                .password("test")
-//                .url("jdbc:postgresql://localhost:5432/search_engine")
-//                .driverClassName("org.postgresql.Driver")
-//                .build();
-//    }
 }

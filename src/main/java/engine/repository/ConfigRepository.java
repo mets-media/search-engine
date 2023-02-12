@@ -18,8 +18,8 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
             "(-5,'delay','Пауза при обращении к страницам, м.сек.','100',0), " +
             "(-4,'isPoS','Учитывать части речи при индексации','true',1), " +
             "(-3,'batch','Размер блока для записи','10',0)," +
-            //"(-2,'sLiSF','Короткая запись ссылок (boolean)','false',1), " +
-            "(-1,'tps','Потоков на один сайт (Thread)','8',0)", nativeQuery = true)
+            "(-2,'T.out','Timeout при загрузке страниц','2000',0)," +
+            "(-1,'tps','Потоков на один сайт (Thread)','4',0)", nativeQuery = true)
     void initData();
 
     Optional<Config> findByKey(String key);
@@ -27,56 +27,59 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
     @Modifying
     @Transactional
     @Query(value =
-            "DO $$DECLARE \n" +
-                    "BEGIN\n" +
-                    "\t if (not exists (select start_value from pg_sequences where sequencename = 'page_del_count') ) then\n" +
-                    "\t\t EXECUTE 'CREATE SEQUENCE Page_Del_Count';\n" +
-                    "\t\t perform setval('page_del_count', 1);" +
-                    "\t end if;\n" +
-                    "\n" +
-                    "\t if (not exists (select start_value from pg_sequences where sequencename = 'lemma_del_count') ) then\n" +
-                    "\t\t EXECUTE 'CREATE SEQUENCE Lemma_Del_Count';\n" +
-                    "\t\t perform setval('lemma_del_count', 1);" +
-                    "\t end if;\n" +
-                    "\n" +
-                    "\t if (not exists (select start_value from pg_sequences where sequencename = 'index_del_count') ) then\n" +
-                    "\t\t EXECUTE 'CREATE SEQUENCE Index_Del_Count';\n" +
-                    "\t\t perform setval('index_del_count', 1);" +
-                    "\t end if;\n" +
-                    "END$$;",nativeQuery = true)
+            """
+                    DO $$DECLARE
+                    BEGIN
+                       if (not exists (select start_value from pg_sequences where sequencename = 'page_del_count') ) then
+                          EXECUTE 'CREATE SEQUENCE Page_Del_Count';
+                          perform setval('page_del_count', 1);
+                       end if;
+
+                       if (not exists (select start_value from pg_sequences where sequencename = 'lemma_del_count') ) then
+                          EXECUTE 'CREATE SEQUENCE Lemma_Del_Count';
+                          perform setval('lemma_del_count', 1);
+                       end if;
+
+                       if (not exists (select start_value from pg_sequences where sequencename = 'index_del_count') ) then
+                         EXECUTE 'CREATE SEQUENCE Index_Del_Count';
+                         perform setval('index_del_count', 1);
+                       end if;
+                    END$$;""",nativeQuery = true)
     void createSequences();
 
     @Modifying
     @Transactional
-    @Query(value ="CREATE TABLE IF NOT EXISTS one_record_table\n" +
-            "(\n" +
-            "    id integer NOT NULL,\n" +
-            "    CONSTRAINT one_record_table_pkey PRIMARY KEY (id)\n" +
-            ");\n" +
-            "insert into one_record_table (id) values (0) on conflict do nothing;\n", nativeQuery = true)
+    @Query(value = """
+            CREATE TABLE IF NOT EXISTS one_record_table
+            (
+                id integer NOT NULL,
+                CONSTRAINT one_record_table_pkey PRIMARY KEY (id)
+            );
+            insert into one_record_table (id) values (0) on conflict do nothing;
+            """, nativeQuery = true)
     void createOneRecordTable();
 
     @Modifying
     @Transactional
     @Query(value =
-            "CREATE OR REPLACE FUNCTION get_counters()\n" +
-                    "RETURNS TABLE(id integer, name text, url text, " +
-                    "page_count integer, lemma_count integer, index_count integer, \n" +
-                    "status bytea, status_time timestamp without time zone, last_error text) \n" +
-                    "LANGUAGE 'plpgsql'\n" +
-                    "COST 100\n" +
-                    "VOLATILE PARALLEL UNSAFE\n" +
-                    "ROWS 1 \n" +
-                    "AS $BODY$\n" +
-                    "begin \n" +
-                    "\tid = 0; name = '*'; url = 'Все сайты'; status = 'NEW_SITE'; status_time = now(); last_error = '';" +
-                    "\n" +
-                    "\tpage_count =  (select last_value from page_id_seq)  - (select last_value - 1 from page_del_count);\n" +
-                    "\tlemma_count = (select last_value from lemma_id_seq) - (select last_value - 1 from lemma_del_count);\n" +
-                    "\tindex_count = (select last_value from index_id_seq) - (select last_value - 1 from index_del_count);\n" +
-                    "\treturn next;\n" +
-                    "end\n" +
-                    "$BODY$;\n", nativeQuery = true)
+            """
+                    CREATE OR REPLACE FUNCTION get_counters()
+                    RETURNS TABLE(id integer, name text, url text, page_count integer, lemma_count integer, index_count integer,
+                    status bytea, status_time timestamp without time zone, last_error text)
+                    LANGUAGE 'plpgsql'
+                    COST 100
+                    VOLATILE PARALLEL UNSAFE
+                    ROWS 1
+                    AS $BODY$
+                    begin
+                      id = 0; name = '*'; url = 'Все сайты'; status = 'NEW_SITE'; status_time = now(); last_error = '';
+                      page_count =  (select last_value from page_id_seq)  - (select last_value - 1 from page_del_count);
+                      lemma_count = (select last_value from lemma_id_seq) - (select last_value - 1 from lemma_del_count);
+                      index_count = (select last_value from index_id_seq) - (select last_value - 1 from index_del_count);
+                      return next;
+                    end
+                    $BODY$;
+                    """, nativeQuery = true)
     void creteGetCountersFunction();
 
     @Modifying
@@ -317,7 +320,7 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
                     \tend if;
                     end
                     $BODY$;""", nativeQuery = true)
-    void createGetByLemmaAnfSiteIdFunction();
+    void createGetByLemmaAndSiteIdFunction();
 
 
     @Modifying

@@ -8,7 +8,6 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -74,7 +73,7 @@ public class LemmaComponent {
 
             List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
                     .stream()
-                    .map(p -> p.getShortName())
+                    .map(PartsOfSpeech::getShortName)
                     .collect(Collectors.toList());
 
             Lemmatization lemmatizator = new Lemmatization(excludeList, null);
@@ -118,7 +117,6 @@ public class LemmaComponent {
         hLayout.add(textArea);
         textArea.setWidth("100%");
 
-
         verticalLayout.add(hLayout, controlLayout);
 
         return verticalLayout;
@@ -128,12 +126,9 @@ public class LemmaComponent {
         ComboBox<Page> pageComboBox = new ComboBox<>("Поиск страниц по фильтру в базе данных");
         pageComboBox.setClearButtonVisible(true);
 
-        pageComboBox.setItems(query -> {
-            return beanAccess.getPageRepository().findAll(
-                    PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path"))
-            ).stream();
-        });
-
+        pageComboBox.setItems(query -> beanAccess.getPageRepository().findAll(
+                PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path"))
+        ).stream());
 
         pageComboBox.setItemLabelGenerator(Page::getPath);
 
@@ -171,10 +166,10 @@ public class LemmaComponent {
             Lemmatization lemmatizator = new Lemmatization(excludeList, cssSelectors);
             //----------------------------------------------------------------------------------------------------
 
-            Document document = null;
-            String content = "";
+            Document document;
+            String content;
 
-            if (sourceSelectComboBox.getValue() == "Database") {
+            if (sourceSelectComboBox.getValue().equals("Database")) {
                 String searchPath = urlTextField.getValue();
                 content = beanAccess.getPageRepository().getContentByPath(searchPath);
                 if (content == null) {
@@ -194,7 +189,6 @@ public class LemmaComponent {
 
             if (listCssSelectorsHashMap.size() > 2) {
                 //Надо вычесть из css[body] леммы дополнительных css селеторов
-                //Данные [body]
                 HashMap<String, Lemmatization.LemmaInfo> newBodyHashMap = new HashMap<>(listCssSelectorsHashMap.get(1));
 
                 for (int i = 2; i < listCssSelectorsHashMap.size(); i++) {
@@ -236,11 +230,10 @@ public class LemmaComponent {
         filterTextField.setClearButtonVisible(true);
         filterTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
 
-        filterTextField.addValueChangeListener(event -> pageComboBox.setItems(query -> {
-            return beanAccess.getPageRepository().findByPathContainingOrderByPath(event.getValue(),
-                    PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path"))
-            ).stream();
-        }));
+        filterTextField.addValueChangeListener(event -> pageComboBox.setItems(query ->
+                beanAccess.getPageRepository().findByPathContainingOrderByPath(event.getValue(),
+                PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("path"))
+        ).stream()));
 
         return filterTextField;
     }
@@ -251,10 +244,8 @@ public class LemmaComponent {
 
         researchUrlTextField.setPrefixComponent(VaadinIcon.FILE_SEARCH.create());
 
-        researchUrlTextField.addValueChangeListener(event -> {
-            removeComponentById(contentsHashMap.get("Леммы"), "VerticalLayoutForGrids");
-        });
-
+        researchUrlTextField.addValueChangeListener(event ->
+                removeComponentById(contentsHashMap.get("Леммы"), "VerticalLayoutForGrids"));
         return researchUrlTextField;
     }
 
@@ -278,7 +269,7 @@ public class LemmaComponent {
         var button= UIElement.createButton("",VaadinIcon.ADD_DOCK,"Добавить в базу и проиндексировать");
         button.addClickListener(event -> {
 
-            if (!(insertOrUpdatePage(urlTextField.getValue(), beanAccess))) {
+            if (!(insertOrUpdatePage(urlTextField.getValue()))) {
                 showMessage("Страница за пределами проиндексированных сайтов!");
             }
             showMessage("Записываем и индексируем страницу");
@@ -323,7 +314,6 @@ public class LemmaComponent {
         return verticalLayout;
     }
 
-
     private Grid<Lemmatization.LemmaInfo> createCSSGrid(String cssSelector, Collection<Lemmatization.LemmaInfo> values) {
         DecimalFormat decimalFormat = new DecimalFormat("#,###.##");
 
@@ -339,7 +329,6 @@ public class LemmaComponent {
         Grid.Column<Lemmatization.LemmaInfo> col3 =
                 grid.addColumn(new NumberRenderer<>(Lemmatization.LemmaInfo::getRank, decimalFormat))
                         .setHeader("Rank");
-        //.setFooter(createRankSumFooterText(values));
 
         HeaderRow headerRow = grid.prependHeaderRow();
 
@@ -359,14 +348,11 @@ public class LemmaComponent {
         Optional<Integer> lemmaCount = listLemmaInfo
                 .stream()
                 .map(Lemmatization.LemmaInfo::getCount)
-                .reduce((a, b) -> a + b);
+                .reduce(Integer::sum);
 
         if (lemmaCount.isPresent())
             return String.format("Всего: %s", lemmaCount.get());
         return "";
-
-        //Количество уникальных лемм:
-//        return "Леммы:".concat(String.valueOf(listLemmaInfo.size()));
 
     }
 
@@ -374,7 +360,7 @@ public class LemmaComponent {
         Optional<Float> rankSum = listLemmaInfo
                 .stream()
                 .map(Lemmatization.LemmaInfo::getRank)
-                .reduce((a, b) -> a + b);
+                .reduce(Float::sum);
         if (rankSum.isPresent())
             return rankSum.toString();
         return "";

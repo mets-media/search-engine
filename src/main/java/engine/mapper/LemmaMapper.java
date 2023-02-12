@@ -19,8 +19,6 @@ public class LemmaMapper implements RowMapper<Lemma> {
         lemma.setLemma(rs.getString("lemma"));
         lemma.setSiteId(rs.getInt("site_id"));
         lemma.setFrequency(rs.getInt("frequency"));
-        //lemma.setRank(rs.getFloat("rank"));
-
         return lemma;
     }
 }

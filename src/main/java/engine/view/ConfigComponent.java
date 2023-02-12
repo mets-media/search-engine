@@ -10,9 +10,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.PageTitle;
 import engine.entity.Config;
 import engine.repository.ConfigRepository;
 import lombok.Getter;
@@ -26,12 +24,11 @@ import static engine.view.UIElement.showMessage;
 
 @Getter
 public class ConfigComponent {
-    private VerticalLayout mainLayout;
-    private Grid<Config> grid;
+    private final VerticalLayout mainLayout;
+    private final Grid<Config> grid;
     Button newOptionButton;
     Button editButton;
     Button deleteOptionButton;
-
     private static ConfigRepository configRepository;
 
     public ConfigComponent() {
@@ -39,7 +36,7 @@ public class ConfigComponent {
         List<Button> buttons = createButtons(List.of("Добавить", "Редактировать", "Удалить"));
         mainLayout.add(UIElement.getTopLayout("Настройки сканирования", "xl", buttons));
 
-        grid = new Grid(Config.class, false);
+        grid = new Grid<>(Config.class, false);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT);
 
@@ -53,61 +50,6 @@ public class ConfigComponent {
         mainLayout.add(grid);
     }
 
-/*
-    private HorizontalLayout createControlButtons() {
-        var topLayout = new HorizontalLayout();
-        topLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        topLayout.setAlignItems(FlexComponent.Alignment.END);
-
-        //=================       Название       ====================
-        var labelLayout = new HorizontalLayout();
-        labelLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        labelLayout.setAlignItems(FlexComponent.Alignment.START);
-        labelLayout.setSizeFull();
-
-        Label label = new Label("Таблица конфигурирования программы");
-        label.getStyle().set("font-size", "var(--lumo-font-size-xl)").set("margin", "0");
-
-        labelLayout.add(label);
-
-        newOptionButton = new Button("Добавить");
-        newOptionButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-
-        editButton = new Button("Редактировать");
-        editButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-
-        deleteOptionButton = new Button("Удалить");
-        deleteOptionButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
-
-        addListeners();
-
-        var controlsLayout = new HorizontalLayout(newOptionButton, editButton, deleteOptionButton);
-        controlsLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        controlsLayout.setAlignItems(FlexComponent.Alignment.END);
-        controlsLayout.setSizeUndefined();
-
-        topLayout.add(labelLayout, controlsLayout);
-        return topLayout;
-    }
-
-    private void addListeners() {
-        newOptionButton.addClickListener(buttonClickEvent -> {
-            showDialog(null);
-        });
-        editButton.addClickListener(buttonClickEvent -> {
-            Optional<Config> config = grid.getSelectedItems().stream().findFirst();
-            config.ifPresent(c -> {
-                showDialog(c);
-            });
-        });
-        deleteOptionButton.addClickListener(buttonClickEvent -> {
-            Optional<Config> config = grid.getSelectedItems().stream().findFirst();
-            config.ifPresent(c -> configRepository.delete(c));
-            grid.setItems(configRepository.findAll());
-        });
-    }
-*/
-
     private List<Button> createButtons(List<String> captions) {
         List<Button> buttons = new ArrayList<>();
         for (String caption : captions) {
@@ -118,17 +60,12 @@ public class ConfigComponent {
             switch (button.getText()) {
                 case "Добавить" -> {
                     button.setEnabled(false);
-                    button.addClickListener(buttonClickEvent -> {
-                        showDialog(null);
-                    });
+                    button.addClickListener(buttonClickEvent -> showDialog(null));
                 }
                 case "Редактировать" -> {
                     button.addClickListener(buttonClickEvent -> {
                         Optional<Config> config = grid.getSelectedItems().stream().findFirst();
-                        config.ifPresent(c -> {
-                            //showDialog(c);
-                            getDialog(c);
-                        });
+                        config.ifPresent(this::getDialog);
                     });
                 }
                 case "Удалить" -> {
@@ -149,12 +86,9 @@ public class ConfigComponent {
 
         return buttons;
     }
-
-
     public static void setConfigRepository(ConfigRepository configRepository) {
         ConfigComponent.configRepository = configRepository;
     }
-
     private void getDialog(Config option) {
         Dialog dialog = new Dialog();
         dialog.setModal(true);
@@ -255,13 +189,6 @@ public class ConfigComponent {
             textFieldValue.setValue(option.getValue());
         }
 
-//        textFieldKey.addValueChangeListener(event -> {
-//            String newValue = textFieldKey.getValue();
-//            if (newValue.length() > 5)
-//                showMessage("Размер Key 5 символов!", 1000, Notification.Position.MIDDLE);
-//            textFieldKey.setValue(newValue.substring(0, 5));
-//        });
-
         Button saveButton = new Button("Сохранить", e -> {
             if (textFieldName.isEmpty())
                 showMessage("Введите имя Свойства");
@@ -294,6 +221,4 @@ public class ConfigComponent {
         dialog.getFooter().add(cancelButton, saveButton);
         dialog.open();
     }
-
-
 }
