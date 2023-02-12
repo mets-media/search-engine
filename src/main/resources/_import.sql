@@ -24,3 +24,4 @@ Insert Into Parts_Of_Speech (include, Name, Short_Name) values (false,'Союз'
 Insert Into Parts_Of_Speech (include, Name, Short_Name) values (false,'Частица','ЧАСТ')
 Insert Into Parts_Of_Speech (include, Name, Short_Name) values (true,'Числительное','ЧИСЛ')
 Insert Into Parts_Of_Speech (include, Name, Short_Name) values (true,'Числительное порядковое','ЧИСЛ-П')
+
