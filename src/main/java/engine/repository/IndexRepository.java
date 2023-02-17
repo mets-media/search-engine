@@ -17,9 +17,9 @@ public interface IndexRepository extends CrudRepository<Index, Integer> {
     Integer countBySiteId(@Param("siteId") Integer siteId);
 
     @Query(value = """
-            Select Page_Id from Index\s
-            join Lemma on Lemma.id = Index.Lemma_Id\s
-            where Lemma.Lemma = :lemma\s
+            Select Page_Id from Index 
+            join Lemma on Lemma.id = Index.Lemma_Id 
+            where Lemma.Lemma = :lemma 
             and Lemma.Site_Id = :siteId""", nativeQuery = true)
     List<Integer> findPageIdByLemmaSiteId(@Param("lemma") String lemma, @Param("siteId") Integer siteId);
 
@@ -28,7 +28,7 @@ public interface IndexRepository extends CrudRepository<Index, Integer> {
     @Query(value = """
             drop table index;
             create table index
-            (id serial not null,\s
+            (id serial not null, 
             lemma_id integer NOT NULL,
             page_id integer NOT NULL,
             rank real NOT NULL,
@@ -81,8 +81,5 @@ public interface IndexRepository extends CrudRepository<Index, Integer> {
             "where Lemma.Lemma = :lemma " +
             "  and site_id = :siteId", nativeQuery = true)
     List<Index> getIndexByLemmaForSiteId(@Param("lemma") String lemma, @Param("siteId") int siteId);
-
-    @Query(value = "select * from index where page_Id = :pageId and lemma_id in (:lemmaIn)", nativeQuery = true)
-    List<Index> findByPageIdLemmaIdIn(@Param("pageId") Integer pageId, @Param("lemmaIn") List<Integer> lemmaIn);
 
 }

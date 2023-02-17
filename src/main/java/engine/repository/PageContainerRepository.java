@@ -73,82 +73,75 @@ public interface PageContainerRepository extends JpaRepository<PageContainer, In
     @Modifying
     @Transactional
     @Query(value =
-            "CREATE OR REPLACE FUNCTION inc_counter(counter_Name Text, return_Value integer)\n" +
-                    "    RETURNS integer\n" +
-                    "    LANGUAGE 'plpgsql'\n" +
-                    "    COST 100\n" +
-                    "    VOLATILE PARALLEL UNSAFE\n" +
-                    "AS $BODY$\n" +
-                    "begin\n" +
-                    "\tperform nextval(counter_name);\n" +
-                    "\treturn return_Value;\t\n" +
-                    "end\n" +
-                    "$BODY$;\n" +
-                    "\n" +
-            "CREATE OR REPLACE FUNCTION parsing_function()\n" +
-            "    RETURNS trigger\n" +
-            "    LANGUAGE 'plpgsql'\n" +
-            "    COST 100\n" +
-            "    VOLATILE NOT LEAKPROOF\n" +
-            "AS $BODY$\n" +
-            "declare lemmainfo text;\n" +
-            "declare new_lemma text;\n" +
-            "declare new_count integer;\n" +
-            "declare new_rank real;\n" +
-            "declare lemma_id integer;\n" +
-            "declare page_id integer;\n" +
-            "BEGIN\n" +
-            "\twith page_insert as (\n" +
-            "    insert into PAGE (Site_id, Path, Code, Content)\n" +
-            "\tvalues (new.site_id, new.path, new.code, new.content)\n" +
-            "\t--on conflict on constraint siteId_path_unique do nothing\n" +
-            "\t--on conflict on constraint siteId_path_unique do update set code = new.code + inc_del_page_counter()\n" +
-            "\ton conflict on constraint siteId_path_unique do update set code = new.code + inc_counter('page_del_count',0)\n" +
-            "\treturning id)\n" +
-            "    select id from page_insert into page_id; \n" +
-            "\tfor lemmainfo in select unnest(string_to_array(new.lemmatization,';'))\n" +
-            "\tloop\n" +
-            "\t    if (length(lemmainfo) > 0) then \t    \n" +
-            "\t\t\tnew_lemma = Split_Part(lemmaInfo,',',1);\n" +
-            "\t\t\tnew_count = Cast(Split_Part(lemmaInfo,',',2) as integer);\n" +
-            "\t\t\tnew_rank  = Cast(Split_Part(lemmaInfo,',',3) as real);\n" +
-            "\t\t\twith lemma_upsert as (\n" +
-            "\t\t\tinsert into LEMMA (Site_Id, Lemma,Frequency) \n" +
-            "\t\t\t\tvalues (new.site_id, new_lemma, new_count) \n" +
-            "\t\t\t\ton conflict on constraint siteId_lemma_unique \n" +
-            "\t\t\t\t--do update set Frequency = LEMMA.Frequency + inc_del_lemma_counter()\n" +
-            "\t\t\t\tdo update set Frequency = LEMMA.Frequency + inc_counter('lemma_del_count',1)\n" +
-            "\t\t\t\treturning id)\n" +
-            "\t\t\tselect id from lemma_upsert into lemma_id;\t\n" +
-            "\n" +
-            "\n\t\t\tif (page_id is not null) then\n" +
-            "\t\t\t\t\tinsert into INDEX (page_id, lemma_id, rank) \n" +
-            "\t\t\t\t\tvalues (page_id,lemma_id, new_rank);\n" +
+            """
+                    CREATE OR REPLACE FUNCTION inc_counter(counter_Name Text, return_Value integer)
+                        RETURNS integer
+                        LANGUAGE 'plpgsql'
+                        COST 100
+                        VOLATILE PARALLEL UNSAFE
+                    AS $BODY$
+                    begin
+                      perform nextval(counter_name);
+                      return return_Value; 
+                    end
+                    $BODY$;
 
-            "\n\t\t\tend if;\n" +
-            "\n" +
-            "\t\tend if;\n" +
-            "\tend loop;\n" +
-            "\n" +
-            "\tdelete from page_container where id = new.id;\n" +
-            "\n" +
-            "    RETURN NEW;\n" +
-            "END;    \n" +
-            "$BODY$;\n" +
-            "\n" +
-            "CREATE or replace TRIGGER page_trigger\n" +
-            "    after INSERT\n" +
-            "    ON public.page_container\n" +
-            "    FOR EACH ROW\n" +
-            "    EXECUTE FUNCTION parsing_function();",
+                    CREATE OR REPLACE FUNCTION parsing_function()
+                        RETURNS trigger
+                        LANGUAGE 'plpgsql'
+                        COST 100
+                        VOLATILE NOT LEAKPROOF
+                    AS $BODY$
+                    declare lemmainfo text;
+                    declare new_lemma text;
+                    declare new_count integer;
+                    declare new_rank real;
+                    declare lemma_id integer;
+                    declare page_id integer;
+                    BEGIN
+                      with page_insert as (
+                        insert into PAGE (Site_id, Path, Code, Content)
+                      values (new.site_id, new.path, new.code, new.content)
+                      --on conflict on constraint siteId_path_unique do nothing
+                      --on conflict on constraint siteId_path_unique do update set code = new.code + inc_del_page_counter()
+                      on conflict on constraint siteId_path_unique do update set code = new.code + inc_counter('page_del_count',0)
+                      returning id)
+                        select id from page_insert into page_id; 
+                      for lemmainfo in select unnest(string_to_array(new.lemmatization,';'))
+                      loop
+                          if (length(lemmainfo) > 0) then    
+                                new_lemma = Split_Part(lemmaInfo,',',1);
+                                new_count = Cast(Split_Part(lemmaInfo,',',2) as integer);
+                                new_rank  = Cast(Split_Part(lemmaInfo,',',3) as real);
+                                with lemma_upsert as (
+                                insert into LEMMA (Site_Id, Lemma,Frequency) 
+                                    values (new.site_id, new_lemma, new_count)
+                                    on conflict on constraint siteId_lemma_unique
+                                    --do update set Frequency = LEMMA.Frequency + inc_del_lemma_counter()
+                                    do update set Frequency = LEMMA.Frequency + inc_counter('lemma_del_count',1)
+                                    returning id)
+                                select id from lemma_upsert into lemma_id; 
+
+
+                                if (page_id is not null) then
+                                    insert into INDEX (page_id, lemma_id, rank) 
+                                    values (page_id,lemma_id, new_rank);
+
+                                end if;
+
+                            end if;
+                      end loop;
+
+                      delete from page_container where id = new.id;
+
+                        RETURN NEW;
+                    END;   
+                    $BODY$;
+
+                    CREATE or replace TRIGGER page_trigger
+                        after INSERT
+                        ON public.page_container
+                        FOR EACH ROW     EXECUTE FUNCTION parsing_function();""",
             nativeQuery = true)
     void createTrigger();
-
-
-    @Modifying
-    @Transactional
-    @Query(value="Select parse_page_container()",nativeQuery = true)
-    Integer parsePageContainer();
-
-
-}
+    }

@@ -312,9 +312,11 @@ public class IndexingComponent {
         grid.getHeaderRows().get(0).getCell(grid.getColumns().get(0))
                 .setText(text);
     }
+
     private void handleDragStartPage(GridDragStartEvent<Page> e) {
         draggedPageItemPage = e.getDraggedItems().get(0);
     }
+
     private void handleDragEndPage(GridDragEndEvent<Page> e) {
         draggedPageItemPage = null;
     }
@@ -330,8 +332,10 @@ public class IndexingComponent {
         draggedKeepLinkItem = null;
         draggedkeepLinkList = null;
 
-        setHeaderText(errorGrid, 0, 0, "Страницы с ошибками " + " [ " + dataViewError.getItemCount() + " стр.]");
+        setHeaderText(errorGrid, 0, 0, "Страницы с ошибками " +
+                " [ " + dataViewError.getItemCount() + " стр.]");
     }
+
     private Button createRefreshButton() {
         var button = UIElement.createButton("", VaadinIcon.REFRESH, "Обновить информацию");
 
@@ -348,33 +352,37 @@ public class IndexingComponent {
         errorGrid.setDropMode(GridDropMode.ON_GRID);
         errorGrid.setRowsDraggable(true);
         errorGrid.addDragStartListener(this::handleDragStartKeepLink);
-        errorGrid.addDropListener(e -> {
-        });
+//        errorGrid.addDropListener(e -> {
+//        });
         errorGrid.addDragEndListener(this::handleDragEndKeepLink);
 
         pageGrid.setDropMode(GridDropMode.ON_GRID);
         pageGrid.setRowsDraggable(false);
         pageGrid.addDragStartListener(this::handleDragStartPage);
         pageGrid.addDropListener(e -> {
-            if (draggedkeepLinkList != null) {/** Запись выбранных KeepLink */
+
+            if (draggedkeepLinkList != null) {// Запись выбранных страницы
                 showMessage("Страниц для записи: " + draggedkeepLinkList.size());
                 for (KeepLink keepLink : draggedkeepLinkList) {
-                    if (!(insertOrUpdatePage(keepLink.getPath()))) {
+                    if (!(insertOrUpdatePage(keepLink.getPath())))
                         showMessage("Страница за пределами проиндексированных сайтов! " + keepLink.getPath());
-                    }
                     dataViewError.removeItem(keepLink);
                 }
-            } else {
-                if (!(insertOrUpdatePage(draggedKeepLinkItem.getPath()))) {
-                    showMessage("Страница за пределами проиндексированных сайтов! " + draggedKeepLinkItem.getPath());
-                }
-                showMessage(("Записываем и индексируем страницу: ").concat(draggedKeepLinkItem.getPath()));
-                dataViewError.removeItem(draggedKeepLinkItem);
+                return;
             }
+
+            // Запись одной страницы
+
+            if (!(insertOrUpdatePage(draggedKeepLinkItem.getPath()))) {
+                showMessage("Страница за пределами проиндексированных сайтов! " +
+                        draggedKeepLinkItem.getPath());
+            }
+            showMessage(("Записываем и индексируем страницу: ").concat(draggedKeepLinkItem.getPath()));
+            dataViewError.removeItem(draggedKeepLinkItem);
+
+
         });
         pageGrid.addDragEndListener(this::handleDragEndPage);
-
-
     }
 
     private void siteSelect(Site site) {
@@ -465,7 +473,6 @@ public class IndexingComponent {
         pageGrid = createPageGrid();
         errorGrid = createErrorGrid();
         dragAndDropGrids();
-        //fillCssLayout();
 
         siteComboBox = createSiteComboBox();
 
@@ -482,107 +489,6 @@ public class IndexingComponent {
                 UIElement.getVerticalLayoutWithSideBySideGrids(List.of(pageGrid, errorGrid), "gridsLayout"));
     }
 
-    private void fillCssLayout() {
-        cssVerticalLayout.setWidth("100%");
-
-        cssSelectorComboBox.setItems(query -> {
-            return beanAccess.getFieldRepository().getAllNames(
-                    PageRequest.of(query.getPage(), query.getPageSize())
-            ).stream();
-        });
-
-        cssSelectorComboBox.addValueChangeListener(event -> {
-            String cssName = event.getValue();
-
-            if ((cssName == null) || (cssName.isBlank()))
-                return;
-
-            String content = pageGrid.getSelectedItems().stream().findFirst().get().getContent();
-            Document document = Jsoup.parseBodyFragment(content);
-
-            Field field = beanAccess.getFieldRepository().findByName(cssName);
-            switch (field.getSelector()) {
-                case "title" -> {
-                    cssSelectorTextArea.setValue(document.title());
-                }
-                case "body" -> {
-                    cssSelectorTextArea.setValue(document.body().text());
-                }
-                default -> {
-                    Elements elements = document.select(field.getSelector());
-
-                    StringBuilder stringBuilder = new StringBuilder();
-                    elements.forEach(element -> {
-                        //stringBuilder.append(element.toString().concat("\n"));
-                        stringBuilder.append(HtmlParsing.getTagBody(element).concat("\n"));
-                    });
-                    cssSelectorTextArea.setValue(stringBuilder.toString().replace("&nbsp;", " "));
-                }
-            }
-        });
-
-        Button lemmaButton = new Button("Лемматизатор");
-        lemmaButton.addClickListener(buttonClickEvent -> {
-
-            List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
-                    .stream()
-                    .map(p -> p.getShortName())
-                    .collect(Collectors.toList());
-
-            Lemmatization lemma = new Lemmatization(excludeList, null);
-
-            HashMap<String, Integer> lemmaHashMap = lemma.getLemmaHashMap(cssSelectorTextArea.getValue());
-
-            StringBuilder stringBuilder = new StringBuilder();
-            lemmaHashMap.entrySet().forEach(x -> {
-                stringBuilder.append(x.getKey() + " -> " + x.getValue() + "\n");
-            });
-            cssSelectorTextArea.setValue(stringBuilder.toString());
-        });
-
-        Button indexingButton = new Button("Индексация");
-        indexingButton.addClickListener(buttonClickEvent -> {
-            cssSelectorComboBox.setValue("");
-            List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
-                    .stream()
-                    .map(p -> p.getShortName())
-                    .collect(Collectors.toList());
-
-            Lemmatization lemmatization = new Lemmatization(excludeList,
-                    beanAccess.getFieldRepository().findByActive(true));
-
-            pageGrid.getSelectedItems().stream().findFirst().ifPresent(page -> {
-                var list =
-                        lemmatization.getHashMapsLemmaForEachCssSelector(page.getContent());
-
-                StringBuilder stringBuilder = new StringBuilder();
-
-                //Количество лемм для каждого cssSelector
-                for (int i = 0; i < list.size(); i++) {
-                    stringBuilder.append(lemmatization.getCssSelectors().get(i).getSelector() + ": " + list.get(i).size() + " лемм\n");
-                }
-                stringBuilder.append("---\n");
-
-                HashMap<String, Lemmatization.LemmaInfo> hm = lemmatization.mergeAllHashMaps(list);
-                hm.entrySet().forEach(e -> stringBuilder.append(e.getValue().getLemma() + "," +
-                        e.getValue().getCount() + ", " + e.getValue().getRank() + "\n\n"));
-
-                cssSelectorTextArea.setValue(stringBuilder.toString());
-            });
-        });
-
-
-        var cssControlsLayout = new HorizontalLayout(cssSelectorComboBox, lemmaButton, indexingButton);
-        cssControlsLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
-
-        cssVerticalLayout = new VerticalLayout();
-
-        cssSelectorTextArea.setWidth("100%");
-        cssVerticalLayout.setSpacing(false);
-        cssVerticalLayout.add(cssControlsLayout, cssSelectorTextArea);
-
-        cssVerticalLayout.setEnabled(true);
-    }
 
     private VerticalLayout createPartOfSpeechContent() {
         var vLayout = new VerticalLayout();

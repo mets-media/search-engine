@@ -159,5 +159,4 @@ public class Lemmatization {
         Lemmatization lemmatizator = new Lemmatization(excludeList, beanAccess.getFieldRepository().findByActive(true));
         return lemmatizator;
     }
-
 }

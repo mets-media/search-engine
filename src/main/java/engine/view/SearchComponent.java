@@ -16,6 +16,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.NumberRenderer;
@@ -45,7 +46,8 @@ public class SearchComponent {
     private final TextField requestTextField = new TextField("Поисковый запрос");
     private final TextField findTextField = new TextField();
     private final Checkbox checkboxAuto = new Checkbox("Автом.режим");
-    private final Button calcPageButton = UIElement.createButton("Расчёт релевантности", VaadinIcon.DOWNLOAD, "");
+    private final Button calcPageButton = UIElement.createButton("Расчёт релевантности",
+            VaadinIcon.DOWNLOAD, "");
     private final VerticalLayout detailLayout = new VerticalLayout();
     private ComboBox<String> selectCountersQueryComboBox;
     private ComboBox<String> selectGetInfoQueryComboBox;
@@ -86,7 +88,7 @@ public class SearchComponent {
 
     private void checkAndSetEnableAutoMode(String selectedSite, String selectedMode) {
         if ((selectedSite.equals("Java HashMap")) ||
-                        ((selectedSite.equals("Statement gen.")) && (selectedMode.equals("Все сайты")))) {
+                ((selectedSite.equals("Statement gen.")) && (selectedMode.equals("Все сайты")))) {
             checkboxAuto.setEnabled(false);
             calcPageButton.setEnabled(false);
             findTextField.setEnabled(false);
@@ -101,7 +103,8 @@ public class SearchComponent {
 
     private VerticalLayout getSearchComponent() {
 
-        Collection<TextField> textFieldCollection = Arrays.asList(pageCountTextField, lemmaCountTextField, indexCountTextField);
+        Collection<TextField> textFieldCollection = Arrays.asList(pageCountTextField,
+                lemmaCountTextField, indexCountTextField);
         textFieldCollection.forEach(textField -> {
             textField.setReadOnly(true);
             textField.setWidth("15%");
@@ -187,7 +190,8 @@ public class SearchComponent {
                 }
             }
             siteComboBox.setValue(allSiteObject);
-            UIElement.showMessage("Время подсчёта всех страниц, лемм и индексов: " + TimeMeasure.getStringExperienceTime());
+            UIElement.showMessage("Время подсчёта всех страниц, лемм и индексов: " +
+                    TimeMeasure.getStringExperienceTime());
 
         });
         return button;
@@ -287,14 +291,14 @@ public class SearchComponent {
         findPageGrid.addThemeVariants(GridVariant.LUMO_COMPACT);
 
         DecimalFormat decimalFormat = new DecimalFormat("#,###.##");
-        Grid.Column<PathTable> absRelevanceColumn = findPageGrid.addColumn(new NumberRenderer<>(PathTable::getAbsRelevance,
-                        decimalFormat))
+        Grid.Column<PathTable> absRelevanceColumn = findPageGrid
+                .addColumn(new NumberRenderer<>(PathTable::getAbsRelevance, decimalFormat))
                 .setHeader("Абсолютная")
                 .setTextAlign(ColumnTextAlign.CENTER)
                 .setFrozen(true);
 
-        Grid.Column<PathTable> relRelevanceColumn = findPageGrid.addColumn(new NumberRenderer<>(PathTable::getRelRelevance,
-                        decimalFormat))
+        Grid.Column<PathTable> relRelevanceColumn = findPageGrid
+                .addColumn(new NumberRenderer<>(PathTable::getRelRelevance, decimalFormat))
                 .setHeader("Относительная")
                 .setTextAlign(ColumnTextAlign.CENTER)
                 .setFrozen(true);
@@ -350,19 +354,71 @@ public class SearchComponent {
                     else
                         titleTextField.setValue("");
 
-                    UIElement.removeComponentById(detailLayout, "snippetGrid");
+                    UIElement.removeComponentById(detailLayout, "snippetTextArea");
+                    UIElement.removeComponentById(detailLayout, "snippets");
 
-                    Grid<String> grid = UIElement.getStringGrid("Строки контента с найденными леммами:",
-                            HtmlParsing.getHTMLStringsContainsLemma(content, lemmaGrid.getSelectedItems(), lemmatizator));
-                    grid.setId("snippetGrid");
+                    List<String> snippetHtmlStrings = HtmlParsing.getHTMLStringsContainsLemma(content,
+                            lemmaGrid.getSelectedItems(), lemmatizator);
 
-                    UIElement.removeComponentById(detailLayout, "indexGrid");
+                    TextArea snippetTextArea = new TextArea("Snippet");
+                    snippetTextArea.setId("snippetTextArea");
+                    snippetTextArea.setWidth("100%");
+                    snippetTextArea.setReadOnly(true);
 
-                    detailLayout.add(grid);
+                    String allLinesString = snippetHtmlStrings.stream().collect(Collectors.joining(" "));
+
+                    snippetTextArea.setValue(ApiService
+                            .getSnippetHtmlDocument(allLinesString, lemmaGrid.getSelectedItems(), lemmatizator));
+
+                    var snippets = getSnippetLabel(allLinesString,
+                            lemmaGrid.getSelectedItems(), lemmatizator);
+                    snippets.setId("snippets");
+                    detailLayout.add(snippets, snippetTextArea);
                     detailLayout.setVisible(true);
                 });
             });
         });
+    }
+
+    private VerticalLayout getSnippetLabel(String text, Set<Lemma> lemmaSet, Lemmatization lemmatizator) {
+        var layout = new VerticalLayout();
+        layout.setSpacing(true);
+        layout.setWidth("100%");
+
+        Set<String> snippetFragments = ApiService.getSnippetsFragment(text, lemmaSet, lemmatizator);
+
+        for (String snippetFragment : snippetFragments) {
+            HorizontalLayout snippetLayout = new HorizontalLayout();
+            snippetLayout.setSpacing(true);
+
+            int start = snippetFragment.indexOf("<b>");
+            int end = snippetFragment.indexOf("</b>");
+
+            Label startLabel = new Label();
+            Label wordLabel = new Label();
+            wordLabel.getStyle().set("color", "green");
+            wordLabel.getStyle().set("fontWeight", "bold");
+            Label endLabel = new Label();
+
+            if (start > 0) {
+                startLabel.setText(" ... " + snippetFragment.substring(0, start - 1) + " ");
+                wordLabel.setText(snippetFragment.substring(start + 3, end) + " ");
+                endLabel.setText(" " + snippetFragment.substring(end + 4) + " ... ");
+            }
+
+            snippetLayout.add(startLabel, wordLabel, endLabel);
+            layout.add(snippetLayout);
+        }
+
+        return layout;
+    }
+
+    private Boolean lemmaIsPresent(HashMap<String, Integer> findLemmas, Set<String> lemmas) {
+        for (String lemma : findLemmas.keySet()) {
+            if (lemmas.contains(lemma))
+                return true;
+        }
+        return false;
     }
 
     private void printFindingPageCount(Integer value, String timeString) {
@@ -480,7 +536,6 @@ public class SearchComponent {
             resultSQL = SearchService.getSQLByName("getResult_GetPage_PAGE_INDEX")
                     .replace(":lemmaIdArray", lemmaIdArray)
                     .replace(":pageIdArray", pageIdArray);
-
         }//--------------------------------------------------------------------------------------------------------
 
         if (!checkboxAuto.getValue()) {
@@ -574,7 +629,8 @@ public class SearchComponent {
             clearGrids();
             return;
         }
-        String includeLemma = requestLemmas.keySet().stream().collect(Collectors.joining("','", "'", "'"));
+        String includeLemma =
+                requestLemmas.keySet().stream().collect(Collectors.joining("','", "'", "'"));
 
         if (siteId == 0) { //Все сайты
             lemmaGrid.setItems(beanAccess.getImplRepository().findLemmasInAllSites(includeLemma));
@@ -583,14 +639,14 @@ public class SearchComponent {
                     .findBySiteIdAndLemmaIn(
                             siteId,
                             requestLemmas.keySet().stream().toList(),
-                            PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("frequency")))
+                            PageRequest.of(query.getPage(), query.getPageSize(),
+                                    Sort.by("frequency")))
                     .stream());
     }
 
     private static class PageDetailFormLayout extends FormLayout {
         private static final Button browserButton = new Button("Открыть страницу");
         private static final Label titleLabel = new Label("title:");
-
 
         public PageDetailFormLayout() {
             browserButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
@@ -599,6 +655,7 @@ public class SearchComponent {
             var verticalLayout = new VerticalLayout();
             verticalLayout.setAlignItems(FlexComponent.Alignment.END);
             titleLabel.setWidthFull();
+
             verticalLayout.add(browserButton, titleLabel);
 
             add(verticalLayout);
@@ -633,6 +690,7 @@ public class SearchComponent {
         var relevanceTextField = new TextField("Релевантность");
         var pathTextField = new TextField("Адрес страницы");
         var titleTextField = new TextField("title");
+        titleTextField.getStyle().set("fontWeight", "bold");
 
         relevanceTextField.setWidth("15%");
         pathTextField.setWidth("85%");

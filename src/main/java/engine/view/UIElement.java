@@ -131,8 +131,10 @@ public class UIElement {
 
     private Grid<String> getStringGridWithHeader(String caption, String colName, List<String> words) {
         Grid<String> grid = new Grid<>(String.class, false);
-        Grid.Column<String> col1 = grid.addColumn(String::toString).setHeader(colName).setTextAlign(ColumnTextAlign.START);
-        Grid.Column<String> col2 = grid.addColumn(String::toString).setHeader(colName + "_");
+        Grid.Column<String> col1 = grid.addColumn(String::toString)
+                .setHeader(colName).setTextAlign(ColumnTextAlign.START);
+        Grid.Column<String> col2 = grid.addColumn(String::toString)
+                .setHeader(colName + "_");
         col2.setVisible(false);
         grid.setItems(words);
 

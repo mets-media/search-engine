@@ -15,24 +15,6 @@ public interface LemmaRepository extends JpaRepository<Lemma,Integer> {
     List<Lemma> findBySiteIdAndLemmaIn(Integer siteId, List<String> lemma);
     List<Lemma> findByLemmaIn(List<String> lemmas);
 
-    @Query(value = "select 0 id, sum(frequency) frequency, lemma, sum(rank) rank, 0 site_id \n" +
-            "from lemma\n" +
-            "where lemma in (:lemmaIn)\n" +
-            "group by lemma\n" +
-            "order by frequency", nativeQuery = true)
-    List<Lemma> findLemmaByLemmaNameIn(@Param("lemmaIn") List<String> lemmaIn);
-
-    @Query(value=
-            "with page_lemma_count as (select lemma_id, count(*) lemma_count, sum(index.rank) rank from index \n" +
-            "join lemma on (lemma.id = index.lemma_id)\n" +
-            "where page_id = :pageId\n" +
-            "group by lemma_id)\n" +
-            "select lemma_id id, lemma_count frequency, page_lemma_count.rank rank, lemma, lemma.site_id \n" +
-            "  from page_lemma_count\n" +
-            "  join lemma on (lemma.id = page_lemma_count.lemma_id)\n" +
-            "  order by lemma_count desc, lemma\n", nativeQuery = true)
-    List<Lemma> findByPageId(@Param("pageId") Integer pageId);
-
     @Modifying
     @Transactional
     @Query(value = "drop table Lemma;\n" +
@@ -57,5 +39,4 @@ public interface LemmaRepository extends JpaRepository<Lemma,Integer> {
             "    FOR EACH ROW\n" +
             "    EXECUTE FUNCTION delete_function();",nativeQuery = true)
     void createLemmaTrigger();
-
 }

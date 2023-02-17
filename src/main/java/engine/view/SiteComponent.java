@@ -234,45 +234,6 @@ public class SiteComponent {
         dialog.open();
     }
 
-    private void generateDialog(String title, Grid<Site> sourceGrid, int countFirstVisibleFields) {
-        Dialog dialog = new Dialog();
-        dialog.setMinWidth("30%");
-
-        dialog.setHeaderTitle(title);
-
-        Button confirmButton = new Button("Сохранить");
-        Button cancelButton = new Button("Отменить", e -> dialog.close());
-        dialog.getFooter().add(confirmButton, cancelButton);
-
-        VerticalLayout verticalLayout = new VerticalLayout();
-
-        List<Grid.Column<Site>> columns = sourceGrid.getColumns();
-
-        List<TextField> fields = new ArrayList<>();
-        List<String> titles = new ArrayList<>();
-
-        int fieldsCount = 0;
-        for (Grid.Column<Site> column : columns) {
-            if (fieldsCount >= countFirstVisibleFields) {
-                break;
-            }
-            String titleString = column.getElement().getChild(0).toString();
-            titleString = titleString.substring(titleString.indexOf(">") + 1, titleString.lastIndexOf("<"));
-
-            titles.add(titleString);
-            TextField textField = new TextField(titleString);
-            fields.add(textField);
-
-            verticalLayout.add(textField);
-
-            fieldsCount++;
-        }
-
-        dialog.add(verticalLayout);
-
-        dialog.open();
-    }
-
     private void showNewSiteDialog() {
         Dialog dialog = new Dialog();
         dialog.setModal(true);
@@ -315,7 +276,6 @@ public class SiteComponent {
     }
 
     private void updateSiteInfo() {
-
         grid.getSelectedItems().forEach(site -> {
             int pageCount = beanAccess.getPageRepository().countBySiteId(site.getId());
             site.setPageCount(pageCount);

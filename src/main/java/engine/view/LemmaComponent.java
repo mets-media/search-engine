@@ -55,7 +55,6 @@ public class LemmaComponent {
 
     private HorizontalLayout createButtonAndLayout(TextArea textArea) {
         //-------------------------------------------------------------------------------------------------------------
-
         var splitButton = new Button("Найти [Слова], [Леммы], [Части речи]");
         splitButton.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
 
@@ -70,14 +69,12 @@ public class LemmaComponent {
             horizontalLayout.setId("HorizontalLayoutForGrids");
             horizontalLayout.add(UIElement.getStringGrid("Слова", Arrays.stream(words).toList()));
 
-
             List<String> excludeList = beanAccess.getPartOfSpeechRepository().findByInclude(false)
                     .stream()
                     .map(PartsOfSpeech::getShortName)
                     .collect(Collectors.toList());
 
             Lemmatization lemmatizator = new Lemmatization(excludeList, null);
-
 
             var hm = lemmatizator.getLemmaCountRankHashMap(textArea.getValue(), 1);
 
@@ -91,10 +88,8 @@ public class LemmaComponent {
             contentsHashMap.get("Лемматизатор").add(horizontalLayout);
 
         });
-
         //-------------------------------------------------------------------------------------------------------------
         return new HorizontalLayout(splitButton);
-
     }
 
     private VerticalLayout createLemmatisatorContent() {
@@ -113,7 +108,6 @@ public class LemmaComponent {
         var hLayout = new HorizontalLayout();
         hLayout.setWidthFull();
         hLayout.setHeight(220, Unit.PIXELS);
-        //hLayout.setHeight("15%");
         hLayout.add(textArea);
         textArea.setWidth("100%");
 
@@ -138,7 +132,6 @@ public class LemmaComponent {
         });
         return pageComboBox;
     }
-
     BiFunction<Lemmatization.LemmaInfo, Lemmatization.LemmaInfo, Lemmatization.LemmaInfo> SUB_LEMMA_PROPERTIES =
             (l1, l2) -> new Lemmatization.LemmaInfo(l1.getLemma(),
                     l1.getCount() - l2.getCount(),
@@ -281,7 +274,6 @@ public class LemmaComponent {
 
         TextField urlTextField = getResearchTextField();
         //------------------------------------------------------------------------------------
-
         ComboBox<Page> pageComboBox = getPageComboBox(urlTextField);
         TextField filterTextField = getFilterTextField(pageComboBox);
         Button browserButton = getBrowserButton(pageComboBox);
@@ -292,7 +284,6 @@ public class LemmaComponent {
 
         filterTextField.setWidth("30%");
         pageComboBox.setWidth("70%");
-
         //------------------------------------------------------------------------------------
 
         Button getLemmaButton = createGetLemmaInfoButton(urlTextField);

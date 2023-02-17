@@ -18,54 +18,25 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 @UtilityClass
 public class HtmlParsing {
-
     private static String userAgent;
     private static String referrer;
     private static Integer timeout;
-    private static Integer delay;
-    public static void setUserAgent(String userAgent) {HtmlParsing.userAgent = userAgent;}
-    public static void setReferrer(String referrer) {HtmlParsing.referrer = referrer;}
-    public static void setTimeout(Integer timeout) {HtmlParsing.timeout = timeout;}
-    public static void setDelay(Integer delay) {HtmlParsing.delay = delay;}
 
-    public static String getShortLink(String link, String domainName) {
-        String shortLink = link.substring(link.indexOf(domainName) + domainName.length());
-        if ("".equals(shortLink))
-            if (link.contains("//".concat(domainName)))
-                shortLink = "/";
-            else
-                shortLink = link;
-
-        if ("/".equals(shortLink)) {
-            if (link.contains(".".concat(domainName)))
-                shortLink = link;
-        }
-        return shortLink;
+    public static void setUserAgent(String userAgent) {
+        HtmlParsing.userAgent = userAgent;
     }
 
-    public static void saveFileFromUrl(String urlFile, String filePath) throws IOException {
-        filePath = filePath.concat(urlFile.substring(urlFile.lastIndexOf("/")));
-
-        InputStream inputStream = new URL(urlFile).openStream();
-        Files.copy(inputStream, Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
-        System.out.printf("\nЗаписан файл: %s", filePath);
+    public static void setReferrer(String referrer) {
+        HtmlParsing.referrer = referrer;
     }
 
-    public static String getImageUrl(Element element) {
-        String regex = "src=\"https:[^\"]+\"";
-        String eString = element.toString();
-
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(eString);
-
-        if (matcher.find()) {
-            return eString.substring(matcher.start() + 5, matcher.end() - 1);
-        } else {
-            return "";
-        }
+    public static void setTimeout(Integer timeout) {
+        HtmlParsing.timeout = timeout;
     }
+
 
     public static String getDomainName(String url) {
 
@@ -75,7 +46,8 @@ public class HtmlParsing {
         Pattern pattern = Pattern.compile(regEx);
         Matcher matcher = pattern.matcher(url);
         if (matcher.find()) {
-            return url.substring(matcher.start(), matcher.end()).replace("www.", "").replace("WWW.", "");
+            return url.substring(matcher.start(),
+                    matcher.end()).replace("www.", "").replace("WWW.", "");
         } else
             return null;
     }
@@ -90,7 +62,6 @@ public class HtmlParsing {
             return response.statusCode();
 
         } catch (IOException e) {
-            //return getStatusFromExceptionString(e.toString());
             throw new RuntimeException(e);
         }
     }
@@ -105,7 +76,6 @@ public class HtmlParsing {
             return response.statusCode();
 
         } catch (IOException e) {
-            //return getStatusFromExceptionString(e.toString());
             throw new RuntimeException(e);
         }
     }
@@ -117,7 +87,15 @@ public class HtmlParsing {
                 .referrer(referrer)
                 .timeout(timeout)
                 .get();
+    }
 
+    public static synchronized Document getHtmlDocument(String url, Integer timeout) throws Exception {
+
+        return Jsoup.connect(url)
+                .userAgent(userAgent)
+                .referrer(referrer)
+                .timeout(timeout)
+                .get();
     }
 
     public static Integer getStatusFromExceptionString(String exceptString) {
@@ -143,22 +121,16 @@ public class HtmlParsing {
         return matcher.find();
     }
 
-    public static Document getHtmlDocumentFromFile(Path filePath) {
-        String htmlString;
-        try {
-            htmlString = Files.readString(filePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return Jsoup.parseBodyFragment(htmlString);
+    private Boolean isFileLink(String hRef) {
+
+        String RegEx = "\\.[A-z]{3,4}$";
+        Pattern pattern = Pattern.compile(RegEx);
+        Matcher matcher = pattern.matcher(hRef);
+
+        return matcher.find();
     }
 
-    public static Elements getElements(Document htmlDocument, String cssQuery) {
-        return htmlDocument.select(cssQuery);
-    }
-
-    public static Set<String> getAllLinks(Document document, String domainName) {
+    public static Set<String> getAllLinks(Document document) {
         if (document == null) return null;
         Elements elements = document.select("a[href]");
         Set<String> links = new HashSet<>();
@@ -166,25 +138,8 @@ public class HtmlParsing {
         for (Element e : elements) {
             String hRef = e.absUrl("href");
 
-            String RegEx = "\\.[A-z]{3,4}$";
-            Pattern pattern = Pattern.compile(RegEx);
-            Matcher matcher = pattern.matcher(hRef);
-            if (matcher.find())
-                hRef = "";
-
-            if (hRef.length() > 4) {
-                //if (".jpg".equalsIgnoreCase(hRef.substring(hRef.length() - 4))) {
-                if (hRef.contains(".jpg") || hRef.contains(".JPG")) {
-                    hRef = "";
-                }
-                //if (".pdf".equalsIgnoreCase(hRef.substring(hRef.length() - 4))) {
-                if (hRef.contains(".pdf") || hRef.contains(".PDF")) {
-                    hRef = "";
-                }
-            }
-            if (!"".equals(hRef)) {
+            if (!isFileLink(hRef))
                 links.add(hRef);
-            }
         }
         return links;
     }
@@ -197,57 +152,6 @@ public class HtmlParsing {
         return words;
     }
 
-    public static String getTagBody(Element element) {
-        String resultStr = element.toString();
-        int posForwardBracket = resultStr.substring(0, resultStr.lastIndexOf(">") - 1).lastIndexOf(">");
-        int posBackwardBracket = resultStr.lastIndexOf("<");
-        resultStr = resultStr.substring(posForwardBracket + 1, posBackwardBracket);
-        return resultStr.trim();
-    }
-
-    public static List<Element> getHtmlElementsByRegEx(String regEx, String content) {
-
-        List<Element> resultSet = new ArrayList<>();
-        Document document = Jsoup.parseBodyFragment(content);
-
-        Pattern pattern = Pattern.compile(regEx);
-
-        document.getAllElements().forEach(element -> {
-            element.attributes().forEach(attr -> {
-                if (!(attr.getValue() == null))
-                    if (pattern.matcher(attr.getValue()).find()) {
-                        resultSet.add(element);
-                    }
-            });
-        });
-        return resultSet;
-    }
-
-    public static List<String> findElementsByCss(String cssSelector, String content) {
-        List<String> result = new ArrayList<>();
-        Document document = Jsoup.parseBodyFragment(content);
-        Elements elements = document.select(cssSelector);
-        elements.forEach(element -> {
-            result.add(element.toString().concat("\n\n"));
-        });
-        return result;
-    }
-
-    public static String getBoldRussianText(String content) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        Elements boldElements = Jsoup.parseBodyFragment(content).select("b");
-
-        if (boldElements.size() > 0)
-            boldElements.forEach(htmlString -> {
-                String[] words = getRussianWords(htmlString.text());
-                if (!(words[0] == ""))
-                    stringBuilder.append(htmlString).append("\n...\n");
-            });
-
-
-        return stringBuilder.toString();
-    }
 
     public static List<String> getRussianListString(String content) {
         List<String> list = List.of(content.split("\n"));
@@ -264,11 +168,12 @@ public class HtmlParsing {
         return result;
     }
 
-    public static List<String> getHTMLStringsContainsLemma(String content, Set<Lemma> searchLemmaList, Lemmatization lemmatizator) {
+    public static List<String> getHTMLStringsContainsLemma(String content,
+                                                           Set<Lemma> searchLemmaList, Lemmatization lemmatizator) {
         List<String> result = new ArrayList<>();
         var list = getRussianListString(content);
         for (String s : list) {
-            var stringLemmaHashMap = lemmatizator.getLemmaCountRankHashMap(s,1);
+            var stringLemmaHashMap = lemmatizator.getLemmaCountRankHashMap(s, 1);
             for (Lemma searchLemma : searchLemmaList) {
                 if (stringLemmaHashMap.containsKey(searchLemma.getLemma()))
                     result.add(s);
@@ -276,4 +181,5 @@ public class HtmlParsing {
         }
         return result;
     }
+
 }

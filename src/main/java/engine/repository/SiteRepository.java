@@ -35,7 +35,6 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
     @Query(value="Update Site set page_count = :pageCount Where id = :siteId",nativeQuery = true)
     void setPageCountBySiteId(@Param("siteId") Integer siteId, @Param("pageCount") Integer pageCount);
 
-
     @Modifying
     @Transactional
     @Query(value = "Select delete_site_information(:siteId)", nativeQuery = true)

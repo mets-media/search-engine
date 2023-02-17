@@ -35,11 +35,4 @@ public class Site implements Serializable {
     private LocalDateTime statusTime;
     @Column(columnDefinition = "Text")
     private String lastError;
-
-
-//    @OneToMany(cascade = CascadeType.ALL)
-//    @JoinColumn(name="siteId")
-//    private List<Page> pages;
-
-
 }

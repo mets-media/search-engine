@@ -49,7 +49,9 @@ public class ApiService {
         if (requestStr.isBlank()) {
             return new ResponseEntity<>(new ResponseError("Запрос не может быть пустым"),
                     HttpStatus.BAD_REQUEST);
-        } else if (HtmlParsing.getRussianListString(requestStr).size() == 0) {
+        }
+
+        if (HtmlParsing.getRussianListString(requestStr).size() == 0) {
             return new ResponseEntity<>(new ResponseError("Запрос должен содержать русские слова!"),
                     HttpStatus.BAD_REQUEST);
         }
@@ -78,7 +80,6 @@ public class ApiService {
             lemmaList = beanAccess.getLemmaRepository().findBySiteIdAndLemmaIn(siteId.get(),
                     requestLemmas.keySet().stream().toList());
 
-
         if (lemmaList.size() == 0)
             return new ResponseEntity<>(new ResponseError("Леммы для вашего запроса не найдены на страницах сайтов"),
                     HttpStatus.NOT_FOUND);
@@ -90,7 +91,8 @@ public class ApiService {
         var result = getFullInfo(findPages, lemmaSet, lemmatizator);
 
         if (result.size() == 0)
-            return new ResponseEntity<>(new ResponseError("Страницы с комбинацией переданных лемм не найдены. Сократите запрос."), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ResponseError("Страницы с комбинацией переданных лемм не найдены. " +
+                    "Сократите запрос."), HttpStatus.NOT_FOUND);
 
         int resultsCount = result.size();
         int offset = queryDto.offset();
@@ -106,9 +108,7 @@ public class ApiService {
         if (toIndex >= resultsCount)
             toIndex = resultsCount;
 
-
         result = result.subList(offset, toIndex);
-
 
         return new ResponseEntity<>(new ResponseSearch(resultsCount, result), HttpStatus.OK);
     }//-------------------------------------------------------------
@@ -123,7 +123,16 @@ public class ApiService {
         }
     }
 
-    static String markAllLemmas(String text, Set<Lemma> lemmaSet, Lemmatization lemmatizator) {
+    private static Boolean lemmaIsPresent(HashMap<String, Integer> findLemmas, Set<String> lemmas) {
+        for (String lemma : findLemmas.keySet()) {
+            if (lemmas.contains(lemma))
+                return true;
+        }
+        return false;
+    }
+
+    public static Set<String> getSnippetsFragment(String text, Set<Lemma> lemmaSet, Lemmatization lemmatizator) {
+        Set<String> words = new HashSet<>();
 
         String[] russianWords = HtmlParsing.getRussianWords(text);
         List<String> listWord = new ArrayList<>(Arrays.stream(russianWords).toList());
@@ -132,45 +141,84 @@ public class ApiService {
         Set<String> lemmas = lemmaSet.stream().map(Lemma::getLemma).collect(Collectors.toSet());
 
         for (String word : listWord) {
+
             //леммы для каждого слова
             var findLemma = lemmatizator.getLemmaHashMap(word);
 
-            for (String lemma : findLemma.keySet()) {
-                if (lemmas.contains(lemma)) {
-                    text = text.replace(word, "<b>" + word + "</b>");
-                    break;
-                }
+            if (lemmaIsPresent(findLemma, lemmas))
+                text = text.toLowerCase()
+                        .replaceAll("[^<b>]" + word + "[^</b>]", " <b>" + word + "</b> ");
+
+            int i = text.indexOf("<b>" + word + "</b>");
+
+            if (i > 0) {
+                i -= 25;
+                int j = i + word.length() + 50;
+                if (i < 0) i = 0;
+                if (j > text.length()) j = text.length();
+
+                words.add(trimToSpaces(text.substring(i, j)));
             }
         }
-        return text;
+        return words;
+    }
+
+    private static String trimToSpaces(String text) {
+        return text.substring(text.indexOf(" "),text.lastIndexOf(" "));
+
+    }
+    public static String getSnippetHtmlDocument(String text, Set<Lemma> lemmaSet, Lemmatization lemmatizator) {
+
+        Set<String> words = getSnippetsFragment(text, lemmaSet, lemmatizator);
+
+        String result = "";
+        for (String word : words) {
+            result = result.concat("<p> ... " + word + " ... ; </p>\n");
+        }
+
+        String htmlString = """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>Snippet</title>
+                </head>
+                <body>
+                :fragmentsWithLemma
+                </body>
+                </html>""";
+
+        return htmlString.replace(":fragmentsWithLemma", result);
     }
 
     static String getSnippet(String content, Set<Lemma> lemmaSet, Lemmatization lemmatizator) {
-        StringBuilder result = new StringBuilder();
+
         var listHtml = HtmlParsing.getHTMLStringsContainsLemma(content, lemmaSet, lemmatizator);
-        for (String htmlString : listHtml) {
-            //добавить <b> </b>
-            result.append(markAllLemmas(htmlString, lemmaSet, lemmatizator));
-        }
-        return result.toString();
+
+        return ApiService.getSnippetHtmlDocument(listHtml.stream().collect(Collectors.joining(" ")),
+                        lemmaSet, lemmatizator);
     }
 
-    static List<FindPageDto> getFullInfo(List<PathTable> pathTableList, Set<Lemma> lemmaSet, Lemmatization lemmatizator) {
+    static List<FindPageDto> getFullInfo(List<PathTable> pathTableList,
+                                         Set<Lemma> lemmaSet, Lemmatization lemmatizator) {
+
         List<FindPageDto> result = new ArrayList<>();
+
         for (PathTable pathTable : pathTableList) {
+
             Page page = beanAccess.getPageRepository().getById(pathTable.getPageId());
             Integer siteId = page.getSiteId();
             beanAccess.getSiteRepository().findById(siteId).ifPresent(site ->
                     result.add(new FindPageDto
-                    (
-                            site.getUrl(),
-                            site.getName(),
-                            pathTable.getPath(),
-                            getTitle(page.getContent()),
-                            getSnippet(page.getContent(), lemmaSet, lemmatizator),
-                            pathTable.getRelRelevance()
-                    )
-            ));
+                            (
+                                    site.getUrl(),
+                                    site.getName(),
+                                    pathTable.getPath(),
+                                    getTitle(page.getContent()),
+                                    getSnippet(page.getContent(), lemmaSet, lemmatizator),
+                                    pathTable.getRelRelevance()
+                            )
+                    ));
         }
         return result;
     }

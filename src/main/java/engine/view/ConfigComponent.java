@@ -53,7 +53,6 @@ public class ConfigComponent {
     private List<Button> createButtons(List<String> captions) {
         List<Button> buttons = new ArrayList<>();
         for (String caption : captions) {
-
             var button = new Button(caption);
             button.getStyle().set("font-size", "var(--lumo-font-size-xxs)").set("margin", "0");
             buttons.add(button);
@@ -127,10 +126,6 @@ public class ConfigComponent {
         Button saveButton = new Button("Сохранить", event -> {
             AtomicReference<String> result = new AtomicReference<>("");
             dialog.getChildren().forEach(component -> {
-
-                System.out.println(component.getClass().getName());
-                System.out.println(component.getId());
-
                 String id = String.valueOf(component.getId());
                 switch (id) {
                     case "Optional[Integer]" ->

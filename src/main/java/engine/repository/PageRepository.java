@@ -41,7 +41,6 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
     @Query(value = "Select Content from Page where Path = :path", nativeQuery = true)
     String getContentByPath(@Param("path") String path);
 
-
     List<Page> findByPathContainingOrderByPath(String filter, Pageable pageable);
 
     @Modifying

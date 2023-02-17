@@ -27,7 +27,6 @@ public class Field {
     @ColumnDefault("true")
     private boolean active;
 
-
     public Field(String name, String selector, Float weight) {
         this.name = name;
         this.selector = selector;

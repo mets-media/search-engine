@@ -21,6 +21,7 @@ public class ApiController {
     public ResponseEntity<?> getStatistics() {
         return new ResponseEntity<>(ApiService.getStatistics(), HttpStatus.OK);
     }
+
     @PostMapping(value = "/indexPage")
     public ResponseEntity<?> indexPage(@RequestParam String url) {
 
@@ -30,10 +31,12 @@ public class ApiController {
         }
         return new ResponseEntity<>(new ResponseOk(), HttpStatus.OK);
     }
+
     @GetMapping(value = "/stopIndexing", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> stopIndexing() {
         return ApiService.stopIndexing();
     }
+
     @GetMapping("/refresh")
     public ResponseEntity<?> refresh() {
         SearchService.refreshSitesInformation();
@@ -42,14 +45,13 @@ public class ApiController {
     @GetMapping(value = "/startIndexing")
     public ResponseEntity<?> startIndexing() {
         return ApiService.startIndexing();
-
     }
+
     @GetMapping(value = "/search")
     public ResponseEntity<?> search(@RequestParam String query,
                                     @RequestParam Optional<String> site,
                                     @RequestParam Optional<Integer> offset,
                                     @RequestParam Optional<Integer> limit) {
-
         return ApiService.search(new QueryDto(query,
                                      site.orElse("*"),
                                      offset.orElse(0),

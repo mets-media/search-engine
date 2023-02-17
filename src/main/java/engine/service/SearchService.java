@@ -92,7 +92,8 @@ public class SearchService {
         return -1;
     }
 
-    private static List<PathTable> calcRelevanceForEachPage(List<Index> entities, Set<Lemma> lemmas, int selectedSiteId) {
+    private static List<PathTable> calcRelevanceForEachPage(List<Index> entities,
+                                                            Set<Lemma> lemmas, int selectedSiteId) {
 
         List<PathTable> result = new ArrayList<>();
 
@@ -150,7 +151,6 @@ public class SearchService {
             if (!pageIdHashMap.containsKey(selectedLemma))
                 pageIdHashMap.put(selectedLemma, pageIdList);
         });
-
     }
 
     public void refreshSitesInformation() {
@@ -205,25 +205,20 @@ public class SearchService {
             lemma = sortedLemma.get(i).getLemma();
             result.retainAll(hashMap.get(lemma));
         }
-        //Collections.sort(result);
         return result;
     }
 
     public List<Index> removeByPageId(HashMap<String, List<Index>> hashMapIndex,
                                       List<Integer> listPageId) {
-
         Set<Index> entityHashSet = new HashSet<>();
-
         for (String lemma : hashMapIndex.keySet()) {
 
             List<Index> indexEntities = hashMapIndex.get(lemma);
-
             indexEntities.forEach(index -> {
                 if (listPageId.contains(index.getPageId()))
                     entityHashSet.add(index);
             });
         }
-
         return entityHashSet.stream().sorted(Comparator.comparing(Index::getPageId)).toList();
     }
 
@@ -234,9 +229,7 @@ public class SearchService {
                 .sorted(Comparator.comparing(Lemma::getFrequency)).toList();
 
         if (sortedLemma.size() == 0) return new ArrayList<>();
-
         String lowFrequencyLemma = sortedLemma.get(0).getLemma();
-
         List<Index> result = new ArrayList<>(hashMap.get(lowFrequencyLemma));
         for (int i = 1; i < sortedLemma.size(); i++) {
             lowFrequencyLemma = sortedLemma.get(i).getLemma();

@@ -12,7 +12,6 @@ public class StatisticsWithErrors {
     private final boolean result = true;
     private final TotalDto total;
     private final List<SiteInfoDto> detailed;
-
     public StatisticsWithErrors(List<SiteInfoDto> detailed) {
 
         this.detailed = detailed;

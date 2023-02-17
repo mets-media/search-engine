@@ -59,6 +59,7 @@ public class BeanAccess {
         ApiService.setBeanAccess(this);
         SearchService.setBeanAccess(this);
 
+
     }
 }
 

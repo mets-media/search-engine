@@ -7,24 +7,44 @@
     <option name="rewriteBookmarkType" value="true" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="ReadMe + Видео">
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/controller/response/ResponseError.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/controller/response/ResponseOk.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/controller/response/ResponseSearch.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/controller/response/Statistics.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/controller/response/StatisticsWithErrors.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/dto/FindPageDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/dto/QueryDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/dto/SiteAndContent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/dto/SqlQueryDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/enums/LinkStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/enums/SiteStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/service/ApiService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/view/ControlComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/artifacts/engine_jar/engine.jar" beforeDir="false" afterPath="$PROJECT_DIR$/out/artifacts/engine_jar/engine.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/_import.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/mets.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/mets.jar" afterDir="false" />
+    <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Search-Engine v1.01">
+      <change afterPath="$PROJECT_DIR$/src/main/java/engine/repository/DBWriter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/Application.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/ApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/ApiController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/response/ResponseError.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/response/ResponseError.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/response/ResponseSearch.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/response/ResponseSearch.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/response/StatisticsWithErrors.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/response/StatisticsWithErrors.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/dto/FindPageDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/dto/FindPageDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/dto/SiteAndContent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/dto/SiteAndContent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/dto/SiteInfoDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/dto/SiteInfoDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/dto/SiteInfoWithoutErrorDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/dto/SiteInfoWithoutErrorDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Field.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Field.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Lemma.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Lemma.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/PageContainer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/PageContainer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/PartsOfSpeech.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/PartsOfSpeech.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Site.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Site.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/enums/SiteStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/enums/SiteStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/ImplRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/ImplRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/IndexRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/IndexRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/KeepLinkRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/KeepLinkRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/LemmaRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/LemmaRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageContainerRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageContainerRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/ApiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/ApiService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/BeanAccess.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/BeanAccess.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Lemmatization.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Lemmatization.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/ConfigComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/ConfigComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/IndexingComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/IndexingComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/UIElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/UIElement.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -494,7 +514,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="Morph dependencies. Version with HashMap-cash." />
     <MESSAGE value="Morph dependencies. MultiSelect mode." />
     <MESSAGE value="Morph dependencies. Start-Stop-Continue downloading" />
     <MESSAGE value="Morph dependencies. MultiScan" />
@@ -519,7 +538,8 @@
     <MESSAGE value="Оптимизация кода" />
     <MESSAGE value="Система поиска окончательный вариант" />
     <MESSAGE value="ReadMe + Видео" />
-    <option name="LAST_COMMIT_MESSAGE" value="ReadMe + Видео" />
+    <MESSAGE value="Search-Engine v1.01" />
+    <option name="LAST_COMMIT_MESSAGE" value="Search-Engine v1.01" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -546,22 +566,22 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>183</line>
+          <line>170</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>406</line>
+          <line>347</line>
           <option name="timeStamp" value="182" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>247</line>
+          <line>189</line>
           <option name="timeStamp" value="183" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>396</line>
+          <line>346</line>
           <option name="timeStamp" value="184" />
         </line-breakpoint>
       </breakpoints>

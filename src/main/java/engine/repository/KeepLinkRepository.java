@@ -2,13 +2,21 @@ package engine.repository;
 
 import engine.dto.IdTextDto;
 import engine.entity.KeepLink;
+import engine.enums.LinkStatus;
+import engine.service.BeanAccess;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 
 @Repository
@@ -56,4 +64,6 @@ public interface KeepLinkRepository extends JpaRepository<KeepLink, Integer> {
             CONSTRAINT keep_link_pkey PRIMARY KEY (id)
             )""", nativeQuery = true)
     void reCreateTable();
+
+
 }

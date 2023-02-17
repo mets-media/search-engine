@@ -1,6 +1,5 @@
 package engine.entity;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
@@ -24,9 +23,4 @@ public class PartsOfSpeech {
     @NotNull
     @ColumnDefault("true")
     private Boolean include;
-
-    public PartsOfSpeech(String shortName, Boolean include) {
-        this.shortName = shortName;
-        this.include = include;
-    }
 }
