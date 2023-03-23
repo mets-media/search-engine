@@ -125,16 +125,18 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
                     AS $BODY$
                     declare max_id integer;
                     begin
-                    \tselect max(id) from page into max_id;
-                    \tif max_id is null then
-                    \t\t--Alter sequence page_id_seq RESTART WITH 1;
-                    \t\t--Alter sequence lemma_id_seq RESTART WITH 1;
-                    \t\t--Alter sequence index_id_seq RESTART WITH 1;
-                    \t\tAlter sequence page_del_count RESTART WITH 1;
-                    \t\tAlter sequence lemma_del_count RESTART WITH 1;
-                    \t\tAlter sequence index_del_count RESTART WITH 1;
-                    \t\treturn 1;\tend if;
-                    \treturn 0;end
+                      select max(id) from page into max_id;
+                      if max_id is null then
+                      --Alter sequence page_id_seq RESTART WITH 1;
+                      --Alter sequence lemma_id_seq RESTART WITH 1;
+                      --Alter sequence index_id_seq RESTART WITH 1;
+                        Alter sequence page_del_count RESTART WITH 1;
+                        Alter sequence lemma_del_count RESTART WITH 1;
+                        Alter sequence index_del_count RESTART WITH 1;
+                        return 1;
+                      end if;
+                      return 0;
+                      end
                     $BODY$;""",nativeQuery = true)
     void createFunctionResetCounters();
     @Modifying
@@ -170,7 +172,7 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
                        when 'site' then
                         begin
                          select count(id) from site into count;
-                         
+
                          if count = 0 then
                           ALTER SEQUENCE page_id_seq RESTART WITH 1;
                           ALTER SEQUENCE lemma_id_seq RESTART WITH 1;
@@ -179,7 +181,7 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
                           ALTER SEQUENCE lemma_del_count RESTART WITH 1;
                           ALTER SEQUENCE index_del_count RESTART WITH 1;
                          end if;
-                         
+
                          delete from keep_link where site_id = old.id;
                          delete from index where page_id in (select id from page where site_id = old.id);
                          delete from lemma where site_id = old.id;
@@ -228,19 +230,19 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
               for new_lemma in (select unnest(string_to_array(includeLemma,',')))
               loop--##########################################################
                     lemmas = lemmas || comma || '''' || new_lemma || '''';
-            
+
                     sqlText = sqlText || commaCR || queryName || i || sqlCommand ||  '''' || new_lemma || ''')';
                     commaCR = ', ' || chr(10); comma = ', ';
                     if i > 0 then
                         finalQuery = finalQuery || ' join ' || queryName || i || ' on ('|| queryName || 0 || '.page_id = ' || queryName || i || '.page_id)' || chr(10);\s
                     end if;
                     i = i + 1;
-            
+
               end loop;--#####################################################
-            
-            
+
+
               stmt = 'with ' ||  sqlText || ', ' || chr(10) || 'findPages as (select ' || queryName || 0 || '.page_id, ' || queryName || 0 || '.rank from ' || queryName || 0 || chr(10) ||\s
-                     finalQuery || '), ' || chr(10) || 
+                     finalQuery || '), ' || chr(10) ||
                      'statisticQuery as (select index.page_id, sum(index.rank) abs, sum(index.rank)/max(index.rank) rel from findPages ' || chr(10) ||
                      'join index on (index.page_id = findPages.page_id) ' || chr(10) ||
                      'where index.lemma_id in (select id lemma_id from lemma where lemma in (' || lemmas || ')) ' || chr(10) ||\s
@@ -291,28 +293,28 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
                         loop
                             if (rec.page_id != page_id) and (page_id != 0) then
                                 rel = abs / max_rank;
-                    
+
                                 select page.path from page where id = rec.page_id into path;
-                    
+
                                 select lemma.site_id from lemma where lemma.id = rec.lemma_id into lemma_site;
-                    
-                                if site_selected = 0 then 
+
+                                if site_selected = 0 then
                                     return next;
-                                else 
+                                else
                                 --Вывод если сайт совпадает с заданным
                                 if (lemma_site = site_selected) then return next; end if;
                                 end if;
-                    
+
                                 abs = 0; max_rank = 0; rel = 0;
                             end if;
-                    
+
                             page_id = rec.page_id;
                             abs = abs + rec.rank;
                             if max_rank < rec.rank then max_rank = rec.rank; end if;
-                    
+
                         end loop;
-                    
-                        if abs > 0 then 
+
+                        if abs > 0 then
                             rel = abs / max_rank;
                             select page.path from page where id = rec.page_id into path;
                             return next;
@@ -370,17 +372,17 @@ public interface ConfigRepository extends JpaRepository<Config,Integer> {
                 loop
                     abs = 0; rel = 0; max_rank = 0;
 
-                    select sum(rank) abs, max(rank) max_rank 
-                    from index 
+                    select sum(rank) abs, max(rank) max_rank
+                    from index
                     where index.page_id = rec_page.page_id
                       and index.lemma_id in (select cast(unnest(string_to_array(lemma_id_array,',')) as integer))
-                    into abs, max_rank; 
+                    into abs, max_rank;
                     page_id = rec_page.page_id;
                     path = rec_page.path;
                     rel = abs / max_rank;
-                    return next; 
+                    return next;
                 end loop;
-            
+
             end
             $BODY$;""",nativeQuery = true)
     void createGetPagesFunction();

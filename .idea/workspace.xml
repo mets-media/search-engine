@@ -8,43 +8,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c3d67a31-bf9a-43b5-af14-a7a56a872ba0" name="Changes" comment="Search-Engine v1.01">
-      <change afterPath="$PROJECT_DIR$/src/main/java/engine/repository/DBWriter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/Application.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/ApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/ApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/response/ResponseError.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/response/ResponseError.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/response/ResponseSearch.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/response/ResponseSearch.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/controller/response/StatisticsWithErrors.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/controller/response/StatisticsWithErrors.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/dto/FindPageDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/dto/FindPageDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/dto/SiteAndContent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/dto/SiteAndContent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/dto/SiteInfoDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/dto/SiteInfoDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/dto/SiteInfoWithoutErrorDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/dto/SiteInfoWithoutErrorDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Field.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Field.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Lemma.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Lemma.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Page.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/PageContainer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/PageContainer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/PartsOfSpeech.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/PartsOfSpeech.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/Site.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/entity/Site.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/enums/SiteStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/enums/SiteStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/artifacts/engine_jar/engine.jar" beforeDir="false" afterPath="$PROJECT_DIR$/out/artifacts/engine_jar/engine.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/entity/IndexEntity.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/ConfigRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/ImplRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/ImplRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/IndexRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/IndexRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/KeepLinkRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/KeepLinkRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/LemmaRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/LemmaRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageContainerRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageContainerRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/PageRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/repository/SiteRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/ApiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/ApiService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/BeanAccess.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/BeanAccess.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/HtmlParsing.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Lemmatization.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Lemmatization.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/Parser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/service/SearchService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/ConfigComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/ConfigComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/IndexingComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/IndexingComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/LemmaComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/SiteComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/engine/view/UIElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/view/UIElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/_import.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/_import.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -139,13 +109,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1660536435562</updated>
-    </task>
-    <task id="LOCAL-00028" summary="Проверка Lazy loading">
-      <created>1669573853010</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1669573853010</updated>
     </task>
     <task id="LOCAL-00029" summary="Индексация">
       <created>1669861898280</created>
@@ -483,7 +446,14 @@
       <option name="project" value="LOCAL" />
       <updated>1674621821985</updated>
     </task>
-    <option name="localTasksCounter" value="77" />
+    <task id="LOCAL-00077" summary="Search-Engine v1.01">
+      <created>1676659461796</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1676659461800</updated>
+    </task>
+    <option name="localTasksCounter" value="78" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -565,24 +535,14 @@
           <option name="timeStamp" value="91" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>170</line>
-          <option name="timeStamp" value="176" />
+          <url>file://$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java</url>
+          <line>359</line>
+          <option name="timeStamp" value="188" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>347</line>
-          <option name="timeStamp" value="182" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>189</line>
-          <option name="timeStamp" value="183" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/engine/service/Parser.java</url>
-          <line>346</line>
-          <option name="timeStamp" value="184" />
+          <url>file://$PROJECT_DIR$/src/main/java/engine/view/SearchComponent.java</url>
+          <line>372</line>
+          <option name="timeStamp" value="189" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
